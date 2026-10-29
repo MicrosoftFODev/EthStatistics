@@ -37,15 +37,14 @@
             <Grid>
 
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="220"/>
-                    <ColumnDefinition Width="180"/>
-                    <ColumnDefinition Width="180"/>
+                    <ColumnDefinition Width="260"/>
+                    <ColumnDefinition Width="200"/>
+                    <ColumnDefinition Width="200"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
 
 
-                <!-- ASSET -->
+                <!-- MARKET -->
 
                 <StackPanel Grid.Column="0"
                             Margin="0,0,20,0">
@@ -57,6 +56,8 @@
 
                     <ComboBox
                         x:Name="MarketComboBox"
+                        DisplayMemberPath="DisplayName"
+                        SelectedValuePath="Pair"
                         Style="{StaticResource ProfessionalComboBoxStyle}"/>
 
                 </StackPanel>
@@ -74,6 +75,8 @@
 
                     <ComboBox
                         x:Name="IntervalComboBox"
+                        DisplayMemberPath="Name"
+                        SelectedValuePath="Minutes"
                         Style="{StaticResource ProfessionalComboBoxStyle}"/>
 
                 </StackPanel>
@@ -91,19 +94,37 @@
 
                     <ComboBox
                         x:Name="PeriodComboBox"
+                        DisplayMemberPath="Name"
+                        SelectedValuePath="Days"
                         Style="{StaticResource ProfessionalComboBoxStyle}"/>
 
                 </StackPanel>
 
 
-                <!-- LOAD -->
+                <!-- AUTOMATIC REFRESH STATUS -->
 
-                <Button
-                    Grid.Column="4"
-                    Content="Load Market"
-                    Width="125"
-                    Style="{StaticResource PrimaryButtonStyle}"
-                    VerticalAlignment="Bottom"/>
+                <StackPanel
+                    Grid.Column="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom"
+                    Margin="20,0,0,9">
+
+                    <Ellipse
+                        x:Name="RefreshStatusIndicator"
+                        Width="7"
+                        Height="7"
+                        Fill="{DynamicResource TextMutedBrush}"
+                        Margin="0,0,8,0"/>
+
+                    <TextBlock
+                        x:Name="RefreshStatusText"
+                        Text="Waiting"
+                        Foreground="{DynamicResource TextMutedBrush}"
+                        FontSize="11"
+                        VerticalAlignment="Center"/>
+
+                </StackPanel>
 
             </Grid>
 
@@ -117,11 +138,11 @@
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="130"/>
+                <RowDefinition Height="140"/>
             </Grid.RowDefinitions>
 
 
-            <!-- PRICE CHART -->
+            <!-- PRICE -->
 
             <Border Grid.Row="0"
                     Style="{StaticResource CardStyle}"
@@ -135,7 +156,7 @@
                     </Grid.RowDefinitions>
 
 
-                    <!-- CHART HEADER -->
+                    <!-- PRICE HEADER -->
 
                     <Grid Grid.Row="0">
 
@@ -152,13 +173,16 @@
                                 Style="{StaticResource SectionTitleStyle}"/>
 
                             <TextBlock
-                                Text="No market selected"
+                                x:Name="ChartMarketText"
+                                Text="Waiting for market data"
                                 Foreground="{DynamicResource TextMutedBrush}"
                                 FontSize="11"
                                 Margin="0,4,0,0"/>
 
                         </StackPanel>
 
+
+                        <!-- LEGEND -->
 
                         <StackPanel
                             Grid.Column="1"
@@ -174,42 +198,50 @@
                             <TextBlock
                                 Text="Close"
                                 Foreground="{DynamicResource TextSecondaryBrush}"
-                                FontSize="11"/>
+                                FontSize="11"
+                                VerticalAlignment="Center"/>
 
                         </StackPanel>
 
                     </Grid>
 
 
-                    <!-- EMPTY CHART -->
+                    <!-- PRICE CONTENT -->
 
-                    <Grid Grid.Row="1">
+                    <Grid Grid.Row="1"
+                          Margin="0,18,0,0">
 
                         <Border
                             BorderBrush="{DynamicResource BorderSubtleBrush}"
-                            BorderThickness="0,1,0,0"
-                            Margin="0,18,0,0"/>
+                            BorderThickness="0,1,0,0"/>
 
 
-                        <StackPanel
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
+                        <!-- REAL CHART GOES HERE LATER -->
 
-                            <TextBlock
-                                Text="No chart data"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                FontSize="14"
-                                FontWeight="SemiBold"
-                                HorizontalAlignment="Center"/>
+                        <Grid x:Name="PriceChartContainer">
 
-                            <TextBlock
-                                Text="Select a market and period to display price history"
-                                Foreground="{DynamicResource TextMutedBrush}"
-                                FontSize="12"
-                                Margin="0,7,0,0"
-                                HorizontalAlignment="Center"/>
+                            <StackPanel
+                                x:Name="EmptyChartState"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
 
-                        </StackPanel>
+                                <TextBlock
+                                    Text="No chart data available"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    HorizontalAlignment="Center"/>
+
+                                <TextBlock
+                                    Text="Market data will refresh automatically"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="11"
+                                    Margin="0,7,0,0"
+                                    HorizontalAlignment="Center"/>
+
+                            </StackPanel>
+
+                        </Grid>
 
                     </Grid>
 
@@ -230,14 +262,37 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock
-                        Text="Volume"
-                        Style="{StaticResource SectionTitleStyle}"/>
+
+                    <!-- VOLUME HEADER -->
+
+                    <Grid Grid.Row="0">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
 
 
-                    <Grid Grid.Row="1">
+                        <TextBlock
+                            Text="Volume"
+                            Style="{StaticResource SectionTitleStyle}"/>
 
-                        <!-- baseline -->
+
+                        <TextBlock
+                            Grid.Column="1"
+                            x:Name="VolumeMarketText"
+                            Text="—"
+                            Foreground="{DynamicResource TextMutedBrush}"
+                            FontSize="11"
+                            VerticalAlignment="Center"/>
+
+                    </Grid>
+
+
+                    <!-- VOLUME CONTENT -->
+
+                    <Grid Grid.Row="1"
+                          Margin="0,12,0,0">
 
                         <Border
                             Height="1"
@@ -245,12 +300,19 @@
                             VerticalAlignment="Bottom"/>
 
 
-                        <TextBlock
-                            Text="Volume data will appear here"
-                            Foreground="{DynamicResource TextMutedBrush}"
-                            FontSize="11"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
+                        <!-- REAL VOLUME CHART GOES HERE LATER -->
+
+                        <Grid x:Name="VolumeChartContainer">
+
+                            <TextBlock
+                                x:Name="EmptyVolumeState"
+                                Text="Volume data will appear automatically"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="11"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+
+                        </Grid>
 
                     </Grid>
 

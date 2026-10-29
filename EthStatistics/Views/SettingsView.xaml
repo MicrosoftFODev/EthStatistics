@@ -120,7 +120,7 @@
                             Style="{StaticResource SectionTitleStyle}"/>
 
                         <TextBlock
-                            Text="Default options used when opening market analysis"
+                            Text="Default options used for market analysis"
                             Style="{StaticResource LabelStyle}"
                             Margin="0,6,0,20"/>
 
@@ -183,7 +183,7 @@
                 </Border>
 
 
-                <!-- ABOUT -->
+                <!-- APPLICATION -->
 
                 <Border
                     Style="{StaticResource CardStyle}"

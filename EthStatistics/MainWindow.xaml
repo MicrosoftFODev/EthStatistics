@@ -85,13 +85,26 @@
 
                 <!-- CENTER STATUS -->
 
-                <TextBlock
-                    Grid.Column="1"
-                    Text="Market Analysis"
-                    Foreground="{DynamicResource TextMutedBrush}"
-                    FontSize="12"
-                    VerticalAlignment="Center"
-                    HorizontalAlignment="Center"/>
+                <StackPanel
+    Grid.Column="1"
+    Orientation="Horizontal"
+    VerticalAlignment="Center"
+    HorizontalAlignment="Center">
+
+                    <Ellipse
+        x:Name="DataStatusIndicator"
+        Width="7"
+        Height="7"
+        Fill="{DynamicResource TextMutedBrush}"
+        Margin="0,0,8,0"/>
+
+                    <TextBlock
+        x:Name="DataStatusText"
+        Text="Waiting for market data"
+        Foreground="{DynamicResource TextMutedBrush}"
+        FontSize="12"/>
+
+                </StackPanel>
 
 
                 <!-- USER -->

@@ -9,6 +9,13 @@
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<None Include="$(MSBuildProjectDirectory)\..\EthData\MarketData.py">
+			<Link>Python\MarketData.py</Link>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
+
 	<Target Name="CopyQuantEngine" AfterTargets="Build">
 
 		<Copy SourceFiles="$(MSBuildProjectDirectory)\..\QuantEngine\x64\$(Configuration)\QuantEngine.dll" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />

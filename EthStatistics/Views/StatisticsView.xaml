@@ -67,15 +67,17 @@
                 </Border>
 
 
-                <!-- CORE STATISTICS -->
+                <!-- DESCRIPTIVE STATISTICS -->
 
                 <TextBlock
                     Text="Descriptive Statistics"
                     Style="{StaticResource SectionTitleStyle}"
                     Margin="0,8,0,12"/>
 
+
                 <UniformGrid Columns="4"
                              Margin="0,0,0,22">
+
 
                     <!-- MEAN -->
 
@@ -194,15 +196,19 @@
                 </UniformGrid>
 
 
-                <!-- RANGE -->
+                <!-- MARKET RANGE -->
 
                 <TextBlock
                     Text="Market Range"
                     Style="{StaticResource SectionTitleStyle}"
                     Margin="0,0,0,12"/>
 
+
                 <UniformGrid Columns="3"
                              Margin="0,0,0,22">
+
+
+                    <!-- MINIMUM -->
 
                     <Border
                         Style="{StaticResource CardStyle}"
@@ -225,6 +231,8 @@
                     </Border>
 
 
+                    <!-- MAXIMUM -->
+
                     <Border
                         Style="{StaticResource CardStyle}"
                         Margin="0,0,10,0">
@@ -245,6 +253,8 @@
 
                     </Border>
 
+
+                    <!-- OBSERVATIONS -->
 
                     <Border
                         Style="{StaticResource CardStyle}">
@@ -268,7 +278,7 @@
                 </UniformGrid>
 
 
-                <!-- DISTRIBUTION PLACEHOLDER -->
+                <!-- RETURN DISTRIBUTION -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -281,9 +291,11 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
+
                         <TextBlock
                             Text="Return Distribution"
                             Style="{StaticResource SectionTitleStyle}"/>
+
 
                         <StackPanel
                             Grid.Row="1"
@@ -294,13 +306,15 @@
                                 Text="No statistical data available"
                                 Foreground="{DynamicResource TextSecondaryBrush}"
                                 FontSize="14"
-                                FontWeight="SemiBold"/>
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Center"/>
 
                             <TextBlock
                                 Text="Distribution analysis will appear after market data is loaded"
                                 Foreground="{DynamicResource TextMutedBrush}"
                                 FontSize="11"
-                                Margin="0,7,0,0"/>
+                                Margin="0,7,0,0"
+                                HorizontalAlignment="Center"/>
 
                         </StackPanel>
 

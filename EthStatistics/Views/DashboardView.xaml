@@ -29,6 +29,8 @@
                     Margin="0,0,0,22">
 
 
+                    <!-- PRICE -->
+
                     <Border
                         Style="{StaticResource CardStyle}"
                         Margin="0,0,10,0">
@@ -40,6 +42,7 @@
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
+                                x:Name="PriceValue"
                                 Text="—"
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
@@ -48,6 +51,8 @@
 
                     </Border>
 
+
+                    <!-- CHANGE -->
 
                     <Border
                         Style="{StaticResource CardStyle}"
@@ -60,6 +65,7 @@
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
+                                x:Name="ChangeValue"
                                 Text="—"
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
@@ -68,6 +74,8 @@
 
                     </Border>
 
+
+                    <!-- VOLUME -->
 
                     <Border
                         Style="{StaticResource CardStyle}"
@@ -80,6 +88,7 @@
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
+                                x:Name="VolumeValue"
                                 Text="—"
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
@@ -88,6 +97,8 @@
 
                     </Border>
 
+
+                    <!-- VOLATILITY -->
 
                     <Border
                         Style="{StaticResource CardStyle}">
@@ -99,6 +110,7 @@
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
+                                x:Name="VolatilityValue"
                                 Text="—"
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
@@ -110,7 +122,7 @@
                 </UniformGrid>
 
 
-                <!-- MARKET CHART CARD -->
+                <!-- MARKET CHART -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -123,30 +135,90 @@
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock
-                            Text="Market"
-                            Style="{StaticResource SectionTitleStyle}"/>
+
+                        <!-- HEADER -->
+
+                        <Grid Grid.Row="0">
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
 
 
-                        <StackPanel
-                            Grid.Row="1"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center">
+                            <StackPanel>
 
-                            <TextBlock
-                                Text="No market data loaded"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                FontSize="14"
-                                HorizontalAlignment="Center"/>
+                                <TextBlock
+                                    Text="Market"
+                                    Style="{StaticResource SectionTitleStyle}"/>
 
-                            <TextBlock
-                                Text="Select a market to begin analysis"
-                                Foreground="{DynamicResource TextMutedBrush}"
-                                FontSize="12"
-                                Margin="0,6,0,0"
-                                HorizontalAlignment="Center"/>
+                                <TextBlock
+                                    x:Name="MarketPairText"
+                                    Text="Waiting for market data"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="11"
+                                    Margin="0,5,0,0"/>
 
-                        </StackPanel>
+                            </StackPanel>
+
+
+                            <!-- STATUS -->
+
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center">
+
+                                <Ellipse
+                                    x:Name="MarketStatusIndicator"
+                                    Width="7"
+                                    Height="7"
+                                    Fill="{DynamicResource TextMutedBrush}"
+                                    Margin="0,0,7,0"/>
+
+                                <TextBlock
+                                    x:Name="MarketStatusText"
+                                    Text="Waiting"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"
+                                    FontSize="11"/>
+
+                            </StackPanel>
+
+                        </Grid>
+
+
+                        <!-- CHART / EMPTY STATE -->
+
+                        <Grid Grid.Row="1">
+
+                            <Border
+                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                BorderThickness="0,1,0,0"
+                                Margin="0,18,0,0"/>
+
+
+                            <StackPanel
+                                x:Name="EmptyMarketState"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center">
+
+                                <TextBlock
+                                    Text="Market data unavailable"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"
+                                    FontSize="14"
+                                    FontWeight="SemiBold"
+                                    HorizontalAlignment="Center"/>
+
+                                <TextBlock
+                                    Text="The application will refresh market data automatically"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="11"
+                                    Margin="0,7,0,0"
+                                    HorizontalAlignment="Center"/>
+
+                            </StackPanel>
+
+                        </Grid>
 
                     </Grid>
 
