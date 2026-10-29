@@ -19,6 +19,7 @@ class KrakenMarketData:
 
     DEFAULT_PAIR = "ETHUSD"
     DEFAULT_INTERVAL = 1440
+    REQUEST_TIMEOUT = 30
 
     VALID_INTERVALS = {
         1,
@@ -32,12 +33,79 @@ class KrakenMarketData:
         21600,
     }
 
-    REQUEST_TIMEOUT = 30
-
     REQUEST_HEADERS = {
         "User-Agent": "EthStatistics/1.0",
         "Accept": "application/json",
     }
+
+    ASSET_ALIASES = {
+        # Bitcoin
+        "XXBT": "BTC",
+        "XBT": "BTC",
+        "BTC": "BTC",
+
+        # Ethereum
+        "XETH": "ETH",
+        "ETH": "ETH",
+
+        # Litecoin
+        "XLTC": "LTC",
+        "LTC": "LTC",
+
+        # XRP
+        "XXRP": "XRP",
+        "XRP": "XRP",
+
+        # Dogecoin
+        "XXDG": "DOGE",
+        "XDG": "DOGE",
+        "DOGE": "DOGE",
+
+        # Other legacy Kraken symbols
+        "XETC": "ETC",
+        "ETC": "ETC",
+        "XMLN": "MLN",
+        "MLN": "MLN",
+        "XREP": "REP",
+        "REP": "REP",
+
+        # Fiat currencies
+        "ZUSD": "USD",
+        "USD": "USD",
+        "ZEUR": "EUR",
+        "EUR": "EUR",
+        "ZGBP": "GBP",
+        "GBP": "GBP",
+        "ZJPY": "JPY",
+        "JPY": "JPY",
+        "ZCAD": "CAD",
+        "CAD": "CAD",
+        "ZAUD": "AUD",
+        "AUD": "AUD",
+        "ZCHF": "CHF",
+        "CHF": "CHF",
+    }
+
+    def __init__(self) -> None:
+        self._session = requests.Session()
+
+        self._session.headers.update(
+            self.REQUEST_HEADERS
+        )
+
+    def close(self) -> None:
+        self._session.close()
+
+    def __enter__(self) -> "KrakenMarketData":
+        return self
+
+    def __exit__(
+        self,
+        exception_type: Any,
+        exception_value: Any,
+        traceback: Any,
+    ) -> None:
+        self.close()
 
     # ==========================================
     # METADATA
@@ -46,18 +114,8 @@ class KrakenMarketData:
     def get_metadata(
         self,
     ) -> dict[str, Any]:
-        response = requests.get(
-            self.ASSET_PAIRS_URL,
-            timeout=self.REQUEST_TIMEOUT,
-            headers=self.REQUEST_HEADERS,
-        )
-
-        response.raise_for_status()
-
-        payload = response.json()
-
-        self._validate_kraken_payload(
-            payload
+        payload = self._get_json(
+            self.ASSET_PAIRS_URL
         )
 
         result = payload.get("result")
@@ -70,65 +128,15 @@ class KrakenMarketData:
         markets: list[dict[str, Any]] = []
 
         for internal_pair, pair_data in result.items():
-            if not isinstance(pair_data, dict):
-                continue
-
-            status = str(
-                pair_data.get(
-                    "status",
-                    "",
-                )
-            ).strip().lower()
-
-            if (
-                status
-                and status != "online"
-            ):
-                continue
-
-            rest_pair = str(
-                pair_data.get(
-                    "altname",
-                    internal_pair,
-                )
-            ).strip().upper()
-
-            display_pair = str(
-                pair_data.get(
-                    "wsname",
-                    "",
-                )
-            ).strip().upper()
-
-            if not rest_pair:
-                continue
-
-            base_asset, quote_asset = (
-                self._extract_assets(
-                    display_pair,
-                    pair_data,
-                )
+            market = self._create_market_metadata(
+                internal_pair=internal_pair,
+                pair_data=pair_data,
             )
 
-            if (
-                not base_asset
-                or not quote_asset
-            ):
-                continue
-
-            if not display_pair:
-                display_pair = (
-                    f"{base_asset}/{quote_asset}"
+            if market is not None:
+                markets.append(
+                    market
                 )
-
-            markets.append(
-                {
-                    "pair": rest_pair,
-                    "displayName": display_pair,
-                    "baseAsset": base_asset,
-                    "quoteAsset": quote_asset,
-                }
-            )
 
         markets = self._remove_duplicate_markets(
             markets
@@ -136,9 +144,9 @@ class KrakenMarketData:
 
         markets.sort(
             key=lambda market: (
-                market["baseAsset"],
                 market["quoteAsset"],
-                market["pair"],
+                market["baseAsset"],
+                market["displayName"],
             )
         )
 
@@ -147,14 +155,11 @@ class KrakenMarketData:
                 "Kraken returned no usable online markets."
             )
 
-        intervals = self._create_intervals()
-
-        periods = self._create_periods()
-
         quote_currencies = sorted(
             {
                 market["quoteAsset"]
                 for market in markets
+                if market["quoteAsset"]
             }
         )
 
@@ -162,9 +167,70 @@ class KrakenMarketData:
             "success": True,
             "error": None,
             "markets": markets,
-            "intervals": intervals,
-            "periods": periods,
+            "intervals": self._create_intervals(),
+            "periods": self._create_periods(),
             "quoteCurrencies": quote_currencies,
+        }
+
+    def _create_market_metadata(
+        self,
+        internal_pair: str,
+        pair_data: Any,
+    ) -> dict[str, Any] | None:
+        if not isinstance(pair_data, dict):
+            return None
+
+        status = str(
+            pair_data.get(
+                "status",
+                "",
+            )
+        ).strip().lower()
+
+        if status and status != "online":
+            return None
+
+        rest_pair = str(
+            pair_data.get(
+                "altname",
+                internal_pair,
+            )
+        ).strip().upper()
+
+        if not rest_pair:
+            return None
+
+        web_socket_name = str(
+            pair_data.get(
+                "wsname",
+                "",
+            )
+        ).strip().upper()
+
+        base_asset, quote_asset = (
+            self._extract_assets(
+                web_socket_name=web_socket_name,
+                pair_data=pair_data,
+            )
+        )
+
+        if not base_asset or not quote_asset:
+            return None
+
+        # Always construct the display name from the
+        # normalized assets. This converts XBT/USD
+        # into BTC/USD while retaining XBTUSD as the
+        # REST pair sent to Kraken.
+
+        display_name = (
+            f"{base_asset}/{quote_asset}"
+        )
+
+        return {
+            "pair": rest_pair,
+            "displayName": display_name,
+            "baseAsset": base_asset,
+            "quoteAsset": quote_asset,
         }
 
     # ==========================================
@@ -187,22 +253,12 @@ class KrakenMarketData:
             )
         )
 
-        response = requests.get(
+        payload = self._get_json(
             self.OHLC_URL,
             params={
                 "pair": normalized_pair,
                 "interval": normalized_interval,
             },
-            timeout=self.REQUEST_TIMEOUT,
-            headers=self.REQUEST_HEADERS,
-        )
-
-        response.raise_for_status()
-
-        payload = response.json()
-
-        self._validate_kraken_payload(
-            payload
         )
 
         result = payload.get("result")
@@ -223,10 +279,8 @@ class KrakenMarketData:
                 "Kraken returned no OHLC series."
             )
 
-        response_pair = pair_keys[0]
-
         raw_candles = result.get(
-            response_pair
+            pair_keys[0]
         )
 
         if not isinstance(raw_candles, list):
@@ -254,8 +308,9 @@ class KrakenMarketData:
             ],
         )
 
-        # Kraken places the current incomplete
-        # candle at the end of the response.
+        # Kraken's last OHLC row is the currently
+        # incomplete candle. Exclude it by default.
+
         if (
             not include_current_candle
             and not dataframe.empty
@@ -276,7 +331,7 @@ class KrakenMarketData:
             errors="raise",
         )
 
-        numeric_columns = [
+        decimal_columns = [
             "open",
             "high",
             "low",
@@ -285,11 +340,14 @@ class KrakenMarketData:
             "volume",
         ]
 
-        for column in numeric_columns:
-            dataframe[column] = pd.to_numeric(
-                dataframe[column],
+        dataframe[decimal_columns] = (
+            dataframe[decimal_columns]
+            .apply(
+                pd.to_numeric,
                 errors="raise",
-            ).astype(float)
+            )
+            .astype(float)
+        )
 
         dataframe["trade_count"] = (
             pd.to_numeric(
@@ -299,27 +357,87 @@ class KrakenMarketData:
             .astype("int64")
         )
 
-        dataframe = dataframe[
-            [
-                "date",
-                "open",
-                "high",
-                "low",
-                "close",
-                "vwap",
-                "volume",
-                "trade_count",
+        return (
+            dataframe[
+                [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "vwap",
+                    "volume",
+                    "trade_count",
+                ]
             ]
-        ]
-
-        dataframe = dataframe.sort_values(
-            by="date",
-            ascending=True,
-        ).reset_index(
-            drop=True
+            .sort_values(
+                by="date",
+                ascending=True,
+            )
+            .reset_index(
+                drop=True
+            )
         )
 
-        return dataframe
+    # ==========================================
+    # HTTP
+    # ==========================================
+
+    def _get_json(
+        self,
+        url: str,
+        params: dict[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        try:
+            response = self._session.get(
+                url,
+                params=params,
+                timeout=self.REQUEST_TIMEOUT,
+            )
+
+            response.raise_for_status()
+
+        except requests.Timeout as error:
+            raise RuntimeError(
+                "The Kraken request timed out."
+            ) from error
+
+        except requests.ConnectionError as error:
+            raise RuntimeError(
+                "Kraken could not be reached. "
+                "Check the internet connection."
+            ) from error
+
+        except requests.HTTPError as error:
+            status_code = (
+                error.response.status_code
+                if error.response is not None
+                else "unknown"
+            )
+
+            raise RuntimeError(
+                "Kraken returned HTTP status "
+                f"{status_code}."
+            ) from error
+
+        except requests.RequestException as error:
+            raise RuntimeError(
+                f"Kraken request failed: {error}"
+            ) from error
+
+        try:
+            payload = response.json()
+
+        except requests.JSONDecodeError as error:
+            raise RuntimeError(
+                "Kraken returned invalid JSON."
+            ) from error
+
+        self._validate_kraken_payload(
+            payload
+        )
+
+        return payload
 
     # ==========================================
     # METADATA DEFINITIONS
@@ -407,9 +525,7 @@ class KrakenMarketData:
             },
         ]
 
-    # ==========================================
-    # VALIDATION
-    # ==========================================
+ 
 
     @staticmethod
     def _validate_kraken_payload(
@@ -447,7 +563,9 @@ class KrakenMarketData:
             )
 
         normalized_pair = (
-            str(pair).strip().upper()
+            str(pair)
+            .strip()
+            .upper()
         )
 
         if not normalized_pair:
@@ -465,6 +583,7 @@ class KrakenMarketData:
             normalized_interval = int(
                 interval
             )
+
         except (TypeError, ValueError) as error:
             raise ValueError(
                 "The interval must be an integer."
@@ -494,40 +613,45 @@ class KrakenMarketData:
     # MARKET NORMALIZATION
     # ==========================================
 
-    @staticmethod
+    @classmethod
     def _extract_assets(
-        display_pair: str,
+        cls,
+        web_socket_name: str,
         pair_data: dict[str, Any],
     ) -> tuple[str, str]:
-        if "/" in display_pair:
-            parts = display_pair.split(
+        if "/" in web_socket_name:
+            parts = web_socket_name.split(
                 "/",
                 maxsplit=1,
             )
 
-            return (
-                parts[0].strip().upper(),
-                parts[1].strip().upper(),
+            base_asset = cls._normalize_asset(
+                parts[0]
             )
 
-        base_asset = (
-            KrakenMarketData._normalize_asset(
-                str(
-                    pair_data.get(
-                        "base",
-                        "",
-                    )
+            quote_asset = cls._normalize_asset(
+                parts[1]
+            )
+
+            return (
+                base_asset,
+                quote_asset,
+            )
+
+        base_asset = cls._normalize_asset(
+            str(
+                pair_data.get(
+                    "base",
+                    "",
                 )
             )
         )
 
-        quote_asset = (
-            KrakenMarketData._normalize_asset(
-                str(
-                    pair_data.get(
-                        "quote",
-                        "",
-                    )
+        quote_asset = cls._normalize_asset(
+            str(
+                pair_data.get(
+                    "quote",
+                    "",
                 )
             )
         )
@@ -537,40 +661,18 @@ class KrakenMarketData:
             quote_asset,
         )
 
-    @staticmethod
+    @classmethod
     def _normalize_asset(
+        cls,
         asset: str,
     ) -> str:
-        normalized = asset.strip().upper()
+        normalized = (
+            asset
+            .strip()
+            .upper()
+        )
 
-        aliases = {
-            "XXBT": "XBT",
-            "XBT": "XBT",
-            "XETH": "ETH",
-            "ETH": "ETH",
-            "XLTC": "LTC",
-            "LTC": "LTC",
-            "XXRP": "XRP",
-            "XRP": "XRP",
-            "XXDG": "XDG",
-            "XDG": "XDG",
-            "ZUSD": "USD",
-            "USD": "USD",
-            "ZEUR": "EUR",
-            "EUR": "EUR",
-            "ZGBP": "GBP",
-            "GBP": "GBP",
-            "ZJPY": "JPY",
-            "JPY": "JPY",
-            "ZCAD": "CAD",
-            "CAD": "CAD",
-            "ZAUD": "AUD",
-            "AUD": "AUD",
-            "ZCHF": "CHF",
-            "CHF": "CHF",
-        }
-
-        return aliases.get(
+        return cls.ASSET_ALIASES.get(
             normalized,
             normalized,
         )
@@ -595,17 +697,16 @@ class KrakenMarketData:
             if not pair:
                 continue
 
-            if pair not in unique_markets:
-                unique_markets[pair] = market
+            unique_markets.setdefault(
+                pair,
+                market,
+            )
 
         return list(
             unique_markets.values()
         )
 
 
-# ==========================================
-# JSON CONVERSION
-# ==========================================
 
 def safe_json_number(
     value: Any,
@@ -626,37 +727,35 @@ def dataframe_to_market_response(
     pair: str,
     interval: int,
 ) -> dict[str, Any]:
-    candles: list[dict[str, Any]] = []
-
-    for row in dataframe.itertuples(
-        index=False
-    ):
-        candles.append(
-            {
-                "date": row.date.isoformat(),
-                "open": safe_json_number(
-                    row.open
-                ),
-                "high": safe_json_number(
-                    row.high
-                ),
-                "low": safe_json_number(
-                    row.low
-                ),
-                "close": safe_json_number(
-                    row.close
-                ),
-                "vwap": safe_json_number(
-                    row.vwap
-                ),
-                "volume": safe_json_number(
-                    row.volume
-                ),
-                "tradeCount": int(
-                    row.trade_count
-                ),
-            }
+    candles = [
+        {
+            "date": row.date.isoformat(),
+            "open": safe_json_number(
+                row.open
+            ),
+            "high": safe_json_number(
+                row.high
+            ),
+            "low": safe_json_number(
+                row.low
+            ),
+            "close": safe_json_number(
+                row.close
+            ),
+            "vwap": safe_json_number(
+                row.vwap
+            ),
+            "volume": safe_json_number(
+                row.volume
+            ),
+            "tradeCount": int(
+                row.trade_count
+            ),
+        }
+        for row in dataframe.itertuples(
+            index=False
         )
+    ]
 
     return {
         "success": True,
@@ -697,22 +796,17 @@ def create_metadata_error_response(
 def print_json(
     response: dict[str, Any],
 ) -> None:
-    serialized_response = json.dumps(
-        response,
-        separators=(",", ":"),
-        ensure_ascii=False,
-        allow_nan=False,
-    )
-
     print(
-        serialized_response,
+        json.dumps(
+            response,
+            separators=(",", ":"),
+            ensure_ascii=False,
+            allow_nan=False,
+        ),
         flush=True,
     )
 
 
-# ==========================================
-# COMMAND-LINE ARGUMENTS
-# ==========================================
 
 def parse_arguments(
 ) -> argparse.Namespace:
@@ -739,9 +833,7 @@ def parse_arguments(
     parser.add_argument(
         "--pair",
         type=str,
-        default=(
-            KrakenMarketData.DEFAULT_PAIR
-        ),
+        default=KrakenMarketData.DEFAULT_PAIR,
         help=(
             "Kraken REST pair. "
             "Default: ETHUSD."
@@ -751,9 +843,7 @@ def parse_arguments(
     parser.add_argument(
         "--interval",
         type=int,
-        default=(
-            KrakenMarketData.DEFAULT_INTERVAL
-        ),
+        default=KrakenMarketData.DEFAULT_INTERVAL,
         choices=sorted(
             KrakenMarketData.VALID_INTERVALS
         ),
@@ -782,30 +872,27 @@ def parse_arguments(
 def main() -> int:
     args = parse_arguments()
 
-    service = KrakenMarketData()
-
     try:
-        if args.mode == "metadata":
-            response = (
-                service.get_metadata()
-            )
+        with KrakenMarketData() as service:
+            if args.mode == "metadata":
+                response = service.get_metadata()
 
-        else:
-            dataframe = service.get_ohlcv(
-                pair=args.pair,
-                interval=args.interval,
-                include_current_candle=(
-                    args.include_current_candle
-                ),
-            )
-
-            response = (
-                dataframe_to_market_response(
-                    dataframe=dataframe,
+            else:
+                dataframe = service.get_ohlcv(
                     pair=args.pair,
                     interval=args.interval,
+                    include_current_candle=(
+                        args.include_current_candle
+                    ),
                 )
-            )
+
+                response = (
+                    dataframe_to_market_response(
+                        dataframe=dataframe,
+                        pair=args.pair,
+                        interval=args.interval,
+                    )
+                )
 
         print_json(
             response
@@ -820,6 +907,7 @@ def main() -> int:
                     error
                 )
             )
+
         else:
             response = (
                 create_market_error_response(
