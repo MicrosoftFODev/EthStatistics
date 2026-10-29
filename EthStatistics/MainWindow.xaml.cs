@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,6 +64,15 @@ namespace EthStatistics
         private CancellationTokenSource?
             _refreshCancellation;
 
+        private SignedOutView?
+            _signedOutView;
+
+        private bool
+            _signInInProgress;
+
+        private bool
+            _allowClose;
+
 
         private string? CurrentPreferenceAccountId
         {
@@ -83,10 +93,11 @@ namespace EthStatistics
         {
             InitializeComponent();
 
-            ShowDashboard();
-
             Loaded +=
                 MainWindow_Loaded;
+
+            Closing +=
+                MainWindow_Closing;
 
             StateChanged +=
                 MainWindow_StateChanged;
@@ -96,6 +107,9 @@ namespace EthStatistics
 
             MarketDataStore.Instance.Changed +=
                 MarketDataStore_Changed;
+
+
+            ShowSignedOutView();
         }
 
 
@@ -183,80 +197,21 @@ namespace EthStatistics
             object sender,
             RoutedEventArgs e)
         {
-            await TryAuthenticateAtStartupAsync();
+            // Do not automatically authenticate.
+            // Every application launch starts
+            // signed out.
 
-            UpdateUserInterface();
+            _currentUser =
+                UserSession.Guest();
+
 
             await LoadCurrentUserPreferencesAsync();
 
-            await LoadMetadataAsync();
-        }
+
+            UpdateUserInterface();
 
 
-        // ==========================================
-        // AUTHENTICATION
-        // ==========================================
-
-        private async Task TryAuthenticateAtStartupAsync()
-        {
-            try
-            {
-                IntPtr windowHandle =
-                    GetWindowHandle();
-
-                _currentUser =
-                    await _authenticationService
-                        .SignInAsync(
-                            windowHandle
-                        );
-            }
-            catch (MsalClientException error)
-                when (IsAuthenticationCancellation(error))
-            {
-                _currentUser =
-                    UserSession.Guest();
-            }
-            catch
-            {
-                // Authentication is optional.
-                // Continue as Guest if startup
-                // authentication is unavailable.
-
-                _currentUser =
-                    UserSession.Guest();
-            }
-        }
-
-
-        private IntPtr GetWindowHandle()
-        {
-            return new WindowInteropHelper(
-                this
-            ).Handle;
-        }
-
-
-        private static bool IsAuthenticationCancellation(
-            MsalClientException error)
-        {
-            return
-                string.Equals(
-                    error.ErrorCode,
-                    "authentication_canceled",
-                    StringComparison.OrdinalIgnoreCase
-                )
-                ||
-                string.Equals(
-                    error.ErrorCode,
-                    "wam_account_picker_canceled",
-                    StringComparison.OrdinalIgnoreCase
-                )
-                ||
-                string.Equals(
-                    error.ErrorCode,
-                    "user_canceled",
-                    StringComparison.OrdinalIgnoreCase
-                );
+            EnterSignedOutState();
         }
 
 
@@ -294,9 +249,8 @@ namespace EthStatistics
             }
 
 
-            // Keep this assignment only while the
-            // UserPreferences model still contains
-            // IntervalMinutes.
+            // Remove this assignment if you remove
+            // IntervalMinutes from UserPreferences.
 
             _preferences.IntervalMinutes =
                 DailyInterval;
@@ -310,9 +264,8 @@ namespace EthStatistics
 
         private async Task SaveCurrentUserPreferencesAsync()
         {
-            // API analysis is always daily.
-            // Keep this assignment only while the
-            // preference property still exists.
+            // Remove this assignment if you remove
+            // IntervalMinutes from UserPreferences.
 
             _preferences.IntervalMinutes =
                 DailyInterval;
@@ -326,11 +279,280 @@ namespace EthStatistics
 
 
         // ==========================================
+        // SIGNED-OUT STATE
+        // ==========================================
+
+        private void EnterSignedOutState()
+        {
+            CancelMarketRefresh();
+
+
+            DataSourceText.Text =
+                "—";
+
+
+            DataStatusText.Text =
+                "Sign in to load market data";
+
+
+            DataStatusIndicator.Fill =
+                FindBrush(
+                    "TextMutedBrush"
+                );
+
+
+            UseApiDataButton.Visibility =
+                Visibility.Collapsed;
+
+
+            UpdateUserInterface();
+
+
+            ShowSignedOutView();
+        }
+
+
+        private void ShowSignedOutView()
+        {
+            _signedOutView =
+                new SignedOutView();
+
+
+            _signedOutView.SignInRequested +=
+                SignedOutView_SignInRequested;
+
+
+            MainContent.Content =
+                _signedOutView;
+        }
+
+
+        private async void SignedOutView_SignInRequested(
+            object? sender,
+            EventArgs e)
+        {
+            await SignInAsync();
+        }
+
+
+        private void CancelMarketRefresh()
+        {
+            _refreshCancellation?.Cancel();
+
+            _refreshCancellation?.Dispose();
+
+            _refreshCancellation =
+                null;
+        }
+
+
+        // ==========================================
+        // SIGN IN
+        // ==========================================
+
+        private async Task SignInAsync()
+        {
+            if (_signInInProgress)
+            {
+                return;
+            }
+
+
+            _signInInProgress =
+                true;
+
+
+            _signedOutView?.SetLoading(
+                true
+            );
+
+
+            ShowLoadingStatus(
+                "Signing in..."
+            );
+
+
+            try
+            {
+                IntPtr windowHandle =
+                    GetWindowHandle();
+
+
+                UserSession signedInUser =
+                    await _authenticationService
+                        .SignInAsync(
+                            windowHandle
+                        );
+
+
+                if (!signedInUser.IsAuthenticated)
+                {
+                    _currentUser =
+                        UserSession.Guest();
+
+                    EnterSignedOutState();
+
+                    return;
+                }
+
+
+                _currentUser =
+                    signedInUser;
+
+
+                UpdateUserInterface();
+
+
+                await LoadCurrentUserPreferencesAsync();
+
+
+                MarketDataStore.Instance
+                    .ClearImportedData();
+
+
+                await LoadMetadataAsync();
+
+
+                if (_currentUser.IsAuthenticated)
+                {
+                    ShowDashboard();
+                }
+            }
+            catch (MsalClientException error)
+                when (IsAuthenticationCancellation(error))
+            {
+                _currentUser =
+                    UserSession.Guest();
+
+
+                EnterSignedOutState();
+            }
+            catch (Exception error)
+            {
+                _currentUser =
+                    UserSession.Guest();
+
+
+                EnterSignedOutState();
+
+
+                MessageBox.Show(
+                    error.Message,
+                    "Sign-in Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+            }
+            finally
+            {
+                _signInInProgress =
+                    false;
+
+
+                _signedOutView?.SetLoading(
+                    false
+                );
+            }
+        }
+
+
+        private async void SignInMenuItem_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            await SignInAsync();
+        }
+
+
+        private IntPtr GetWindowHandle()
+        {
+            return new WindowInteropHelper(
+                this
+            ).Handle;
+        }
+
+
+        private static bool IsAuthenticationCancellation(
+            MsalClientException error)
+        {
+            return
+                string.Equals(
+                    error.ErrorCode,
+                    "authentication_canceled",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                ||
+                string.Equals(
+                    error.ErrorCode,
+                    "wam_account_picker_canceled",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                ||
+                string.Equals(
+                    error.ErrorCode,
+                    "user_canceled",
+                    StringComparison.OrdinalIgnoreCase
+                );
+        }
+
+
+        // ==========================================
+        // SIGN OUT
+        // ==========================================
+
+        private async void SignOutMenuItem_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            // Hide authenticated content immediately.
+
+            CancelMarketRefresh();
+
+
+            _currentUser =
+                UserSession.Guest();
+
+
+            EnterSignedOutState();
+
+
+            try
+            {
+                await _authenticationService
+                    .SignOutAsync();
+
+
+                await LoadCurrentUserPreferencesAsync();
+
+
+                UpdateUserInterface();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(
+                    error.Message,
+                    "Sign-out Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+            }
+        }
+
+
+        // ==========================================
         // MARKET METADATA
         // ==========================================
 
         private async Task LoadMetadataAsync()
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                EnterSignedOutState();
+
+                return;
+            }
+
+
             ShowLoadingStatus(
                 "Loading available markets..."
             );
@@ -341,6 +563,12 @@ namespace EthStatistics
                 MarketMetadataResult result =
                     await _marketDataService
                         .GetMetadataAsync();
+
+
+                if (!_currentUser.IsAuthenticated)
+                {
+                    return;
+                }
 
 
                 MarketDataStore.Instance.SetMetadata(
@@ -409,6 +637,12 @@ namespace EthStatistics
             }
             catch (Exception error)
             {
+                if (!_currentUser.IsAuthenticated)
+                {
+                    return;
+                }
+
+
                 MarketDataStore.Instance.SetError(
                     error.Message
                 );
@@ -454,9 +688,6 @@ namespace EthStatistics
                     .ToList();
 
 
-            // First restore the saved pair, but only
-            // if it belongs to the selected currency.
-
             KrakenMarket? selectedMarket =
                 marketsForCurrency.FirstOrDefault(
                     market =>
@@ -467,9 +698,6 @@ namespace EthStatistics
                         )
                 );
 
-
-            // For a new profile, prefer ETH with the
-            // user's selected quote currency.
 
             selectedMarket ??=
                 marketsForCurrency.FirstOrDefault(
@@ -485,9 +713,6 @@ namespace EthStatistics
             selectedMarket ??=
                 marketsForCurrency.FirstOrDefault();
 
-
-            // If the saved quote currency has no
-            // usable pairs, fall back to ETH/USD.
 
             selectedMarket ??=
                 markets.FirstOrDefault(
@@ -527,9 +752,7 @@ namespace EthStatistics
                 null;
 
 
-            if (
-                _preferences.PeriodDays.HasValue
-            )
+            if (_preferences.PeriodDays.HasValue)
             {
                 selectedPeriod =
                     periods.FirstOrDefault(
@@ -572,6 +795,8 @@ namespace EthStatistics
             int periodDays)
         {
             if (
+                !_currentUser.IsAuthenticated
+                ||
                 string.IsNullOrWhiteSpace(
                     pair
                 )
@@ -599,11 +824,17 @@ namespace EthStatistics
 
 
         // ==========================================
-        // MARKET DATA REFRESH
+        // REFRESH MARKET DATA
         // ==========================================
 
         private async Task RefreshMarketDataAsync()
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                return;
+            }
+
+
             MarketDataStore store =
                 MarketDataStore.Instance;
 
@@ -618,9 +849,7 @@ namespace EthStatistics
             }
 
 
-            _refreshCancellation?.Cancel();
-
-            _refreshCancellation?.Dispose();
+            CancelMarketRefresh();
 
 
             _refreshCancellation =
@@ -632,7 +861,9 @@ namespace EthStatistics
 
 
             string pair =
-                store.Pair.Trim().ToUpperInvariant();
+                store.Pair
+                    .Trim()
+                    .ToUpperInvariant();
 
 
             int selectedPeriodDays =
@@ -660,6 +891,12 @@ namespace EthStatistics
                         );
 
 
+                if (!_currentUser.IsAuthenticated)
+                {
+                    return;
+                }
+
+
                 if (!rawResult.Success)
                 {
                     MarketDataStore.Instance.SetResult(
@@ -684,11 +921,24 @@ namespace EthStatistics
                     );
 
 
-                MarketDataResult filteredResult =
-                    CreateFilteredMarketResult(
-                        rawResult,
-                        filteredCandles
-                    );
+                var filteredResult =
+                    new MarketDataResult
+                    {
+                        Success =
+                            true,
+
+                        Error =
+                            null,
+
+                        Pair =
+                            rawResult.Pair,
+
+                        Interval =
+                            rawResult.Interval,
+
+                        Candles =
+                            filteredCandles
+                    };
 
 
                 MarketDataStore.Instance.SetResult(
@@ -703,10 +953,17 @@ namespace EthStatistics
             }
             catch (OperationCanceledException)
             {
-                // A newer request replaced this one.
+                // A newer request or sign-out
+                // cancelled this request.
             }
             catch (Exception error)
             {
+                if (!_currentUser.IsAuthenticated)
+                {
+                    return;
+                }
+
+
                 MarketDataStore.Instance.SetError(
                     error.Message
                 );
@@ -765,49 +1022,27 @@ namespace EthStatistics
         }
 
 
-        private static MarketDataResult
-            CreateFilteredMarketResult(
-                MarketDataResult source,
-                List<MarketCandle> candles)
-        {
-            return new MarketDataResult
-            {
-                Success =
-                    source.Success,
-
-                Error =
-                    source.Error,
-
-                Pair =
-                    source.Pair,
-
-                Interval =
-                    source.Interval,
-
-                Candles =
-                    candles
-            };
-        }
-
-
         // ==========================================
-        // SWITCH FROM EXCEL TO API
+        // EXCEL / API SWITCH
         // ==========================================
 
         private async void UseApiDataButton_Click(
             object sender,
             RoutedEventArgs e)
         {
-            _refreshCancellation?.Cancel();
+            if (!_currentUser.IsAuthenticated)
+            {
+                EnterSignedOutState();
+
+                return;
+            }
+
+
+            CancelMarketRefresh();
 
 
             MarketDataStore.Instance
                 .ClearImportedData();
-
-
-            ShowLoadingStatus(
-                "Loading available markets..."
-            );
 
 
             await LoadMetadataAsync();
@@ -818,7 +1053,7 @@ namespace EthStatistics
 
 
         // ==========================================
-        // GLOBAL DATA STORE
+        // STORE CHANGED
         // ==========================================
 
         private void MarketDataStore_Changed(
@@ -833,6 +1068,18 @@ namespace EthStatistics
 
         private void UpdateGlobalDataSource()
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                DataSourceText.Text =
+                    "—";
+
+                UseApiDataButton.Visibility =
+                    Visibility.Collapsed;
+
+                return;
+            }
+
+
             MarketDataStore store =
                 MarketDataStore.Instance;
 
@@ -864,11 +1111,30 @@ namespace EthStatistics
 
 
         // ==========================================
+        // NAVIGATION STATE
+        // ==========================================
+
+        private void UpdateAuthenticatedNavigation()
+        {
+            UseApiDataButton.IsEnabled =
+                _currentUser.IsAuthenticated;
+        }
+
+
+        // ==========================================
         // DASHBOARD
         // ==========================================
 
         private void ShowDashboard()
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+
             MainContent.Content =
                 new DashboardView();
         }
@@ -896,6 +1162,14 @@ namespace EthStatistics
 
         private void ShowChart()
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+
             var chartView =
                 new ChartView(
                     _preferences.QuoteCurrency
@@ -915,6 +1189,14 @@ namespace EthStatistics
             object? sender,
             ChartPreferencesChangedEventArgs e)
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                EnterSignedOutState();
+
+                return;
+            }
+
+
             MarketDataStore store =
                 MarketDataStore.Instance;
 
@@ -939,8 +1221,7 @@ namespace EthStatistics
             if (selectedMarket is null)
             {
                 ShowErrorStatus(
-                    "The selected market is not available " +
-                    "for the preferred quote currency."
+                    "The selected market is unavailable."
                 );
 
                 return;
@@ -962,9 +1243,6 @@ namespace EthStatistics
             _preferences.PeriodDays =
                 periodDays;
 
-            _preferences.IntervalMinutes =
-                DailyInterval;
-
 
             await SaveCurrentUserPreferencesAsync();
 
@@ -984,6 +1262,14 @@ namespace EthStatistics
             object sender,
             RoutedEventArgs e)
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+
             var importView =
                 new ImportExcelView();
 
@@ -1028,6 +1314,14 @@ namespace EthStatistics
             object sender,
             RoutedEventArgs e)
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+
             MainContent.Content =
                 new StatisticsView();
         }
@@ -1041,6 +1335,14 @@ namespace EthStatistics
             object sender,
             RoutedEventArgs e)
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+
             MainContent.Content =
                 new ForecastView();
         }
@@ -1054,6 +1356,14 @@ namespace EthStatistics
             object sender,
             RoutedEventArgs e)
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+
             var settingsView =
                 new SettingsView(
                     _preferences,
@@ -1079,6 +1389,14 @@ namespace EthStatistics
             object? sender,
             DataPreferencesChangedEventArgs e)
         {
+            if (!_currentUser.IsAuthenticated)
+            {
+                EnterSignedOutState();
+
+                return;
+            }
+
+
             MarketDataStore store =
                 MarketDataStore.Instance;
 
@@ -1104,12 +1422,6 @@ namespace EthStatistics
                 null;
 
 
-            // Preserve the current base asset when
-            // switching the quote currency.
-            //
-            // Example:
-            // ETH/USD -> ETH/EUR
-
             if (currentMarket is not null)
             {
                 selectedMarket =
@@ -1130,9 +1442,6 @@ namespace EthStatistics
             }
 
 
-            // Otherwise prefer ETH with the newly
-            // selected quote currency.
-
             selectedMarket ??=
                 store.Markets.FirstOrDefault(
                     market =>
@@ -1149,9 +1458,6 @@ namespace EthStatistics
                         )
                 );
 
-
-            // Otherwise use the first available
-            // market for that quote currency.
 
             selectedMarket ??=
                 store.Markets.FirstOrDefault(
@@ -1188,9 +1494,6 @@ namespace EthStatistics
 
             _preferences.PeriodDays =
                 periodDays;
-
-            _preferences.IntervalMinutes =
-                DailyInterval;
 
 
             await SaveCurrentUserPreferencesAsync();
@@ -1263,109 +1566,14 @@ namespace EthStatistics
                 SignOutMenuItem.Visibility =
                     Visibility.Collapsed;
             }
+
+
+            UpdateAuthenticatedNavigation();
         }
 
 
         // ==========================================
-        // SIGN IN
-        // ==========================================
-
-        private async void SignInMenuItem_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            try
-            {
-                IntPtr windowHandle =
-                    GetWindowHandle();
-
-
-                _currentUser =
-                    await _authenticationService
-                        .SignInAsync(
-                            windowHandle
-                        );
-
-
-                await LoadCurrentUserPreferencesAsync();
-
-
-                UpdateUserInterface();
-
-
-                MarketDataStore.Instance
-                    .ClearImportedData();
-
-
-                await LoadMetadataAsync();
-
-
-                ShowDashboard();
-            }
-            catch (MsalClientException error)
-                when (IsAuthenticationCancellation(error))
-            {
-                // The user cancelled account selection.
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(
-                    error.Message,
-                    "Sign-in Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-            }
-        }
-
-
-        // ==========================================
-        // SIGN OUT
-        // ==========================================
-
-        private async void SignOutMenuItem_Click(
-            object sender,
-            RoutedEventArgs e)
-        {
-            try
-            {
-                await _authenticationService
-                    .SignOutAsync();
-
-
-                _currentUser =
-                    UserSession.Guest();
-
-
-                await LoadCurrentUserPreferencesAsync();
-
-
-                UpdateUserInterface();
-
-
-                MarketDataStore.Instance
-                    .ClearImportedData();
-
-
-                await LoadMetadataAsync();
-
-
-                ShowDashboard();
-            }
-            catch (Exception error)
-            {
-                MessageBox.Show(
-                    error.Message,
-                    "Sign-out Error",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning
-                );
-            }
-        }
-
-
-        // ==========================================
-        // MARKET DISPLAY
+        // STATUS
         // ==========================================
 
         private string GetMarketDisplayName(
@@ -1384,25 +1592,14 @@ namespace EthStatistics
                     );
 
 
-            if (
-                market is not null
-                &&
+            return
                 !string.IsNullOrWhiteSpace(
-                    market.DisplayName
+                    market?.DisplayName
                 )
-            )
-            {
-                return market.DisplayName;
-            }
-
-
-            return pair;
+                    ? market.DisplayName
+                    : pair;
         }
 
-
-        // ==========================================
-        // GLOBAL STATUS
-        // ==========================================
 
         private void ShowLoadingStatus(
             string message)
@@ -1484,8 +1681,52 @@ namespace EthStatistics
 
 
         // ==========================================
-        // CLEANUP
+        // CLOSE AND SIGN OUT
         // ==========================================
+
+        private async void MainWindow_Closing(
+            object? sender,
+            CancelEventArgs e)
+        {
+            if (_allowClose)
+            {
+                return;
+            }
+
+
+            e.Cancel =
+                true;
+
+
+            CancelMarketRefresh();
+
+
+            try
+            {
+                if (_currentUser.IsAuthenticated)
+                {
+                    await _authenticationService
+                        .SignOutAsync();
+                }
+            }
+            catch
+            {
+                // Shutdown should continue even if
+                // token-cache cleanup fails.
+            }
+
+
+            _currentUser =
+                UserSession.Guest();
+
+
+            _allowClose =
+                true;
+
+
+            Close();
+        }
+
 
         protected override void OnClosed(
             EventArgs e)
@@ -1494,9 +1735,7 @@ namespace EthStatistics
                 MarketDataStore_Changed;
 
 
-            _refreshCancellation?.Cancel();
-
-            _refreshCancellation?.Dispose();
+            CancelMarketRefresh();
 
 
             _marketDataService.Dispose();
