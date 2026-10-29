@@ -1,5 +1,9 @@
-import requests
+import argparse
+import json
+import sys
+
 import pandas as pd
+import requests
 
 
 class KrakenMarketData:
@@ -32,24 +36,22 @@ class KrakenMarketData:
                 f"Unsupported Kraken interval: {interval}"
             )
 
-        params = {
-            "pair": pair.strip().upper(),
-            "interval": interval
-        }
-
         response = requests.get(
             self.BASE_URL,
-            params=params,
+            params={
+                "pair": pair.strip().upper(),
+                "interval": interval
+            },
             timeout=30,
             headers={
-                "User-Agent": "CryptoStatistics/1.0"
+                "User-Agent": "CryptoStatistics/1.0",
+                "Accept": "application/json"
             }
         )
 
         response.raise_for_status()
 
         payload = response.json()
-
         errors = payload.get("error", [])
 
         if errors:
@@ -66,7 +68,7 @@ class KrakenMarketData:
 
         pair_keys = [
             key
-            for key in result.keys()
+            for key in result
             if key != "last"
         ]
 
@@ -75,25 +77,23 @@ class KrakenMarketData:
                 "Kraken returned no OHLC data."
             )
 
-        result_pair = pair_keys[0]
-        candles = result[result_pair]
-
-        columns = [
-            "timestamp",
-            "open",
-            "high",
-            "low",
-            "close",
-            "vwap",
-            "volume",
-            "trade_count"
-        ]
+        candles = result[pair_keys[0]]
 
         df = pd.DataFrame(
             candles,
-            columns=columns
+            columns=[
+                "timestamp",
+                "open",
+                "high",
+                "low",
+                "close",
+                "vwap",
+                "volume",
+                "trade_count"
+            ]
         )
 
+        # Kraken includes the current incomplete candle last.
         if not include_current_candle and not df.empty:
             df = df.iloc[:-1].copy()
 
@@ -112,9 +112,9 @@ class KrakenMarketData:
             "volume"
         ]
 
-        df[numeric_columns] = (
-            df[numeric_columns]
-            .apply(pd.to_numeric, errors="raise")
+        df[numeric_columns] = df[numeric_columns].apply(
+            pd.to_numeric,
+            errors="raise"
         )
 
         df["trade_count"] = pd.to_numeric(
@@ -122,61 +122,112 @@ class KrakenMarketData:
             errors="raise"
         ).astype("int64")
 
-        df = df[
-            [
-                "date",
-                "open",
-                "high",
-                "low",
-                "close",
-                "vwap",
-                "volume",
-                "trade_count"
+        return (
+            df[
+                [
+                    "date",
+                    "open",
+                    "high",
+                    "low",
+                    "close",
+                    "vwap",
+                    "volume",
+                    "trade_count"
+                ]
             ]
-        ]
-
-        df = (
-            df
             .sort_values("date")
             .reset_index(drop=True)
         )
 
-        return df
+
+def dataframe_to_response(
+    df: pd.DataFrame,
+    pair: str,
+    interval: int
+) -> dict:
+
+    candles = []
+
+    for row in df.itertuples(index=False):
+        candles.append(
+            {
+                "date": row.date.isoformat(),
+                "open": row.open,
+                "high": row.high,
+                "low": row.low,
+                "close": row.close,
+                "vwap": row.vwap,
+                "volume": row.volume,
+                "tradeCount": row.trade_count
+            }
+        )
+
+    return {
+        "success": True,
+        "error": None,
+        "pair": pair.upper(),
+        "interval": interval,
+        "candles": candles
+    }
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument(
+        "--pair",
+        required=True
+    )
+
+    parser.add_argument(
+        "--interval",
+        required=True,
+        type=int
+    )
+
+    args = parser.parse_args()
+
+    try:
+        service = KrakenMarketData()
+
+        data = service.get_ohlcv(
+            pair=args.pair,
+            interval=args.interval
+        )
+
+        response = dataframe_to_response(
+            data,
+            args.pair,
+            args.interval
+        )
+
+        print(
+            json.dumps(
+                response,
+                separators=(",", ":")
+            )
+        )
+
+        return 0
+
+    except Exception as error:
+        response = {
+            "success": False,
+            "error": str(error),
+            "pair": args.pair.upper(),
+            "interval": args.interval,
+            "candles": []
+        }
+
+        print(
+            json.dumps(
+                response,
+                separators=(",", ":")
+            )
+        )
+
+        return 1
 
 
 if __name__ == "__main__":
-    market_data = KrakenMarketData()
-
-    try:
-        data = market_data.get_ohlcv(
-            pair="ETHUSD",
-            interval=1440
-        )
-
-        print(data.to_string(index=False))
-
-        if not data.empty:
-            print()
-            print(f"Rows:       {len(data)}")
-            print(f"First date: {data['date'].iloc[0]}")
-            print(f"Last date:  {data['date'].iloc[-1]}")
-
-    except requests.exceptions.ConnectionError as error:
-        print("Could not connect to Kraken.")
-        print(error)
-
-    except requests.exceptions.Timeout:
-        print("The Kraken request timed out.")
-
-    except requests.exceptions.HTTPError as error:
-        print("Kraken returned an HTTP error.")
-        print(error)
-
-    except (
-        RuntimeError,
-        ValueError,
-        KeyError,
-        TypeError
-    ) as error:
-        print("Could not process Kraken market data.")
-        print(error)
+    sys.exit(main())
