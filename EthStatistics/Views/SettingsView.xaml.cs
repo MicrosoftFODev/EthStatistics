@@ -10,13 +10,21 @@ namespace EthStatistics.Views
 {
     public partial class SettingsView : UserControl
     {
+        // ==========================================
+        // SERVICES / STATE
+        // ==========================================
+
         private readonly UserPreferencesService
             _preferencesService;
 
         private readonly UserPreferences
             _preferences;
 
-        private bool _initialized;
+        private readonly string?
+            _accountId;
+
+        private bool
+            _initialized;
 
 
         // ==========================================
@@ -25,7 +33,6 @@ namespace EthStatistics.Views
 
         public event EventHandler<DataPreferencesChangedEventArgs>?
             DataPreferencesChanged;
-
 
         public event EventHandler<GeneralPreferencesChangedEventArgs>?
             GeneralPreferencesChanged;
@@ -37,7 +44,8 @@ namespace EthStatistics.Views
 
         public SettingsView(
             UserPreferences preferences,
-            UserPreferencesService preferencesService)
+            UserPreferencesService preferencesService,
+            string? accountId)
         {
             InitializeComponent();
 
@@ -46,6 +54,9 @@ namespace EthStatistics.Views
 
             _preferencesService =
                 preferencesService;
+
+            _accountId =
+                accountId;
 
 
             Loaded +=
@@ -74,7 +85,8 @@ namespace EthStatistics.Views
 
         private void InitializeControls()
         {
-            _initialized = false;
+            _initialized =
+                false;
 
 
             RemoveControlEvents();
@@ -90,7 +102,8 @@ namespace EthStatistics.Views
             AddControlEvents();
 
 
-            _initialized = true;
+            _initialized =
+                true;
         }
 
 
@@ -179,14 +192,14 @@ namespace EthStatistics.Views
                 MarketDataStore.Instance;
 
 
-            // Quote currencies come from provider
-            // metadata.
+            // Quote currencies come from currently
+            // available market metadata.
 
             CurrencyComboBox.ItemsSource =
                 store.QuoteCurrencies;
 
 
-            // Intervals come from provider metadata.
+            // Intervals also come from metadata.
 
             TimeframeComboBox.ItemsSource =
                 store.Intervals;
@@ -200,9 +213,9 @@ namespace EthStatistics.Views
                 nameof(MarketInterval.Minutes);
 
 
-            // ======================================
+            // --------------------------------------
             // RESTORE QUOTE CURRENCY
-            // ======================================
+            // --------------------------------------
 
             if (
                 !string.IsNullOrWhiteSpace(
@@ -226,9 +239,9 @@ namespace EthStatistics.Views
             }
 
 
-            // ======================================
+            // --------------------------------------
             // RESTORE INTERVAL
-            // ======================================
+            // --------------------------------------
 
             MarketInterval? selectedInterval =
                 null;
@@ -252,7 +265,8 @@ namespace EthStatistics.Views
                     interval =>
                         interval.IsDefault
                 )
-                ?? store.Intervals.FirstOrDefault();
+                ??
+                store.Intervals.FirstOrDefault();
 
 
             if (selectedInterval is not null)
@@ -322,9 +336,7 @@ namespace EthStatistics.Views
             UpdatePreferencesFromControls();
 
 
-            await _preferencesService.SaveAsync(
-                _preferences
-            );
+            await SavePreferencesAsync();
 
 
             GeneralPreferencesChanged?.Invoke(
@@ -358,9 +370,7 @@ namespace EthStatistics.Views
             UpdatePreferencesFromControls();
 
 
-            await _preferencesService.SaveAsync(
-                _preferences
-            );
+            await SavePreferencesAsync();
 
 
             RaiseDataPreferencesChanged();
@@ -368,23 +378,26 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // UPDATE MODEL
+        // UPDATE PREFERENCE MODEL
         // ==========================================
 
         private void UpdatePreferencesFromControls()
         {
             _preferences.Language =
-                LanguageComboBox.SelectedItem?
+                LanguageComboBox
+                    .SelectedItem?
                     .ToString();
 
 
             _preferences.Theme =
-                ThemeComboBox.SelectedItem?
+                ThemeComboBox
+                    .SelectedItem?
                     .ToString();
 
 
             _preferences.QuoteCurrency =
-                CurrencyComboBox.SelectedItem?
+                CurrencyComboBox
+                    .SelectedItem?
                     .ToString();
 
 
@@ -396,6 +409,19 @@ namespace EthStatistics.Views
                 _preferences.IntervalMinutes =
                     interval;
             }
+        }
+
+
+        // ==========================================
+        // SAVE CURRENT PROFILE
+        // ==========================================
+
+        private async Task SavePreferencesAsync()
+        {
+            await _preferencesService.SaveAsync(
+                _preferences,
+                _accountId
+            );
         }
 
 
@@ -442,13 +468,19 @@ namespace EthStatistics.Views
             UpdatePreferencesFromControls();
 
 
-            await _preferencesService.SaveAsync(
-                _preferences
-            );
+            await SavePreferencesAsync();
+
+
+            string profileDescription =
+                string.IsNullOrWhiteSpace(
+                    _accountId
+                )
+                    ? "Guest preferences saved."
+                    : "Your preferences have been saved.";
 
 
             MessageBox.Show(
-                "Preferences saved.",
+                profileDescription,
                 "Settings",
                 MessageBoxButton.OK,
                 MessageBoxImage.Information

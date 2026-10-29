@@ -46,6 +46,17 @@ namespace EthStatistics
             _refreshCancellation;
 
 
+        private string? CurrentPreferenceAccountId
+        {
+            get
+            {
+                return _currentUser.IsAuthenticated
+                    ? _currentUser.AccountId
+                    : null;
+            }
+        }
+
+
         // ==========================================
         // CONSTRUCTOR
         // ==========================================
@@ -142,7 +153,7 @@ namespace EthStatistics
 
 
         // ==========================================
-        // STARTUP + WAM AUTHENTICATION
+        // STARTUP
         // ==========================================
 
         private async void MainWindow_Loaded(
@@ -153,12 +164,7 @@ namespace EthStatistics
 
             UpdateUserInterface();
 
-            _preferences =
-                await _preferencesService.LoadAsync();
-
-            _themeService.ApplyTheme(
-                _preferences.Theme
-            );
+            await LoadCurrentUserPreferencesAsync();
 
             await LoadMetadataAsync();
         }
@@ -186,8 +192,7 @@ namespace EthStatistics
             catch
             {
                 // Authentication is optional.
-                // The application remains usable
-                // in Guest mode.
+                // Continue in Guest mode.
 
                 _currentUser =
                     UserSession.Guest();
@@ -223,6 +228,32 @@ namespace EthStatistics
                     "user_canceled",
                     StringComparison.OrdinalIgnoreCase
                 );
+        }
+
+
+        // ==========================================
+        // USER PREFERENCES
+        // ==========================================
+
+        private async Task LoadCurrentUserPreferencesAsync()
+        {
+            _preferences =
+                await _preferencesService.LoadAsync(
+                    CurrentPreferenceAccountId
+                );
+
+            _themeService.ApplyTheme(
+                _preferences.Theme
+            );
+        }
+
+
+        private async Task SaveCurrentUserPreferencesAsync()
+        {
+            await _preferencesService.SaveAsync(
+                _preferences,
+                CurrentPreferenceAccountId
+            );
         }
 
 
@@ -278,6 +309,7 @@ namespace EthStatistics
                         );
                 }
 
+
                 if (
                     selectedMarket is null &&
                     !string.IsNullOrWhiteSpace(
@@ -292,6 +324,7 @@ namespace EthStatistics
                                 _preferences.QuoteCurrency
                         );
                 }
+
 
                 selectedMarket ??=
                     result.Markets.FirstOrDefault();
@@ -316,12 +349,14 @@ namespace EthStatistics
                         );
                 }
 
+
                 selectedInterval ??=
                     result.Intervals.FirstOrDefault(
                         interval =>
                             interval.IsDefault
                     )
-                    ?? result.Intervals.FirstOrDefault();
+                    ??
+                    result.Intervals.FirstOrDefault();
 
 
                 // ----------------------------------
@@ -343,12 +378,14 @@ namespace EthStatistics
                         );
                 }
 
+
                 selectedPeriod ??=
                     result.Periods.FirstOrDefault(
                         period =>
                             period.IsDefault
                     )
-                    ?? result.Periods.FirstOrDefault();
+                    ??
+                    result.Periods.FirstOrDefault();
 
 
                 // ----------------------------------
@@ -370,7 +407,7 @@ namespace EthStatistics
 
 
                 // ----------------------------------
-                // SAVE VALIDATED PREFERENCES
+                // UPDATE PREFERENCES
                 // ----------------------------------
 
                 _preferences.MarketPair =
@@ -385,9 +422,8 @@ namespace EthStatistics
                 _preferences.PeriodDays =
                     selectedPeriod.Days;
 
-                await _preferencesService.SaveAsync(
-                    _preferences
-                );
+
+                await SaveCurrentUserPreferencesAsync();
 
 
                 // ----------------------------------
@@ -441,6 +477,7 @@ namespace EthStatistics
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+
             if (
                 string.IsNullOrWhiteSpace(
                     store.Pair
@@ -452,11 +489,13 @@ namespace EthStatistics
                 return;
             }
 
+
             _refreshCancellation?.Cancel();
             _refreshCancellation?.Dispose();
 
             _refreshCancellation =
                 new CancellationTokenSource();
+
 
             string pair =
                 store.Pair;
@@ -464,11 +503,13 @@ namespace EthStatistics
             int interval =
                 store.Interval.Value;
 
+
             MarketDataStore.Instance.SetLoading();
 
             ShowLoadingStatus(
                 $"Loading {pair}..."
             );
+
 
             try
             {
@@ -483,6 +524,7 @@ namespace EthStatistics
                 MarketDataStore.Instance.SetResult(
                     result
                 );
+
 
                 if (result.Success)
                 {
@@ -501,8 +543,7 @@ namespace EthStatistics
             }
             catch (OperationCanceledException)
             {
-                // Expected when a newer request
-                // replaces the current request.
+                // A newer request replaced this one.
             }
             catch (Exception error)
             {
@@ -559,6 +600,7 @@ namespace EthStatistics
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+
             DataSourceText.Text =
                 string.IsNullOrWhiteSpace(
                     store.DataSource
@@ -566,11 +608,13 @@ namespace EthStatistics
                     ? "—"
                     : store.DataSource;
 
+
             bool isExcel =
                 store.DataSource.StartsWith(
                     "Excel",
                     StringComparison.OrdinalIgnoreCase
                 );
+
 
             UseApiDataButton.Visibility =
                 isExcel
@@ -630,12 +674,14 @@ namespace EthStatistics
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+
             KrakenMarket? selectedMarket =
                 store.Markets.FirstOrDefault(
                     market =>
                         market.Pair ==
                         e.Pair
                 );
+
 
             _preferences.MarketPair =
                 e.Pair;
@@ -649,9 +695,9 @@ namespace EthStatistics
             _preferences.PeriodDays =
                 e.PeriodDays;
 
-            await _preferencesService.SaveAsync(
-                _preferences
-            );
+
+            await SaveCurrentUserPreferencesAsync();
+
 
             await ApplySelectionAndRefreshAsync(
                 e.Pair,
@@ -687,14 +733,17 @@ namespace EthStatistics
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+
             DataStatusText.Text =
                 $"{store.Pair} · " +
                 $"{store.Candles.Count} imported observations";
+
 
             DataStatusIndicator.Fill =
                 FindBrush(
                     "PositiveBrush"
                 );
+
 
             ShowChart();
         }
@@ -737,14 +786,18 @@ namespace EthStatistics
             var settingsView =
                 new SettingsView(
                     _preferences,
-                    _preferencesService
+                    _preferencesService,
+                    CurrentPreferenceAccountId
                 );
+
 
             settingsView.DataPreferencesChanged +=
                 SettingsView_DataPreferencesChanged;
 
+
             settingsView.GeneralPreferencesChanged +=
                 SettingsView_GeneralPreferencesChanged;
+
 
             MainContent.Content =
                 settingsView;
@@ -758,6 +811,7 @@ namespace EthStatistics
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+
             KrakenMarket? currentMarket =
                 store.Markets.FirstOrDefault(
                     market =>
@@ -765,8 +819,10 @@ namespace EthStatistics
                         store.Pair
                 );
 
+
             KrakenMarket? selectedMarket =
                 null;
+
 
             if (currentMarket is not null)
             {
@@ -781,12 +837,14 @@ namespace EthStatistics
                     );
             }
 
+
             selectedMarket ??=
                 store.Markets.FirstOrDefault(
                     market =>
                         market.QuoteAsset ==
                         e.QuoteCurrency
                 );
+
 
             if (selectedMarket is null)
             {
@@ -797,6 +855,7 @@ namespace EthStatistics
                 return;
             }
 
+
             _preferences.QuoteCurrency =
                 e.QuoteCurrency;
 
@@ -806,12 +865,13 @@ namespace EthStatistics
             _preferences.IntervalMinutes =
                 e.Interval;
 
-            await _preferencesService.SaveAsync(
-                _preferences
-            );
+
+            await SaveCurrentUserPreferencesAsync();
+
 
             int period =
                 store.PeriodDays;
+
 
             if (period == 0)
             {
@@ -820,7 +880,9 @@ namespace EthStatistics
                         item =>
                             item.IsDefault
                     )
-                    ?? store.Periods.FirstOrDefault();
+                    ??
+                    store.Periods.FirstOrDefault();
+
 
                 if (defaultPeriod is not null)
                 {
@@ -828,6 +890,7 @@ namespace EthStatistics
                         defaultPeriod.Days;
                 }
             }
+
 
             await ApplySelectionAndRefreshAsync(
                 selectedMarket.Pair,
@@ -837,7 +900,7 @@ namespace EthStatistics
         }
 
 
-        private void SettingsView_GeneralPreferencesChanged(
+        private async void SettingsView_GeneralPreferencesChanged(
             object? sender,
             GeneralPreferencesChangedEventArgs e)
         {
@@ -847,9 +910,13 @@ namespace EthStatistics
             _preferences.Theme =
                 e.Theme;
 
+
             _themeService.ApplyTheme(
                 e.Theme
             );
+
+
+            await SaveCurrentUserPreferencesAsync();
         }
 
 
@@ -872,8 +939,10 @@ namespace EthStatistics
                             ? _currentUser.Username
                             : "Microsoft User";
 
+
                 SignInMenuItem.Visibility =
                     Visibility.Collapsed;
+
 
                 SignOutMenuItem.Visibility =
                     Visibility.Visible;
@@ -883,14 +952,20 @@ namespace EthStatistics
                 UserMenuItem.Header =
                     "Guest";
 
+
                 SignInMenuItem.Visibility =
                     Visibility.Visible;
+
 
                 SignOutMenuItem.Visibility =
                     Visibility.Collapsed;
             }
         }
 
+
+        // ==========================================
+        // SIGN IN
+        // ==========================================
 
         private async void SignInMenuItem_Click(
             object sender,
@@ -901,19 +976,43 @@ namespace EthStatistics
                 IntPtr windowHandle =
                     GetWindowHandle();
 
+
                 _currentUser =
                     await _authenticationService
                         .SignInAsync(
                             windowHandle
                         );
 
+
+                // ----------------------------------
+                // LOAD THIS USER'S PREFERENCES
+                // ----------------------------------
+
+                await LoadCurrentUserPreferencesAsync();
+
+
                 UpdateUserInterface();
+
+
+                // ----------------------------------
+                // RESTORE THIS USER'S MARKET
+                // ----------------------------------
+
+                MarketDataStore.Instance
+                    .ClearImportedData();
+
+
+                await LoadMetadataAsync();
+
+
+                ShowDashboard();
             }
             catch (MsalClientException error)
                 when (IsAuthenticationCancellation(error))
             {
-                // The user cancelled authentication.
-                // Keep the current session unchanged.
+                // User cancelled.
+                // Leave the application in its
+                // existing state.
             }
             catch (Exception error)
             {
@@ -927,6 +1026,10 @@ namespace EthStatistics
         }
 
 
+        // ==========================================
+        // SIGN OUT
+        // ==========================================
+
         private async void SignOutMenuItem_Click(
             object sender,
             RoutedEventArgs e)
@@ -936,10 +1039,33 @@ namespace EthStatistics
                 await _authenticationService
                     .SignOutAsync();
 
+
                 _currentUser =
                     UserSession.Guest();
 
+
+                // ----------------------------------
+                // LOAD GUEST PREFERENCES
+                // ----------------------------------
+
+                await LoadCurrentUserPreferencesAsync();
+
+
                 UpdateUserInterface();
+
+
+                // ----------------------------------
+                // RETURN TO GUEST DATA SETTINGS
+                // ----------------------------------
+
+                MarketDataStore.Instance
+                    .ClearImportedData();
+
+
+                await LoadMetadataAsync();
+
+
+                ShowDashboard();
             }
             catch (Exception error)
             {
@@ -963,6 +1089,7 @@ namespace EthStatistics
             DataStatusText.Text =
                 message;
 
+
             DataStatusIndicator.Fill =
                 FindBrush(
                     "WarningBrush"
@@ -977,6 +1104,7 @@ namespace EthStatistics
             DataStatusText.Text =
                 $"{pair} · {count} observations";
 
+
             DataStatusIndicator.Fill =
                 FindBrush(
                     "PositiveBrush"
@@ -990,10 +1118,12 @@ namespace EthStatistics
             DataStatusText.Text =
                 "Market data unavailable";
 
+
             DataStatusIndicator.Fill =
                 FindBrush(
                     "NegativeBrush"
                 );
+
 
             MessageBox.Show(
                 error,
@@ -1041,8 +1171,10 @@ namespace EthStatistics
             MarketDataStore.Instance.Changed -=
                 MarketDataStore_Changed;
 
+
             _refreshCancellation?.Cancel();
             _refreshCancellation?.Dispose();
+
 
             base.OnClosed(e);
         }
