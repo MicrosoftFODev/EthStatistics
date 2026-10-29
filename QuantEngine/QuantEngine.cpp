@@ -1,38 +1,200 @@
 #include "pch.h"
 #include "QuantEngine.h"
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
+#include <vector>
+
+#ifdef min
+#undef min
+#endif
+
+#ifdef max
+#undef max
+#endif
+namespace
+{
+    // ==========================================
+    // INTERNAL HELPERS
+    // ==========================================
+
+    double MissingValue()
+    {
+        return std::numeric_limits<double>
+            ::quiet_NaN();
+    }
+
+
+    bool IsValidArray(
+        const double* values,
+        int size)
+    {
+        if (
+            values == nullptr ||
+            size <= 0
+            )
+        {
+            return false;
+        }
+
+
+        for (
+            int index = 0;
+            index < size;
+            index++
+            )
+        {
+            if (!std::isfinite(values[index]))
+            {
+                return false;
+            }
+        }
+
+
+        return true;
+    }
+
+
+    bool AreValidPrices(
+        const double* prices,
+        int size)
+    {
+        if (!IsValidArray(prices, size))
+        {
+            return false;
+        }
+
+
+        for (
+            int index = 0;
+            index < size;
+            index++
+            )
+        {
+            if (prices[index] <= 0.0)
+            {
+                return false;
+            }
+        }
+
+
+        return true;
+    }
+
+
+    void InitializeOutput(
+        double* output,
+        int size)
+    {
+        if (
+            output == nullptr ||
+            size <= 0
+            )
+        {
+            return;
+        }
+
+
+        for (
+            int index = 0;
+            index < size;
+            index++
+            )
+        {
+            output[index] =
+                MissingValue();
+        }
+    }
+
+
+    double CalculateRsiValue(
+        double averageGain,
+        double averageLoss)
+    {
+        if (
+            averageGain <= 0.0 &&
+            averageLoss <= 0.0
+            )
+        {
+            return 50.0;
+        }
+
+
+        if (averageLoss <= 0.0)
+        {
+            return 100.0;
+        }
+
+
+        if (averageGain <= 0.0)
+        {
+            return 0.0;
+        }
+
+
+        const double relativeStrength =
+            averageGain /
+            averageLoss;
+
+
+        return
+            100.0 -
+            (
+                100.0 /
+                (
+                    1.0 +
+                    relativeStrength
+                    )
+                );
+    }
+}
 
 
 // ==========================================
-// MEAN
+// ADDITION
+// ==========================================
+
+double Add(
+    double a,
+    double b)
+{
+    return a + b;
+}
+
+
+// ==========================================
+// ARITHMETIC MEAN
+// ==========================================
+//
+// x_bar = (1 / n) * sum(x_i)
+//
 // ==========================================
 
 double Mean(
     const double* values,
     int size)
 {
-    if (
-        values == nullptr ||
-        size <= 0
-        )
+    if (!IsValidArray(values, size))
     {
-        return 0.0;
+        return MissingValue();
     }
+
 
     double sum =
         0.0;
 
+
     for (
-        int i = 0;
-        i < size;
-        i++
+        int index = 0;
+        index < size;
+        index++
         )
     {
         sum +=
-            values[i];
+            values[index];
     }
+
 
     return
         sum /
@@ -41,7 +203,220 @@ double Mean(
 
 
 // ==========================================
-// VARIANCE
+// GEOMETRIC MEAN
+// ==========================================
+//
+// G = (product(x_i))^(1 / n)
+//
+// Numerically stable form:
+//
+// G = exp(
+//     (1 / n) * sum(log(x_i))
+// )
+//
+// ==========================================
+
+double GeometricMean(
+    const double* values,
+    int size)
+{
+    if (!IsValidArray(values, size))
+    {
+        return MissingValue();
+    }
+
+
+    double sumOfLogs =
+        0.0;
+
+
+    for (
+        int index = 0;
+        index < size;
+        index++
+        )
+    {
+        const double value =
+            values[index];
+
+
+        if (value <= 0.0)
+        {
+            return MissingValue();
+        }
+
+
+        sumOfLogs +=
+            std::log(value);
+    }
+
+
+    const double meanLog =
+        sumOfLogs /
+        static_cast<double>(size);
+
+
+    const double result =
+        std::exp(meanLog);
+
+
+    return
+        std::isfinite(result)
+        ? result
+        : MissingValue();
+}
+
+
+// ==========================================
+// HARMONIC MEAN
+// ==========================================
+//
+// H = n / sum(1 / x_i)
+//
+// ==========================================
+
+double HarmonicMean(
+    const double* values,
+    int size)
+{
+    if (!IsValidArray(values, size))
+    {
+        return MissingValue();
+    }
+
+
+    double reciprocalSum =
+        0.0;
+
+
+    for (
+        int index = 0;
+        index < size;
+        index++
+        )
+    {
+        const double value =
+            values[index];
+
+
+        if (value <= 0.0)
+        {
+            return MissingValue();
+        }
+
+
+        reciprocalSum +=
+            1.0 /
+            value;
+    }
+
+
+    if (
+        !std::isfinite(reciprocalSum) ||
+        reciprocalSum <= 0.0
+        )
+    {
+        return MissingValue();
+    }
+
+
+    const double result =
+        static_cast<double>(size) /
+        reciprocalSum;
+
+
+    return
+        std::isfinite(result)
+        ? result
+        : MissingValue();
+}
+
+
+// ==========================================
+// WEIGHTED MEAN
+// ==========================================
+//
+// x_w =
+// sum(w_i * x_i) / sum(w_i)
+//
+// ==========================================
+
+double WeightedMean(
+    const double* values,
+    const double* weights,
+    int size)
+{
+    if (
+        !IsValidArray(values, size) ||
+        !IsValidArray(weights, size)
+        )
+    {
+        return MissingValue();
+    }
+
+
+    double weightedSum =
+        0.0;
+
+
+    double totalWeight =
+        0.0;
+
+
+    for (
+        int index = 0;
+        index < size;
+        index++
+        )
+    {
+        const double weight =
+            weights[index];
+
+
+        if (weight < 0.0)
+        {
+            return MissingValue();
+        }
+
+
+        weightedSum +=
+            values[index] *
+            weight;
+
+
+        totalWeight +=
+            weight;
+    }
+
+
+    if (
+        !std::isfinite(totalWeight) ||
+        totalWeight <= 0.0
+        )
+    {
+        return MissingValue();
+    }
+
+
+    const double result =
+        weightedSum /
+        totalWeight;
+
+
+    return
+        std::isfinite(result)
+        ? result
+        : MissingValue();
+}
+
+
+// ==========================================
+// SAMPLE VARIANCE
+// ==========================================
+//
+// s^2 =
+// sum((x_i - x_bar)^2) / (n - 1)
+//
 // ==========================================
 
 double Variance(
@@ -49,12 +424,13 @@ double Variance(
     int size)
 {
     if (
-        values == nullptr ||
+        !IsValidArray(values, size) ||
         size < 2
         )
     {
-        return 0.0;
+        return MissingValue();
     }
+
 
     const double mean =
         Mean(
@@ -62,53 +438,74 @@ double Variance(
             size
         );
 
+
+    if (!std::isfinite(mean))
+    {
+        return MissingValue();
+    }
+
+
     double sumSquaredDifferences =
         0.0;
 
+
     for (
-        int i = 0;
-        i < size;
-        i++
+        int index = 0;
+        index < size;
+        index++
         )
     {
         const double difference =
-            values[i] -
+            values[index] -
             mean;
+
 
         sumSquaredDifferences +=
             difference *
             difference;
     }
 
-    return
+
+    const double result =
         sumSquaredDifferences /
         static_cast<double>(
             size - 1
             );
+
+
+    return
+        std::isfinite(result)
+        ? result
+        : MissingValue();
 }
 
 
 // ==========================================
-// STANDARD DEVIATION
+// SAMPLE STANDARD DEVIATION
 // ==========================================
 
 double StandardDeviation(
     const double* values,
     int size)
 {
-    if (
-        values == nullptr ||
-        size < 2
-        )
-    {
-        return 0.0;
-    }
-
-    return std::sqrt(
+    const double variance =
         Variance(
             values,
             size
+        );
+
+
+    if (
+        !std::isfinite(variance) ||
+        variance < 0.0
         )
+    {
+        return MissingValue();
+    }
+
+
+    return std::sqrt(
+        variance
     );
 }
 
@@ -116,18 +513,25 @@ double StandardDeviation(
 // ==========================================
 // LOG RETURN
 // ==========================================
+//
+// r_t = log(P_t / P_(t-1))
+//
+// ==========================================
 
 double LogReturn(
     double previousPrice,
     double currentPrice)
 {
     if (
+        !std::isfinite(previousPrice) ||
+        !std::isfinite(currentPrice) ||
         previousPrice <= 0.0 ||
         currentPrice <= 0.0
         )
     {
-        return 0.0;
+        return MissingValue();
     }
+
 
     return std::log(
         currentPrice /
@@ -137,77 +541,7 @@ double LogReturn(
 
 
 // ==========================================
-// RSI INTERNAL HELPER
-// ==========================================
-
-static double CalculateRsiValue(
-    double averageGain,
-    double averageLoss)
-{
-    // No movement at all.
-
-    if (
-        averageGain <= 0.0 &&
-        averageLoss <= 0.0
-        )
-    {
-        return 50.0;
-    }
-
-
-    // Gains but no losses.
-
-    if (averageLoss <= 0.0)
-    {
-        return 100.0;
-    }
-
-
-    // Losses but no gains.
-
-    if (averageGain <= 0.0)
-    {
-        return 0.0;
-    }
-
-
-    const double relativeStrength =
-        averageGain /
-        averageLoss;
-
-
-    return
-        100.0 -
-        (
-            100.0 /
-            (
-                1.0 +
-                relativeStrength
-                )
-            );
-}
-
-
-// ==========================================
 // WILDER RSI
-// ==========================================
-//
-// output must have space for "size" doubles.
-//
-// Values before the first available RSI
-// are written as NaN.
-//
-// Example:
-//
-// double output[100];
-//
-// WilderRSI(
-//     prices,
-//     100,
-//     14,
-//     output
-// );
-//
 // ==========================================
 
 void WilderRSI(
@@ -217,7 +551,6 @@ void WilderRSI(
     double* output)
 {
     if (
-        prices == nullptr ||
         output == nullptr ||
         size <= 0
         )
@@ -226,21 +559,14 @@ void WilderRSI(
     }
 
 
-    // Initialize every output as unavailable.
-
-    for (
-        int i = 0;
-        i < size;
-        i++
-        )
-    {
-        output[i] =
-            std::numeric_limits<double>
-            ::quiet_NaN();
-    }
+    InitializeOutput(
+        output,
+        size
+    );
 
 
     if (
+        !AreValidPrices(prices, size) ||
         period <= 0 ||
         size <= period
         )
@@ -252,21 +578,20 @@ void WilderRSI(
     double gainSum =
         0.0;
 
+
     double lossSum =
         0.0;
 
 
-    // Initial period.
-
     for (
-        int i = 1;
-        i <= period;
-        i++
+        int index = 1;
+        index <= period;
+        index++
         )
     {
         const double change =
-            prices[i] -
-            prices[i - 1];
+            prices[index] -
+            prices[index - 1];
 
 
         if (change > 0.0)
@@ -284,16 +609,12 @@ void WilderRSI(
 
     double averageGain =
         gainSum /
-        static_cast<double>(
-            period
-            );
+        static_cast<double>(period);
 
 
     double averageLoss =
         lossSum /
-        static_cast<double>(
-            period
-            );
+        static_cast<double>(period);
 
 
     output[period] =
@@ -303,29 +624,29 @@ void WilderRSI(
         );
 
 
-    // Wilder recursive smoothing.
-
     for (
-        int i = period + 1;
-        i < size;
-        i++
+        int index = period + 1;
+        index < size;
+        index++
         )
     {
         const double change =
-            prices[i] -
-            prices[i - 1];
+            prices[index] -
+            prices[index - 1];
 
 
         const double gain =
-            change > 0.0
-            ? change
-            : 0.0;
+            std::max(
+                change,
+                0.0
+            );
 
 
         const double loss =
-            change < 0.0
-            ? -change
-            : 0.0;
+            std::max(
+                -change,
+                0.0
+            );
 
 
         averageGain =
@@ -338,9 +659,7 @@ void WilderRSI(
                 gain
                 )
             /
-            static_cast<double>(
-                period
-                );
+            static_cast<double>(period);
 
 
         averageLoss =
@@ -353,12 +672,10 @@ void WilderRSI(
                 loss
                 )
             /
-            static_cast<double>(
-                period
-                );
+            static_cast<double>(period);
 
 
-        output[i] =
+        output[index] =
             CalculateRsiValue(
                 averageGain,
                 averageLoss
@@ -368,12 +685,7 @@ void WilderRSI(
 
 
 // ==========================================
-// CUTLER / SIMPLE RSI
-// ==========================================
-//
-// Uses rolling simple averages of gains
-// and losses instead of Wilder smoothing.
-//
+// CUTLER RSI
 // ==========================================
 
 void CutlerRSI(
@@ -383,7 +695,6 @@ void CutlerRSI(
     double* output)
 {
     if (
-        prices == nullptr ||
         output == nullptr ||
         size <= 0
         )
@@ -392,19 +703,14 @@ void CutlerRSI(
     }
 
 
-    for (
-        int i = 0;
-        i < size;
-        i++
-        )
-    {
-        output[i] =
-            std::numeric_limits<double>
-            ::quiet_NaN();
-    }
+    InitializeOutput(
+        output,
+        size
+    );
 
 
     if (
+        !AreValidPrices(prices, size) ||
         period <= 0 ||
         size <= period
         )
@@ -416,118 +722,113 @@ void CutlerRSI(
     double gainSum =
         0.0;
 
+
     double lossSum =
         0.0;
 
 
-    // Build initial rolling window.
-
     for (
-        int i = 1;
-        i <= period;
-        i++
+        int index = 1;
+        index <= period;
+        index++
         )
     {
         const double change =
-            prices[i] -
-            prices[i - 1];
+            prices[index] -
+            prices[index - 1];
 
 
-        if (change > 0.0)
-        {
-            gainSum +=
-                change;
-        }
-        else if (change < 0.0)
-        {
-            lossSum +=
-                -change;
-        }
+        gainSum +=
+            std::max(
+                change,
+                0.0
+            );
+
+
+        lossSum +=
+            std::max(
+                -change,
+                0.0
+            );
     }
 
 
     output[period] =
         CalculateRsiValue(
             gainSum /
-            static_cast<double>(
-                period
-                ),
+            static_cast<double>(period),
             lossSum /
-            static_cast<double>(
-                period
-                )
+            static_cast<double>(period)
         );
 
 
-    // Move the fixed-size rolling window.
-
     for (
-        int i = period + 1;
-        i < size;
-        i++
+        int index = period + 1;
+        index < size;
+        index++
         )
     {
         const double newChange =
-            prices[i] -
-            prices[i - 1];
+            prices[index] -
+            prices[index - 1];
 
 
         const double oldChange =
-            prices[
-                i - period
-            ]
-            -
-            prices[
-                i - period - 1
-            ];
+            prices[index - period] -
+            prices[index - period - 1];
 
 
-        // Add newest observation.
-
-        if (newChange > 0.0)
-        {
-            gainSum +=
-                newChange;
-        }
-        else if (newChange < 0.0)
-        {
-            lossSum +=
-                -newChange;
-        }
+        gainSum +=
+            std::max(
+                newChange,
+                0.0
+            );
 
 
-        // Remove oldest observation.
-
-        if (oldChange > 0.0)
-        {
-            gainSum -=
-                oldChange;
-        }
-        else if (oldChange < 0.0)
-        {
-            lossSum -=
-                -oldChange;
-        }
+        lossSum +=
+            std::max(
+                -newChange,
+                0.0
+            );
 
 
-        const double averageGain =
-            gainSum /
-            static_cast<double>(
-                period
-                );
+        gainSum -=
+            std::max(
+                oldChange,
+                0.0
+            );
 
 
-        const double averageLoss =
-            lossSum /
-            static_cast<double>(
-                period
-                );
+        lossSum -=
+            std::max(
+                -oldChange,
+                0.0
+            );
 
 
-        output[i] =
+        // Avoid insignificant negative values
+        // caused by floating-point subtraction.
+
+        gainSum =
+            std::max(
+                gainSum,
+                0.0
+            );
+
+
+        lossSum =
+            std::max(
+                lossSum,
+                0.0
+            );
+
+
+        output[index] =
             CalculateRsiValue(
-                averageGain,
-                averageLoss
+                gainSum /
+                static_cast<double>(period),
+                lossSum /
+                static_cast<double>(period)
             );
     }
 }
@@ -535,14 +836,6 @@ void CutlerRSI(
 
 // ==========================================
 // EXPONENTIAL RSI
-// ==========================================
-//
-// Uses standard EMA:
-//
-// alpha = 2 / (period + 1)
-//
-// This differs from Wilder's smoothing.
-//
 // ==========================================
 
 void ExponentialRSI(
@@ -552,7 +845,6 @@ void ExponentialRSI(
     double* output)
 {
     if (
-        prices == nullptr ||
         output == nullptr ||
         size <= 0
         )
@@ -561,19 +853,14 @@ void ExponentialRSI(
     }
 
 
-    for (
-        int i = 0;
-        i < size;
-        i++
-        )
-    {
-        output[i] =
-            std::numeric_limits<double>
-            ::quiet_NaN();
-    }
+    InitializeOutput(
+        output,
+        size
+    );
 
 
     if (
+        !AreValidPrices(prices, size) ||
         period <= 0 ||
         size <= period
         )
@@ -585,48 +872,45 @@ void ExponentialRSI(
     double gainSum =
         0.0;
 
+
     double lossSum =
         0.0;
 
 
-    // Initial SMA seed.
-
     for (
-        int i = 1;
-        i <= period;
-        i++
+        int index = 1;
+        index <= period;
+        index++
         )
     {
         const double change =
-            prices[i] -
-            prices[i - 1];
+            prices[index] -
+            prices[index - 1];
 
 
-        if (change > 0.0)
-        {
-            gainSum +=
-                change;
-        }
-        else if (change < 0.0)
-        {
-            lossSum +=
-                -change;
-        }
+        gainSum +=
+            std::max(
+                change,
+                0.0
+            );
+
+
+        lossSum +=
+            std::max(
+                -change,
+                0.0
+            );
     }
 
 
     double averageGain =
         gainSum /
-        static_cast<double>(
-            period
-            );
+        static_cast<double>(period);
 
 
     double averageLoss =
         lossSum /
-        static_cast<double>(
-            period
-            );
+        static_cast<double>(period);
 
 
     output[period] =
@@ -639,35 +923,34 @@ void ExponentialRSI(
     const double alpha =
         2.0 /
         (
-            static_cast<double>(
-                period
-                )
-            +
+            static_cast<double>(period) +
             1.0
             );
 
 
     for (
-        int i = period + 1;
-        i < size;
-        i++
+        int index = period + 1;
+        index < size;
+        index++
         )
     {
         const double change =
-            prices[i] -
-            prices[i - 1];
+            prices[index] -
+            prices[index - 1];
 
 
         const double gain =
-            change > 0.0
-            ? change
-            : 0.0;
+            std::max(
+                change,
+                0.0
+            );
 
 
         const double loss =
-            change < 0.0
-            ? -change
-            : 0.0;
+            std::max(
+                -change,
+                0.0
+            );
 
 
         averageGain =
@@ -694,7 +977,7 @@ void ExponentialRSI(
             averageLoss;
 
 
-        output[i] =
+        output[index] =
             CalculateRsiValue(
                 averageGain,
                 averageLoss
@@ -706,17 +989,6 @@ void ExponentialRSI(
 // ==========================================
 // STOCHASTIC RSI
 // ==========================================
-//
-// First calculates Wilder RSI.
-// Then:
-//
-// StochRSI =
-// 100 * (RSI - min RSI)
-//       / (max RSI - min RSI)
-//
-// over stochasticPeriod.
-//
-// ==========================================
 
 void StochasticRSI(
     const double* prices,
@@ -726,7 +998,6 @@ void StochasticRSI(
     double* output)
 {
     if (
-        prices == nullptr ||
         output == nullptr ||
         size <= 0
         )
@@ -735,19 +1006,14 @@ void StochasticRSI(
     }
 
 
-    for (
-        int i = 0;
-        i < size;
-        i++
-        )
-    {
-        output[i] =
-            std::numeric_limits<double>
-            ::quiet_NaN();
-    }
+    InitializeOutput(
+        output,
+        size
+    );
 
 
     if (
+        !AreValidPrices(prices, size) ||
         rsiPeriod <= 0 ||
         stochasticPeriod <= 0 ||
         size <= rsiPeriod
@@ -757,27 +1023,43 @@ void StochasticRSI(
     }
 
 
-    double* rsi =
-        new double[size];
+    std::vector<double> rsi(
+        static_cast<std::size_t>(size)
+    );
 
 
     WilderRSI(
         prices,
         size,
         rsiPeriod,
-        rsi
+        rsi.data()
     );
 
 
-    for (
-        int i =
+    const int firstIndex =
         rsiPeriod +
         stochasticPeriod -
         1;
-        i < size;
-        i++
+
+
+    if (firstIndex >= size)
+    {
+        return;
+    }
+
+
+    for (
+        int index = firstIndex;
+        index < size;
+        index++
         )
     {
+        const int startIndex =
+            index -
+            stochasticPeriod +
+            1;
+
+
         double minimumRsi =
             std::numeric_limits<double>
             ::infinity();
@@ -788,23 +1070,25 @@ void StochasticRSI(
             ::infinity();
 
 
-        const int start =
-            i -
-            stochasticPeriod +
-            1;
-
-
         bool validWindow =
             true;
 
 
         for (
-            int j = start;
-            j <= i;
-            j++
+            int windowIndex = startIndex;
+            windowIndex <= index;
+            windowIndex++
             )
         {
-            if (!std::isfinite(rsi[j]))
+            const double value =
+                rsi[
+                    static_cast<std::size_t>(
+                        windowIndex
+                        )
+                ];
+
+
+            if (!std::isfinite(value))
             {
                 validWindow =
                     false;
@@ -813,18 +1097,18 @@ void StochasticRSI(
             }
 
 
-            if (rsi[j] < minimumRsi)
-            {
-                minimumRsi =
-                    rsi[j];
-            }
+            minimumRsi =
+                std::min(
+                    minimumRsi,
+                    value
+                );
 
 
-            if (rsi[j] > maximumRsi)
-            {
-                maximumRsi =
-                    rsi[j];
-            }
+            maximumRsi =
+                std::max(
+                    maximumRsi,
+                    value
+                );
         }
 
 
@@ -841,43 +1125,31 @@ void StochasticRSI(
 
         if (range <= 0.0)
         {
-            output[i] =
+            output[index] =
                 0.0;
         }
         else
         {
-            output[i] =
+            output[index] =
                 100.0 *
                 (
-                    rsi[i] -
+                    rsi[
+                        static_cast<std::size_t>(
+                            index
+                            )
+                    ]
+                    -
                     minimumRsi
                     )
                 /
                 range;
         }
     }
-
-
-    delete[] rsi;
 }
 
 
 // ==========================================
 // PRICE STREAK
-// ==========================================
-//
-// Rising:
-//
-// 1, 2, 3, ...
-//
-// Falling:
-//
-// -1, -2, -3, ...
-//
-// No change:
-//
-// 0
-//
 // ==========================================
 
 void PriceStreak(
@@ -886,10 +1158,21 @@ void PriceStreak(
     double* output)
 {
     if (
-        prices == nullptr ||
         output == nullptr ||
         size <= 0
         )
+    {
+        return;
+    }
+
+
+    InitializeOutput(
+        output,
+        size
+    );
+
+
+    if (!AreValidPrices(prices, size))
     {
         return;
     }
@@ -900,34 +1183,34 @@ void PriceStreak(
 
 
     for (
-        int i = 1;
-        i < size;
-        i++
+        int index = 1;
+        index < size;
+        index++
         )
     {
         if (
-            prices[i] >
-            prices[i - 1]
+            prices[index] >
+            prices[index - 1]
             )
         {
-            output[i] =
-                output[i - 1] > 0.0
-                ? output[i - 1] + 1.0
+            output[index] =
+                output[index - 1] > 0.0
+                ? output[index - 1] + 1.0
                 : 1.0;
         }
         else if (
-            prices[i] <
-            prices[i - 1]
+            prices[index] <
+            prices[index - 1]
             )
         {
-            output[i] =
-                output[i - 1] < 0.0
-                ? output[i - 1] - 1.0
+            output[index] =
+                output[index - 1] < 0.0
+                ? output[index - 1] - 1.0
                 : -1.0;
         }
         else
         {
-            output[i] =
+            output[index] =
                 0.0;
         }
     }
@@ -945,7 +1228,6 @@ void PercentRank(
     double* output)
 {
     if (
-        values == nullptr ||
         output == nullptr ||
         size <= 0
         )
@@ -954,19 +1236,14 @@ void PercentRank(
     }
 
 
-    for (
-        int i = 0;
-        i < size;
-        i++
-        )
-    {
-        output[i] =
-            std::numeric_limits<double>
-            ::quiet_NaN();
-    }
+    InitializeOutput(
+        output,
+        size
+    );
 
 
     if (
+        values == nullptr ||
         period <= 0 ||
         size <= period
         )
@@ -976,27 +1253,32 @@ void PercentRank(
 
 
     for (
-        int i = period;
-        i < size;
-        i++
+        int index = period;
+        index < size;
+        index++
         )
     {
-        if (!std::isfinite(values[i]))
+        const double currentValue =
+            values[index];
+
+
+        if (!std::isfinite(currentValue))
         {
             continue;
         }
 
 
+        const int startIndex =
+            index -
+            period;
+
+
         int lowerCount =
             0;
 
+
         int equalCount =
             0;
-
-
-        const int start =
-            i -
-            period;
 
 
         bool validWindow =
@@ -1004,12 +1286,16 @@ void PercentRank(
 
 
         for (
-            int j = start;
-            j < i;
-            j++
+            int windowIndex = startIndex;
+            windowIndex < index;
+            windowIndex++
             )
         {
-            if (!std::isfinite(values[j]))
+            const double historicalValue =
+                values[windowIndex];
+
+
+            if (!std::isfinite(historicalValue))
             {
                 validWindow =
                     false;
@@ -1018,11 +1304,17 @@ void PercentRank(
             }
 
 
-            if (values[j] < values[i])
+            if (
+                historicalValue <
+                currentValue
+                )
             {
                 lowerCount++;
             }
-            else if (values[j] == values[i])
+            else if (
+                historicalValue ==
+                currentValue
+                )
             {
                 equalCount++;
             }
@@ -1035,7 +1327,7 @@ void PercentRank(
         }
 
 
-        output[i] =
+        output[index] =
             100.0 *
             (
                 static_cast<double>(
@@ -1048,28 +1340,13 @@ void PercentRank(
                     )
                 )
             /
-            static_cast<double>(
-                period
-                );
+            static_cast<double>(period);
     }
 }
 
 
 // ==========================================
 // CONNORS RSI
-// ==========================================
-//
-// Components:
-//
-// 1. Price RSI
-// 2. RSI of price streak
-// 3. Percent rank of 1-day return
-//
-// Final:
-//
-// CRSI =
-// (PriceRSI + StreakRSI + PercentRank) / 3
-//
 // ==========================================
 
 void ConnorsRSI(
@@ -1081,7 +1358,6 @@ void ConnorsRSI(
     double* output)
 {
     if (
-        prices == nullptr ||
         output == nullptr ||
         size <= 0
         )
@@ -1090,19 +1366,14 @@ void ConnorsRSI(
     }
 
 
-    for (
-        int i = 0;
-        i < size;
-        i++
-        )
-    {
-        output[i] =
-            std::numeric_limits<double>
-            ::quiet_NaN();
-    }
+    InitializeOutput(
+        output,
+        size
+    );
 
 
     if (
+        !AreValidPrices(prices, size) ||
         priceRsiPeriod <= 0 ||
         streakRsiPeriod <= 0 ||
         rankPeriod <= 0
@@ -1112,118 +1383,287 @@ void ConnorsRSI(
     }
 
 
-    double* priceRsi =
-        new double[size];
+    const std::size_t vectorSize =
+        static_cast<std::size_t>(size);
 
 
-    double* streak =
-        new double[size];
+    std::vector<double> priceRsi(
+        vectorSize
+    );
 
 
-    double* streakRsi =
-        new double[size];
+    std::vector<double> streak(
+        vectorSize
+    );
 
 
-    double* returns =
-        new double[size];
+    std::vector<double> streakRsi(
+        vectorSize
+    );
 
 
-    double* percentRank =
-        new double[size];
+    std::vector<double> returns(
+        vectorSize,
+        MissingValue()
+    );
+
+
+    std::vector<double> percentRank(
+        vectorSize
+    );
 
 
     WilderRSI(
         prices,
         size,
         priceRsiPeriod,
-        priceRsi
+        priceRsi.data()
     );
 
 
     PriceStreak(
         prices,
         size,
-        streak
+        streak.data()
     );
 
 
-    WilderRSI(
-        streak,
-        size,
-        streakRsiPeriod,
-        streakRsi
-    );
+    // Streaks may be negative, so use the RSI
+    // function directly. WilderRSI validates
+    // prices as positive, therefore we calculate
+    // streak RSI locally here.
 
-
-    returns[0] =
-        std::numeric_limits<double>
-        ::quiet_NaN();
-
-
-    for (
-        int i = 1;
-        i < size;
-        i++
-        )
+    if (size > streakRsiPeriod)
     {
-        if (prices[i - 1] == 0.0)
+        double gainSum =
+            0.0;
+
+
+        double lossSum =
+            0.0;
+
+
+        std::fill(
+            streakRsi.begin(),
+            streakRsi.end(),
+            MissingValue()
+        );
+
+
+        for (
+            int index = 1;
+            index <= streakRsiPeriod;
+            index++
+            )
         {
-            returns[i] =
-                std::numeric_limits<double>
-                ::quiet_NaN();
+            const double change =
+                streak[
+                    static_cast<std::size_t>(
+                        index
+                        )
+                ]
+                -
+                streak[
+                    static_cast<std::size_t>(
+                        index - 1
+                        )
+                ];
+
+
+            gainSum +=
+                std::max(
+                    change,
+                    0.0
+                );
+
+
+            lossSum +=
+                std::max(
+                    -change,
+                    0.0
+                );
         }
-        else
-        {
-            returns[i] =
-                100.0 *
-                (
-                    prices[i] /
-                    prices[i - 1]
+
+
+        double averageGain =
+            gainSum /
+            static_cast<double>(
+                streakRsiPeriod
+                );
+
+
+        double averageLoss =
+            lossSum /
+            static_cast<double>(
+                streakRsiPeriod
+                );
+
+
+        streakRsi[
+            static_cast<std::size_t>(
+                streakRsiPeriod
+                )
+        ] =
+            CalculateRsiValue(
+                averageGain,
+                averageLoss
+            );
+
+
+            for (
+                int index = streakRsiPeriod + 1;
+                index < size;
+                index++
+                )
+            {
+                const double change =
+                    streak[
+                        static_cast<std::size_t>(
+                            index
+                            )
+                    ]
                     -
-                    1.0
+                    streak[
+                        static_cast<std::size_t>(
+                            index - 1
+                            )
+                    ];
+
+
+                const double gain =
+                    std::max(
+                        change,
+                        0.0
                     );
-        }
+
+
+                const double loss =
+                    std::max(
+                        -change,
+                        0.0
+                    );
+
+
+                averageGain =
+                    (
+                        averageGain *
+                        static_cast<double>(
+                            streakRsiPeriod - 1
+                            )
+                        +
+                        gain
+                        )
+                    /
+                    static_cast<double>(
+                        streakRsiPeriod
+                        );
+
+
+                averageLoss =
+                    (
+                        averageLoss *
+                        static_cast<double>(
+                            streakRsiPeriod - 1
+                            )
+                        +
+                        loss
+                        )
+                    /
+                    static_cast<double>(
+                        streakRsiPeriod
+                        );
+
+
+                streakRsi[
+                    static_cast<std::size_t>(
+                        index
+                        )
+                ] =
+                    CalculateRsiValue(
+                        averageGain,
+                        averageLoss
+                    );
+            }
     }
 
 
-    PercentRank(
-        returns,
-        size,
-        rankPeriod,
-        percentRank
-    );
-
-
     for (
-        int i = 0;
-        i < size;
-        i++
+        int index = 1;
+        index < size;
+        index++
         )
     {
+        const double previousPrice =
+            prices[index - 1];
+
+
+        const double currentPrice =
+            prices[index];
+
+
         if (
-            !std::isfinite(priceRsi[i]) ||
-            !std::isfinite(streakRsi[i]) ||
-            !std::isfinite(percentRank[i])
+            previousPrice <= 0.0 ||
+            currentPrice <= 0.0
             )
         {
             continue;
         }
 
 
-        output[i] =
+        returns[
+            static_cast<std::size_t>(
+                index
+                )
+        ] =
+            100.0 *
+                (
+                    currentPrice /
+                    previousPrice
+                    -
+                    1.0
+                    );
+    }
+
+
+    PercentRank(
+        returns.data(),
+        size,
+        rankPeriod,
+        percentRank.data()
+    );
+
+
+    for (
+        int index = 0;
+        index < size;
+        index++
+        )
+    {
+        const std::size_t position =
+            static_cast<std::size_t>(
+                index
+                );
+
+
+        if (
+            !std::isfinite(priceRsi[position]) ||
+            !std::isfinite(streakRsi[position]) ||
+            !std::isfinite(percentRank[position])
+            )
+        {
+            continue;
+        }
+
+
+        output[index] =
             (
-                priceRsi[i] +
-                streakRsi[i] +
-                percentRank[i]
+                priceRsi[position]
+                +
+                streakRsi[position]
+                +
+                percentRank[position]
                 )
             /
             3.0;
     }
-
-
-    delete[] priceRsi;
-    delete[] streak;
-    delete[] streakRsi;
-    delete[] returns;
-    delete[] percentRank;
 }
