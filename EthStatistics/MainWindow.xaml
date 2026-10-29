@@ -1,249 +1,411 @@
 ﻿<Window x:Class="EthStatistics.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework"
 
         Title="Crypto Statistics"
+
         Height="800"
         Width="1320"
+
         MinHeight="700"
         MinWidth="1100"
 
-        Background="{DynamicResource AppBackgroundBrush}"
+        Background="Transparent"
+
+        WindowStyle="None"
+        ResizeMode="CanResize"
+
         WindowStartupLocation="CenterScreen">
 
-    <Grid>
+    <!-- CUSTOM WINDOW CHROME -->
 
-        <Grid.RowDefinitions>
-            <RowDefinition Height="64"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
+    <shell:WindowChrome.WindowChrome>
 
+        <shell:WindowChrome
+            CaptionHeight="56"
+            ResizeBorderThickness="6"
+            CornerRadius="10"
+            GlassFrameThickness="0"/>
 
-        <!-- TOP BAR -->
-
-        <Border
-            Grid.Row="0"
-            Background="{DynamicResource TopBarBrush}"
-            BorderBrush="{DynamicResource BorderSubtleBrush}"
-            BorderThickness="0,0,0,1">
-
-            <Grid Margin="24,0">
-
-                <Grid.ColumnDefinitions>
-
-                    <ColumnDefinition Width="220"/>
-
-                    <ColumnDefinition Width="*"/>
-
-                    <ColumnDefinition Width="Auto"/>
-
-                </Grid.ColumnDefinitions>
+    </shell:WindowChrome.WindowChrome>
 
 
-                <!-- BRAND -->
+    <!-- OUTER APPLICATION BORDER -->
 
-                <StackPanel
-                    Grid.Column="0"
-                    Orientation="Horizontal"
-                    VerticalAlignment="Center">
+    <Border
+        Background="{DynamicResource AppBackgroundBrush}"
+        BorderBrush="{DynamicResource BorderBrush}"
+        BorderThickness="1"
+        CornerRadius="10">
 
-                    <Border
-                        Width="30"
-                        Height="30"
-                        CornerRadius="6"
-                        Background="{DynamicResource AccentBrush}"
-                        Margin="0,0,11,0">
+        <Grid>
 
-                        <TextBlock
-                            Text="Q"
-                            Foreground="White"
-                            FontSize="15"
-                            FontWeight="Bold"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
-
-                    </Border>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="56"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
 
 
-                    <StackPanel>
-
-                        <TextBlock
-                            Text="Crypto Statistics"
-                            Foreground="{DynamicResource TextPrimaryBrush}"
-                            FontSize="15"
-                            FontWeight="SemiBold"/>
-
-                        <TextBlock
-                            Text="QUANTITATIVE ANALYTICS"
-                            Foreground="{DynamicResource TextMutedBrush}"
-                            FontSize="8"/>
-
-                    </StackPanel>
-
-                </StackPanel>
-
-
-                <!-- CENTER STATUS -->
-
-                <StackPanel
-    Grid.Column="1"
-    Orientation="Horizontal"
-    VerticalAlignment="Center"
-    HorizontalAlignment="Center">
-
-                    <Ellipse
-        x:Name="DataStatusIndicator"
-        Width="7"
-        Height="7"
-        Fill="{DynamicResource TextMutedBrush}"
-        Margin="0,0,8,0"/>
-
-                    <TextBlock
-        x:Name="DataStatusText"
-        Text="Waiting for market data"
-        Foreground="{DynamicResource TextMutedBrush}"
-        FontSize="12"/>
-
-                </StackPanel>
-
-
-                <!-- USER -->
-
-                <Menu Grid.Column="2"
-      Background="Transparent"
-      VerticalAlignment="Center">
-
-                    <MenuItem
-        Header="User"
-        Style="{StaticResource UserMenuItemStyle}">
-
-                        <MenuItem
-            Header="Settings"
-            Style="{StaticResource UserMenuOptionStyle}"
-            Click="SettingsMenuItem_Click"/>
-
-                        <MenuItem
-            Header="About"
-            Style="{StaticResource UserMenuOptionStyle}"
-            Click="AboutMenuItem_Click"/>
-
-                    </MenuItem>
-
-                </Menu>
-
-            </Grid>
-
-        </Border>
-
-
-        <!-- MAIN AREA -->
-
-        <Grid Grid.Row="1">
-
-            <Grid.ColumnDefinitions>
-
-                <ColumnDefinition Width="220"/>
-
-                <ColumnDefinition Width="*"/>
-
-            </Grid.ColumnDefinitions>
-
-
-            <!-- SIDEBAR -->
+            <!-- ================================= -->
+            <!-- TITLE BAR -->
+            <!-- ================================= -->
 
             <Border
-                Grid.Column="0"
-                Background="{DynamicResource SidebarBrush}"
+                Grid.Row="0"
+                Background="{DynamicResource TopBarBrush}"
                 BorderBrush="{DynamicResource BorderSubtleBrush}"
-                BorderThickness="0,0,1,0">
+                BorderThickness="0,0,0,1"
+                CornerRadius="10,10,0,0">
 
-                <Grid>
+                <Grid Margin="18,0,0,0">
 
-                    <Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
 
-                        <RowDefinition Height="Auto"/>
+                        <ColumnDefinition Width="220"/>
 
-                        <RowDefinition Height="*"/>
+                        <ColumnDefinition Width="*"/>
 
-                        <RowDefinition Height="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
 
-                    </Grid.RowDefinitions>
+                        <ColumnDefinition Width="38"/>
+
+                        <ColumnDefinition Width="38"/>
+
+                        <ColumnDefinition Width="38"/>
+
+                    </Grid.ColumnDefinitions>
 
 
-                    <TextBlock
-                        Grid.Row="0"
-                        Text="ANALYTICS"
-                        Foreground="{DynamicResource TextMutedBrush}"
-                        FontSize="10"
-                        FontWeight="SemiBold"
-                        Margin="27,25,0,9"/>
-
+                    <!-- BRAND -->
 
                     <StackPanel
-                        Grid.Row="1"
-                        Margin="12,0">
+                        Grid.Column="0"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center">
 
-                        <Button
-                            Content="Dashboard"
-                            Click="DashboardButton_Click"
-                            Style="{StaticResource NavigationButtonStyle}"/>
-
-                        <Button
-                            Content="Chart"
-                            Click="ChartButton_Click"
-                            Style="{StaticResource NavigationButtonStyle}"/>
-
-                        <Button
-                            Content="Statistics"
-                            Click="StatisticsButton_Click"
-                            Style="{StaticResource NavigationButtonStyle}"/>
-
-                        <Button
-                            Content="Forecast"
-                            Click="ForecastButton_Click"
-                            Style="{StaticResource NavigationButtonStyle}"/>
-
-                    </StackPanel>
-
-
-                    <Border
-                        Grid.Row="2"
-                        Margin="16"
-                        Padding="12"
-                        CornerRadius="6"
-                        Background="{DynamicResource SurfaceBrush}">
-
-                        <StackPanel>
+                        <Border
+                            Width="28"
+                            Height="28"
+                            CornerRadius="6"
+                            Background="{DynamicResource AccentBrush}"
+                            Margin="0,0,10,0">
 
                             <TextBlock
-                                Text="DATA PROVIDER"
+                                Text="Q"
+                                Foreground="White"
+                                FontSize="13"
+                                FontWeight="Bold"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/>
+
+                        </Border>
+
+
+                        <StackPanel
+                            VerticalAlignment="Center">
+
+                            <TextBlock
+                                Text="Crypto Statistics"
+                                Foreground="{DynamicResource TextPrimaryBrush}"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+                            <TextBlock
+                                Text="QUANTITATIVE ANALYTICS"
                                 Foreground="{DynamicResource TextMutedBrush}"
-                                FontSize="9"/>
-
-                            <TextBlock
-                                Text="Kraken"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                FontSize="12"
-                                Margin="0,5,0,0"/>
+                                FontSize="7.5"/>
 
                         </StackPanel>
 
-                    </Border>
+                    </StackPanel>
+
+
+                    <!-- GLOBAL DATA STATUS -->
+
+                    <StackPanel
+                        Grid.Column="1"
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        HorizontalAlignment="Center">
+
+                        <Ellipse
+                            x:Name="DataStatusIndicator"
+                            Width="6"
+                            Height="6"
+                            Fill="{DynamicResource TextMutedBrush}"
+                            Margin="0,0,7,0"/>
+
+                        <TextBlock
+                            x:Name="DataStatusText"
+                            Text="Waiting for market data"
+                            Foreground="{DynamicResource TextMutedBrush}"
+                            FontSize="10.5"
+                            VerticalAlignment="Center"/>
+
+                    </StackPanel>
+
+
+                    <!-- ================================= -->
+                    <!-- USER MENU -->
+                    <!-- ================================= -->
+
+                    <Menu
+                        Grid.Column="2"
+                        Background="Transparent"
+                        VerticalAlignment="Center"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True">
+
+                        <MenuItem
+                            x:Name="UserMenuItem"
+                            Header="Guest"
+                            Style="{StaticResource UserMenuItemStyle}">
+
+
+                            <!-- SIGN IN -->
+
+                            <MenuItem
+                                x:Name="SignInMenuItem"
+                                Header="Sign in with Microsoft"
+                                Style="{StaticResource UserMenuOptionStyle}"
+                                Click="SignInMenuItem_Click"/>
+
+
+                            <!-- SIGN OUT -->
+
+                            <MenuItem
+                                x:Name="SignOutMenuItem"
+                                Header="Sign Out"
+                                Visibility="Collapsed"
+                                Style="{StaticResource UserMenuOptionStyle}"
+                                Click="SignOutMenuItem_Click"/>
+
+
+                            <Separator/>
+
+
+                            <!-- SETTINGS -->
+
+                            <MenuItem
+                                Header="Settings"
+                                Style="{StaticResource UserMenuOptionStyle}"
+                                Click="SettingsMenuItem_Click"/>
+
+
+                            <!-- ABOUT -->
+
+                            <MenuItem
+                                Header="About"
+                                Style="{StaticResource UserMenuOptionStyle}"
+                                Click="AboutMenuItem_Click"/>
+
+                        </MenuItem>
+
+                    </Menu>
+
+
+                    <!-- ================================= -->
+                    <!-- MINIMIZE -->
+                    <!-- ================================= -->
+
+                    <Button
+                        Grid.Column="3"
+                        x:Name="MinimizeButton"
+                        Content="−"
+                        FontSize="13"
+                        Style="{StaticResource WindowButtonStyle}"
+                        Click="MinimizeButton_Click"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+
+                    <!-- ================================= -->
+                    <!-- MAXIMIZE -->
+                    <!-- ================================= -->
+
+                    <Button
+                        Grid.Column="4"
+                        x:Name="MaximizeButton"
+                        Content="□"
+                        FontSize="11"
+                        Style="{StaticResource WindowButtonStyle}"
+                        Click="MaximizeButton_Click"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
+
+
+                    <!-- ================================= -->
+                    <!-- CLOSE -->
+                    <!-- ================================= -->
+
+                    <Button
+                        Grid.Column="5"
+                        x:Name="CloseButton"
+                        Content="×"
+                        FontSize="15"
+                        Style="{StaticResource CloseWindowButtonStyle}"
+                        Click="CloseButton_Click"
+                        shell:WindowChrome.IsHitTestVisibleInChrome="True"/>
 
                 </Grid>
 
             </Border>
 
 
-            <!-- PAGE CONTENT -->
+            <!-- ================================= -->
+            <!-- APPLICATION BODY -->
+            <!-- ================================= -->
 
-            <ContentControl
-                x:Name="MainContent"
-                Grid.Column="1"
-                Background="{DynamicResource AppBackgroundBrush}"/>
+            <Grid Grid.Row="1">
+
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="220"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+
+                <!-- ================================= -->
+                <!-- SIDEBAR -->
+                <!-- ================================= -->
+
+                <Border
+                    Grid.Column="0"
+                    Background="{DynamicResource SidebarBrush}"
+                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                    BorderThickness="0,0,1,0"
+                    CornerRadius="0,0,0,10">
+
+                    <Grid>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- SECTION TITLE -->
+
+                        <TextBlock
+                            Grid.Row="0"
+                            Text="ANALYTICS"
+                            Foreground="{DynamicResource TextMutedBrush}"
+                            FontSize="10"
+                            FontWeight="SemiBold"
+                            Margin="27,25,0,9"/>
+
+
+                        <!-- ================================= -->
+                        <!-- NAVIGATION -->
+                        <!-- ================================= -->
+
+                        <StackPanel
+                            Grid.Row="1"
+                            Margin="12,0">
+
+
+                            <!-- DASHBOARD -->
+
+                            <Button
+                                Content="Dashboard"
+                                Click="DashboardButton_Click"
+                                Style="{StaticResource NavigationButtonStyle}"/>
+
+
+                            <!-- CHART -->
+
+                            <Button
+                                Content="Chart"
+                                Click="ChartButton_Click"
+                                Style="{StaticResource NavigationButtonStyle}"/>
+
+
+                            <!-- IMPORT EXCEL -->
+
+                            <Button
+                                Content="Import Excel"
+                                Click="ImportExcelButton_Click"
+                                Style="{StaticResource NavigationButtonStyle}"/>
+
+
+                            <!-- STATISTICS -->
+
+                            <Button
+                                Content="Statistics"
+                                Click="StatisticsButton_Click"
+                                Style="{StaticResource NavigationButtonStyle}"/>
+
+
+                            <!-- FORECAST -->
+
+                            <Button
+                                Content="Forecast"
+                                Click="ForecastButton_Click"
+                                Style="{StaticResource NavigationButtonStyle}"/>
+
+                        </StackPanel>
+
+
+                        <!-- ================================= -->
+                        <!-- ACTIVE DATA SOURCE -->
+                        <!-- ================================= -->
+
+                        <Border
+                            Grid.Row="2"
+                            Margin="16"
+                            Padding="12"
+                            CornerRadius="6"
+                            Background="{DynamicResource SurfaceBrush}">
+
+                            <StackPanel>
+
+                                <TextBlock
+                                    Text="DATA SOURCE"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"/>
+
+
+                                <TextBlock
+                                    x:Name="DataSourceText"
+                                    Text="Provider"
+                                    Foreground="{DynamicResource TextSecondaryBrush}"
+                                    FontSize="12"
+                                    Margin="0,5,0,0"
+                                    TextTrimming="CharacterEllipsis"/>
+
+
+                                <!-- ONLY VISIBLE WHILE
+                                     EXCEL DATA IS ACTIVE -->
+
+                                <Button
+                                    x:Name="UseApiDataButton"
+                                    Content="Use API Data"
+                                    Height="30"
+                                    Margin="0,10,0,0"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="UseApiDataButton_Click"
+                                    Visibility="Collapsed"/>
+
+                            </StackPanel>
+
+                        </Border>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- ================================= -->
+                <!-- CURRENT VIEW -->
+                <!-- ================================= -->
+
+                <ContentControl
+                    x:Name="MainContent"
+                    Grid.Column="1"
+                    Background="{DynamicResource AppBackgroundBrush}"/>
+
+            </Grid>
 
         </Grid>
 
-    </Grid>
+    </Border>
 
 </Window>

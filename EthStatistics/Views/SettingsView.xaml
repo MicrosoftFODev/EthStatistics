@@ -6,18 +6,19 @@
 
         <Grid Background="{DynamicResource AppBackgroundBrush}">
 
-            <StackPanel Margin="32"
-                        MaxWidth="760"
-                        HorizontalAlignment="Left">
+            <StackPanel
+                Margin="32"
+                MaxWidth="760"
+                HorizontalAlignment="Left">
 
-                <!-- HEADER -->
+                <!-- PAGE HEADER -->
 
                 <TextBlock
                     Text="Settings"
                     Style="{StaticResource PageTitleStyle}"/>
 
                 <TextBlock
-                    Text="Manage application preferences"
+                    Text="Manage your application preferences"
                     Style="{StaticResource PageSubtitleStyle}"
                     Margin="0,5,0,28"/>
 
@@ -44,7 +45,7 @@
                             <TextBlock
                                 Text="Choose the application's display language"
                                 Style="{StaticResource LabelStyle}"
-                                Margin="0,6,0,0"/>
+                                Margin="0,6,20,0"/>
 
                         </StackPanel>
 
@@ -52,12 +53,7 @@
                             x:Name="LanguageComboBox"
                             Grid.Column="1"
                             Style="{StaticResource ProfessionalComboBoxStyle}"
-                            VerticalAlignment="Center">
-
-                            <ComboBoxItem Content="English"/>
-                            <ComboBoxItem Content="Greek"/>
-
-                        </ComboBox>
+                            VerticalAlignment="Center"/>
 
                     </Grid>
 
@@ -84,9 +80,9 @@
                                 Style="{StaticResource SectionTitleStyle}"/>
 
                             <TextBlock
-                                Text="Select the application's visual theme"
+                                Text="Choose the application's visual theme"
                                 Style="{StaticResource LabelStyle}"
-                                Margin="0,6,0,0"/>
+                                Margin="0,6,20,0"/>
 
                         </StackPanel>
 
@@ -94,13 +90,7 @@
                             x:Name="ThemeComboBox"
                             Grid.Column="1"
                             Style="{StaticResource ProfessionalComboBoxStyle}"
-                            VerticalAlignment="Center">
-
-                            <ComboBoxItem Content="Dark"/>
-                            <ComboBoxItem Content="Light"/>
-                            <ComboBoxItem Content="System"/>
-
-                        </ComboBox>
+                            VerticalAlignment="Center"/>
 
                     </Grid>
 
@@ -120,7 +110,7 @@
                             Style="{StaticResource SectionTitleStyle}"/>
 
                         <TextBlock
-                            Text="Default options used for market analysis"
+                            Text="Choose the defaults used when loading market analysis"
                             Style="{StaticResource LabelStyle}"
                             Margin="0,6,0,20"/>
 
@@ -134,23 +124,18 @@
                             </Grid.ColumnDefinitions>
 
 
-                            <!-- CURRENCY -->
+                            <!-- QUOTE CURRENCY -->
 
                             <StackPanel Grid.Column="0">
 
                                 <TextBlock
-                                    Text="Currency"
+                                    Text="Quote Currency"
                                     Style="{StaticResource LabelStyle}"
                                     Margin="0,0,0,7"/>
 
                                 <ComboBox
                                     x:Name="CurrencyComboBox"
-                                    Style="{StaticResource ProfessionalComboBoxStyle}">
-
-                                    <ComboBoxItem Content="USD"/>
-                                    <ComboBoxItem Content="EUR"/>
-
-                                </ComboBox>
+                                    Style="{StaticResource ProfessionalComboBoxStyle}"/>
 
                             </StackPanel>
 
@@ -166,13 +151,7 @@
 
                                 <ComboBox
                                     x:Name="TimeframeComboBox"
-                                    Style="{StaticResource ProfessionalComboBoxStyle}">
-
-                                    <ComboBoxItem Content="Hourly"/>
-                                    <ComboBoxItem Content="Daily"/>
-                                    <ComboBoxItem Content="Weekly"/>
-
-                                </ComboBox>
+                                    Style="{StaticResource ProfessionalComboBoxStyle}"/>
 
                             </StackPanel>
 
@@ -183,7 +162,54 @@
                 </Border>
 
 
-                <!-- APPLICATION -->
+                <!-- STORAGE INFORMATION -->
+
+                <Border
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,14">
+
+                    <Grid>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="Saved Preferences"
+                                Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock
+                                Text="Your selections are stored locally and restored when the application starts."
+                                Style="{StaticResource LabelStyle}"
+                                TextWrapping="Wrap"
+                                Margin="0,6,20,0"/>
+
+                        </StackPanel>
+
+                        <Border
+                            Grid.Column="1"
+                            Background="{DynamicResource AccentSoftBrush}"
+                            CornerRadius="5"
+                            Padding="12,6"
+                            VerticalAlignment="Center">
+
+                            <TextBlock
+                                Text="LOCAL"
+                                Foreground="{DynamicResource AccentBrush}"
+                                FontSize="10"
+                                FontWeight="SemiBold"/>
+
+                        </Border>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- APPLICATION INFORMATION -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -208,19 +234,51 @@
                             FontSize="12"
                             Margin="0,4,0,0"/>
 
+                        <TextBlock
+                            Text="Market metadata and timeframes are provided dynamically by the active data provider."
+                            Foreground="{DynamicResource TextMutedBrush}"
+                            FontSize="11"
+                            TextWrapping="Wrap"
+                            Margin="0,12,0,0"/>
+
                     </StackPanel>
 
                 </Border>
 
 
-                <!-- SAVE -->
+                <!-- SAVE BUTTON -->
 
-                <Button
-                    Content="Save Preferences"
-                    Width="155"
-                    HorizontalAlignment="Left"
-                    Style="{StaticResource PrimaryButtonStyle}"
-                    Click="SavePreferences_Click"/>
+                <StackPanel
+                    Orientation="Horizontal"
+                    Margin="0,0,0,30">
+
+                    <Button
+                        x:Name="SavePreferencesButton"
+                        Content="Save Preferences"
+                        Width="155"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Click="SavePreferences_Click"/>
+
+                    <StackPanel
+                        Orientation="Horizontal"
+                        VerticalAlignment="Center"
+                        Margin="14,0,0,0">
+
+                        <Ellipse
+                            Width="6"
+                            Height="6"
+                            Fill="{DynamicResource TextMutedBrush}"
+                            Margin="0,0,7,0"/>
+
+                        <TextBlock
+                            Text="Changes are also saved automatically"
+                            Foreground="{DynamicResource TextMutedBrush}"
+                            FontSize="11"
+                            VerticalAlignment="Center"/>
+
+                    </StackPanel>
+
+                </StackPanel>
 
             </StackPanel>
 

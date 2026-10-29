@@ -1,18 +1,54 @@
-﻿using System.Windows;
+﻿using System;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using EthStatistics.Models;
 using EthStatistics.Services;
+using EthStatistics.Settings;
 using EthStatistics.Views;
+using Microsoft.Identity.Client;
 
 namespace EthStatistics
 {
     public partial class MainWindow : Window
     {
+        // ==========================================
+        // SERVICES
+        // ==========================================
+
         private readonly PythonMarketDataService
             _marketDataService = new();
 
+        private readonly UserPreferencesService
+            _preferencesService = new();
+
+        private readonly ThemeService
+            _themeService = new();
+
+        private readonly AuthenticationService
+            _authenticationService = new();
+
+
+        // ==========================================
+        // STATE
+        // ==========================================
+
+        private UserPreferences
+            _preferences = new();
+
+        private UserSession
+            _currentUser = UserSession.Guest();
+
         private CancellationTokenSource?
             _refreshCancellation;
+
+
+        // ==========================================
+        // CONSTRUCTOR
+        // ==========================================
 
         public MainWindow()
         {
@@ -20,15 +56,179 @@ namespace EthStatistics
 
             ShowDashboard();
 
-            Loaded += MainWindow_Loaded;
+            Loaded +=
+                MainWindow_Loaded;
+
+            StateChanged +=
+                MainWindow_StateChanged;
+
+            SourceInitialized +=
+                MainWindow_SourceInitialized;
+
+            MarketDataStore.Instance.Changed +=
+                MarketDataStore_Changed;
         }
+
+
+        // ==========================================
+        // FULL SCREEN
+        // ==========================================
+
+        private void MainWindow_SourceInitialized(
+            object? sender,
+            EventArgs e)
+        {
+            EnterFullScreen();
+        }
+
+
+        private void EnterFullScreen()
+        {
+            WindowState =
+                WindowState.Normal;
+
+            Left = 0;
+            Top = 0;
+
+            Width =
+                SystemParameters.PrimaryScreenWidth;
+
+            Height =
+                SystemParameters.PrimaryScreenHeight;
+        }
+
+
+        // ==========================================
+        // WINDOW CONTROLS
+        // ==========================================
+
+        private void MinimizeButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            WindowState =
+                WindowState.Minimized;
+        }
+
+
+        private void MaximizeButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            WindowState =
+                WindowState == WindowState.Maximized
+                    ? WindowState.Normal
+                    : WindowState.Maximized;
+        }
+
+
+        private void CloseButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            Close();
+        }
+
+
+        private void MainWindow_StateChanged(
+            object? sender,
+            EventArgs e)
+        {
+            MaximizeButton.Content =
+                WindowState == WindowState.Maximized
+                    ? "❐"
+                    : "□";
+        }
+
+
+        // ==========================================
+        // STARTUP + WAM AUTHENTICATION
+        // ==========================================
 
         private async void MainWindow_Loaded(
             object sender,
             RoutedEventArgs e)
         {
+            await TryAuthenticateAtStartupAsync();
+
+            UpdateUserInterface();
+
+            _preferences =
+                await _preferencesService.LoadAsync();
+
+            _themeService.ApplyTheme(
+                _preferences.Theme
+            );
+
             await LoadMetadataAsync();
         }
+
+
+        private async Task TryAuthenticateAtStartupAsync()
+        {
+            try
+            {
+                IntPtr windowHandle =
+                    GetWindowHandle();
+
+                _currentUser =
+                    await _authenticationService
+                        .SignInAsync(
+                            windowHandle
+                        );
+            }
+            catch (MsalClientException error)
+                when (IsAuthenticationCancellation(error))
+            {
+                _currentUser =
+                    UserSession.Guest();
+            }
+            catch
+            {
+                // Authentication is optional.
+                // The application remains usable
+                // in Guest mode.
+
+                _currentUser =
+                    UserSession.Guest();
+            }
+        }
+
+
+        private IntPtr GetWindowHandle()
+        {
+            return new WindowInteropHelper(this)
+                .Handle;
+        }
+
+
+        private static bool IsAuthenticationCancellation(
+            MsalClientException error)
+        {
+            return
+                string.Equals(
+                    error.ErrorCode,
+                    "authentication_canceled",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                ||
+                string.Equals(
+                    error.ErrorCode,
+                    "wam_account_picker_canceled",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                ||
+                string.Equals(
+                    error.ErrorCode,
+                    "user_canceled",
+                    StringComparison.OrdinalIgnoreCase
+                );
+        }
+
+
+        // ==========================================
+        // MARKET METADATA
+        // ==========================================
 
         private async Task LoadMetadataAsync()
         {
@@ -39,9 +239,12 @@ namespace EthStatistics
             try
             {
                 MarketMetadataResult result =
-                    await _marketDataService.GetMetadataAsync();
+                    await _marketDataService
+                        .GetMetadataAsync();
 
-                MarketDataStore.Instance.SetMetadata(result);
+                MarketDataStore.Instance.SetMetadata(
+                    result
+                );
 
                 if (!result.Success)
                 {
@@ -53,38 +256,148 @@ namespace EthStatistics
                     return;
                 }
 
-                KrakenMarket? firstMarket =
+
+                // ----------------------------------
+                // RESTORE MARKET
+                // ----------------------------------
+
+                KrakenMarket? selectedMarket =
+                    null;
+
+                if (
+                    !string.IsNullOrWhiteSpace(
+                        _preferences.MarketPair
+                    )
+                )
+                {
+                    selectedMarket =
+                        result.Markets.FirstOrDefault(
+                            market =>
+                                market.Pair ==
+                                _preferences.MarketPair
+                        );
+                }
+
+                if (
+                    selectedMarket is null &&
+                    !string.IsNullOrWhiteSpace(
+                        _preferences.QuoteCurrency
+                    )
+                )
+                {
+                    selectedMarket =
+                        result.Markets.FirstOrDefault(
+                            market =>
+                                market.QuoteAsset ==
+                                _preferences.QuoteCurrency
+                        );
+                }
+
+                selectedMarket ??=
                     result.Markets.FirstOrDefault();
 
-                MarketInterval? defaultInterval =
+
+                // ----------------------------------
+                // RESTORE INTERVAL
+                // ----------------------------------
+
+                MarketInterval? selectedInterval =
+                    null;
+
+                if (
+                    _preferences.IntervalMinutes.HasValue
+                )
+                {
+                    selectedInterval =
+                        result.Intervals.FirstOrDefault(
+                            interval =>
+                                interval.Minutes ==
+                                _preferences.IntervalMinutes.Value
+                        );
+                }
+
+                selectedInterval ??=
                     result.Intervals.FirstOrDefault(
-                        interval => interval.IsDefault
+                        interval =>
+                            interval.IsDefault
                     )
                     ?? result.Intervals.FirstOrDefault();
 
-                MarketPeriod? defaultPeriod =
+
+                // ----------------------------------
+                // RESTORE PERIOD
+                // ----------------------------------
+
+                MarketPeriod? selectedPeriod =
+                    null;
+
+                if (
+                    _preferences.PeriodDays.HasValue
+                )
+                {
+                    selectedPeriod =
+                        result.Periods.FirstOrDefault(
+                            period =>
+                                period.Days ==
+                                _preferences.PeriodDays.Value
+                        );
+                }
+
+                selectedPeriod ??=
                     result.Periods.FirstOrDefault(
-                        period => period.IsDefault
+                        period =>
+                            period.IsDefault
                     )
                     ?? result.Periods.FirstOrDefault();
 
+
+                // ----------------------------------
+                // VALIDATE
+                // ----------------------------------
+
                 if (
-                    firstMarket is null ||
-                    defaultInterval is null ||
-                    defaultPeriod is null
+                    selectedMarket is null ||
+                    selectedInterval is null ||
+                    selectedPeriod is null
                 )
                 {
                     ShowErrorStatus(
-                        "Kraken returned no usable market metadata."
+                        "No usable market configuration is available."
                     );
 
                     return;
                 }
 
+
+                // ----------------------------------
+                // SAVE VALIDATED PREFERENCES
+                // ----------------------------------
+
+                _preferences.MarketPair =
+                    selectedMarket.Pair;
+
+                _preferences.QuoteCurrency =
+                    selectedMarket.QuoteAsset;
+
+                _preferences.IntervalMinutes =
+                    selectedInterval.Minutes;
+
+                _preferences.PeriodDays =
+                    selectedPeriod.Days;
+
+                await _preferencesService.SaveAsync(
+                    _preferences
+                );
+
+
+                // ----------------------------------
+                // LOAD MARKET DATA
+                // ----------------------------------
+
                 await ApplySelectionAndRefreshAsync(
-                    firstMarket.Pair,
-                    defaultInterval.Minutes,
-                    defaultPeriod.Days
+                    selectedMarket.Pair,
+                    selectedInterval.Minutes,
+                    selectedPeriod.Days
                 );
             }
             catch (Exception error)
@@ -93,9 +406,16 @@ namespace EthStatistics
                     error.Message
                 );
 
-                ShowErrorStatus(error.Message);
+                ShowErrorStatus(
+                    error.Message
+                );
             }
         }
+
+
+        // ==========================================
+        // APPLY MARKET SELECTION
+        // ==========================================
 
         private async Task ApplySelectionAndRefreshAsync(
             string pair,
@@ -111,13 +431,21 @@ namespace EthStatistics
             await RefreshMarketDataAsync();
         }
 
+
+        // ==========================================
+        // API DATA REFRESH
+        // ==========================================
+
         private async Task RefreshMarketDataAsync()
         {
             MarketDataStore store =
                 MarketDataStore.Instance;
 
             if (
-                string.IsNullOrWhiteSpace(store.Pair) ||
+                string.IsNullOrWhiteSpace(
+                    store.Pair
+                )
+                ||
                 store.Interval is null
             )
             {
@@ -130,22 +458,31 @@ namespace EthStatistics
             _refreshCancellation =
                 new CancellationTokenSource();
 
-            string pair = store.Pair;
-            int interval = store.Interval.Value;
+            string pair =
+                store.Pair;
+
+            int interval =
+                store.Interval.Value;
 
             MarketDataStore.Instance.SetLoading();
-            ShowLoadingStatus($"Loading {pair}...");
+
+            ShowLoadingStatus(
+                $"Loading {pair}..."
+            );
 
             try
             {
                 MarketDataResult result =
-                    await _marketDataService.GetMarketDataAsync(
-                        pair,
-                        interval,
-                        _refreshCancellation.Token
-                    );
+                    await _marketDataService
+                        .GetMarketDataAsync(
+                            pair,
+                            interval,
+                            _refreshCancellation.Token
+                        );
 
-                MarketDataStore.Instance.SetResult(result);
+                MarketDataStore.Instance.SetResult(
+                    result
+                );
 
                 if (result.Success)
                 {
@@ -164,6 +501,8 @@ namespace EthStatistics
             }
             catch (OperationCanceledException)
             {
+                // Expected when a newer request
+                // replaces the current request.
             }
             catch (Exception error)
             {
@@ -171,72 +510,78 @@ namespace EthStatistics
                     error.Message
                 );
 
-                ShowErrorStatus(error.Message);
+                ShowErrorStatus(
+                    error.Message
+                );
             }
         }
 
-        private void ChartButton_Click(
+
+        // ==========================================
+        // SWITCH EXCEL TO API
+        // ==========================================
+
+        private async void UseApiDataButton_Click(
             object sender,
             RoutedEventArgs e)
         {
-            var chartView = new ChartView();
+            _refreshCancellation?.Cancel();
 
-            chartView.ChartPreferencesChanged +=
-                ChartPreferencesChanged;
+            MarketDataStore.Instance
+                .ClearImportedData();
 
-            MainContent.Content = chartView;
+            ShowLoadingStatus(
+                "Loading available markets..."
+            );
+
+            await LoadMetadataAsync();
+
+            ShowDashboard();
         }
 
-        private async void ChartPreferencesChanged(
+
+        // ==========================================
+        // DATA STORE CHANGED
+        // ==========================================
+
+        private void MarketDataStore_Changed(
             object? sender,
-            ChartPreferencesChangedEventArgs e)
+            EventArgs e)
         {
-            await ApplySelectionAndRefreshAsync(
-                e.Pair,
-                e.Interval,
-                e.PeriodDays
+            Dispatcher.Invoke(
+                UpdateGlobalDataSource
             );
         }
 
-        private void ShowLoadingStatus(string message)
-        {
-            DataStatusText.Text = message;
 
-            DataStatusIndicator.Fill =
-                FindBrush("WarningBrush");
+        private void UpdateGlobalDataSource()
+        {
+            MarketDataStore store =
+                MarketDataStore.Instance;
+
+            DataSourceText.Text =
+                string.IsNullOrWhiteSpace(
+                    store.DataSource
+                )
+                    ? "—"
+                    : store.DataSource;
+
+            bool isExcel =
+                store.DataSource.StartsWith(
+                    "Excel",
+                    StringComparison.OrdinalIgnoreCase
+                );
+
+            UseApiDataButton.Visibility =
+                isExcel
+                    ? Visibility.Visible
+                    : Visibility.Collapsed;
         }
 
-        private void ShowSuccessStatus(
-            string pair,
-            int count)
-        {
-            DataStatusText.Text =
-                $"{pair} · {count} observations";
 
-            DataStatusIndicator.Fill =
-                FindBrush("PositiveBrush");
-        }
-
-        private void ShowErrorStatus(string error)
-        {
-            DataStatusText.Text =
-                "Market data unavailable";
-
-            DataStatusIndicator.Fill =
-                FindBrush("NegativeBrush");
-
-            MessageBox.Show(
-                error,
-                "Market Data Error",
-                MessageBoxButton.OK,
-                MessageBoxImage.Warning
-            );
-        }
-
-        private Brush FindBrush(string resourceName)
-        {
-            return (Brush)FindResource(resourceName);
-        }
+        // ==========================================
+        // DASHBOARD
+        // ==========================================
 
         private void ShowDashboard()
         {
@@ -244,12 +589,120 @@ namespace EthStatistics
                 new DashboardView();
         }
 
+
         private void DashboardButton_Click(
             object sender,
             RoutedEventArgs e)
         {
             ShowDashboard();
         }
+
+
+        // ==========================================
+        // CHART
+        // ==========================================
+
+        private void ChartButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            ShowChart();
+        }
+
+
+        private void ShowChart()
+        {
+            var chartView =
+                new ChartView();
+
+            chartView.ChartPreferencesChanged +=
+                ChartPreferencesChanged;
+
+            MainContent.Content =
+                chartView;
+        }
+
+
+        private async void ChartPreferencesChanged(
+            object? sender,
+            ChartPreferencesChangedEventArgs e)
+        {
+            MarketDataStore store =
+                MarketDataStore.Instance;
+
+            KrakenMarket? selectedMarket =
+                store.Markets.FirstOrDefault(
+                    market =>
+                        market.Pair ==
+                        e.Pair
+                );
+
+            _preferences.MarketPair =
+                e.Pair;
+
+            _preferences.QuoteCurrency =
+                selectedMarket?.QuoteAsset;
+
+            _preferences.IntervalMinutes =
+                e.Interval;
+
+            _preferences.PeriodDays =
+                e.PeriodDays;
+
+            await _preferencesService.SaveAsync(
+                _preferences
+            );
+
+            await ApplySelectionAndRefreshAsync(
+                e.Pair,
+                e.Interval,
+                e.PeriodDays
+            );
+        }
+
+
+        // ==========================================
+        // EXCEL IMPORT
+        // ==========================================
+
+        private void ImportExcelButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            var importView =
+                new ImportExcelView();
+
+            importView.ImportCompleted +=
+                ImportExcelView_ImportCompleted;
+
+            MainContent.Content =
+                importView;
+        }
+
+
+        private void ImportExcelView_ImportCompleted(
+            object? sender,
+            EventArgs e)
+        {
+            MarketDataStore store =
+                MarketDataStore.Instance;
+
+            DataStatusText.Text =
+                $"{store.Pair} · " +
+                $"{store.Candles.Count} imported observations";
+
+            DataStatusIndicator.Fill =
+                FindBrush(
+                    "PositiveBrush"
+                );
+
+            ShowChart();
+        }
+
+
+        // ==========================================
+        // STATISTICS
+        // ==========================================
 
         private void StatisticsButton_Click(
             object sender,
@@ -259,6 +712,11 @@ namespace EthStatistics
                 new StatisticsView();
         }
 
+
+        // ==========================================
+        // FORECAST
+        // ==========================================
+
         private void ForecastButton_Click(
             object sender,
             RoutedEventArgs e)
@@ -267,13 +725,297 @@ namespace EthStatistics
                 new ForecastView();
         }
 
+
+        // ==========================================
+        // SETTINGS
+        // ==========================================
+
         private void SettingsMenuItem_Click(
             object sender,
             RoutedEventArgs e)
         {
+            var settingsView =
+                new SettingsView(
+                    _preferences,
+                    _preferencesService
+                );
+
+            settingsView.DataPreferencesChanged +=
+                SettingsView_DataPreferencesChanged;
+
+            settingsView.GeneralPreferencesChanged +=
+                SettingsView_GeneralPreferencesChanged;
+
             MainContent.Content =
-                new SettingsView();
+                settingsView;
         }
+
+
+        private async void SettingsView_DataPreferencesChanged(
+            object? sender,
+            DataPreferencesChangedEventArgs e)
+        {
+            MarketDataStore store =
+                MarketDataStore.Instance;
+
+            KrakenMarket? currentMarket =
+                store.Markets.FirstOrDefault(
+                    market =>
+                        market.Pair ==
+                        store.Pair
+                );
+
+            KrakenMarket? selectedMarket =
+                null;
+
+            if (currentMarket is not null)
+            {
+                selectedMarket =
+                    store.Markets.FirstOrDefault(
+                        market =>
+                            market.BaseAsset ==
+                                currentMarket.BaseAsset
+                            &&
+                            market.QuoteAsset ==
+                                e.QuoteCurrency
+                    );
+            }
+
+            selectedMarket ??=
+                store.Markets.FirstOrDefault(
+                    market =>
+                        market.QuoteAsset ==
+                        e.QuoteCurrency
+                );
+
+            if (selectedMarket is null)
+            {
+                ShowErrorStatus(
+                    "No market is available for the selected currency."
+                );
+
+                return;
+            }
+
+            _preferences.QuoteCurrency =
+                e.QuoteCurrency;
+
+            _preferences.MarketPair =
+                selectedMarket.Pair;
+
+            _preferences.IntervalMinutes =
+                e.Interval;
+
+            await _preferencesService.SaveAsync(
+                _preferences
+            );
+
+            int period =
+                store.PeriodDays;
+
+            if (period == 0)
+            {
+                MarketPeriod? defaultPeriod =
+                    store.Periods.FirstOrDefault(
+                        item =>
+                            item.IsDefault
+                    )
+                    ?? store.Periods.FirstOrDefault();
+
+                if (defaultPeriod is not null)
+                {
+                    period =
+                        defaultPeriod.Days;
+                }
+            }
+
+            await ApplySelectionAndRefreshAsync(
+                selectedMarket.Pair,
+                e.Interval,
+                period
+            );
+        }
+
+
+        private void SettingsView_GeneralPreferencesChanged(
+            object? sender,
+            GeneralPreferencesChangedEventArgs e)
+        {
+            _preferences.Language =
+                e.Language;
+
+            _preferences.Theme =
+                e.Theme;
+
+            _themeService.ApplyTheme(
+                e.Theme
+            );
+        }
+
+
+        // ==========================================
+        // USER SESSION
+        // ==========================================
+
+        private void UpdateUserInterface()
+        {
+            if (_currentUser.IsAuthenticated)
+            {
+                UserMenuItem.Header =
+                    !string.IsNullOrWhiteSpace(
+                        _currentUser.DisplayName
+                    )
+                        ? _currentUser.DisplayName
+                        : !string.IsNullOrWhiteSpace(
+                            _currentUser.Username
+                        )
+                            ? _currentUser.Username
+                            : "Microsoft User";
+
+                SignInMenuItem.Visibility =
+                    Visibility.Collapsed;
+
+                SignOutMenuItem.Visibility =
+                    Visibility.Visible;
+            }
+            else
+            {
+                UserMenuItem.Header =
+                    "Guest";
+
+                SignInMenuItem.Visibility =
+                    Visibility.Visible;
+
+                SignOutMenuItem.Visibility =
+                    Visibility.Collapsed;
+            }
+        }
+
+
+        private async void SignInMenuItem_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            try
+            {
+                IntPtr windowHandle =
+                    GetWindowHandle();
+
+                _currentUser =
+                    await _authenticationService
+                        .SignInAsync(
+                            windowHandle
+                        );
+
+                UpdateUserInterface();
+            }
+            catch (MsalClientException error)
+                when (IsAuthenticationCancellation(error))
+            {
+                // The user cancelled authentication.
+                // Keep the current session unchanged.
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(
+                    error.Message,
+                    "Sign-in Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+            }
+        }
+
+
+        private async void SignOutMenuItem_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            try
+            {
+                await _authenticationService
+                    .SignOutAsync();
+
+                _currentUser =
+                    UserSession.Guest();
+
+                UpdateUserInterface();
+            }
+            catch (Exception error)
+            {
+                MessageBox.Show(
+                    error.Message,
+                    "Sign-out Error",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning
+                );
+            }
+        }
+
+
+        // ==========================================
+        // GLOBAL STATUS
+        // ==========================================
+
+        private void ShowLoadingStatus(
+            string message)
+        {
+            DataStatusText.Text =
+                message;
+
+            DataStatusIndicator.Fill =
+                FindBrush(
+                    "WarningBrush"
+                );
+        }
+
+
+        private void ShowSuccessStatus(
+            string pair,
+            int count)
+        {
+            DataStatusText.Text =
+                $"{pair} · {count} observations";
+
+            DataStatusIndicator.Fill =
+                FindBrush(
+                    "PositiveBrush"
+                );
+        }
+
+
+        private void ShowErrorStatus(
+            string error)
+        {
+            DataStatusText.Text =
+                "Market data unavailable";
+
+            DataStatusIndicator.Fill =
+                FindBrush(
+                    "NegativeBrush"
+                );
+
+            MessageBox.Show(
+                error,
+                "Market Data Error",
+                MessageBoxButton.OK,
+                MessageBoxImage.Warning
+            );
+        }
+
+
+        private Brush FindBrush(
+            string resourceName)
+        {
+            return (Brush)FindResource(
+                resourceName
+            );
+        }
+
+
+        // ==========================================
+        // ABOUT
+        // ==========================================
 
         private void AboutMenuItem_Click(
             object sender,
@@ -282,8 +1024,27 @@ namespace EthStatistics
             MessageBox.Show(
                 "Crypto Statistics\n" +
                 "Quantitative cryptocurrency analysis.",
-                "About"
+                "About",
+                MessageBoxButton.OK,
+                MessageBoxImage.Information
             );
+        }
+
+
+        // ==========================================
+        // CLEANUP
+        // ==========================================
+
+        protected override void OnClosed(
+            EventArgs e)
+        {
+            MarketDataStore.Instance.Changed -=
+                MarketDataStore_Changed;
+
+            _refreshCancellation?.Cancel();
+            _refreshCancellation?.Dispose();
+
+            base.OnClosed(e);
         }
     }
 }

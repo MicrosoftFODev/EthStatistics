@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="QuantEngine.vcxproj" />
+  <Project Path="QuantEngine.vcxproj" Id="6a0814f5-f4b8-4301-8971-727f932742f4" />
 </Solution>

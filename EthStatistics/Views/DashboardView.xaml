@@ -4,13 +4,12 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
 
-        <Grid
-            Background="{DynamicResource AppBackgroundBrush}"
-            Margin="32">
+        <Grid Background="{DynamicResource AppBackgroundBrush}"
+              Margin="32">
 
             <StackPanel>
 
-                <!-- TITLE -->
+                <!-- HEADER -->
 
                 <TextBlock
                     Text="Dashboard"
@@ -24,21 +23,19 @@
 
                 <!-- METRICS -->
 
-                <UniformGrid
-                    Columns="4"
-                    Margin="0,0,0,22">
+                <UniformGrid Columns="4"
+                             Margin="0,0,0,22">
 
+                    <!-- LATEST VALUE -->
 
-                    <!-- PRICE -->
-
-                    <Border
-                        Style="{StaticResource CardStyle}"
-                        Margin="0,0,10,0">
+                    <Border Style="{StaticResource CardStyle}"
+                            Margin="0,0,10,0">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="PRICE"
+                                x:Name="PriceLabel"
+                                Text="LATEST VALUE"
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
@@ -47,6 +44,13 @@
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
 
+                            <TextBlock
+                                x:Name="PriceDescription"
+                                Text="Latest observation"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
                         </StackPanel>
 
                     </Border>
@@ -54,9 +58,8 @@
 
                     <!-- CHANGE -->
 
-                    <Border
-                        Style="{StaticResource CardStyle}"
-                        Margin="0,0,10,0">
+                    <Border Style="{StaticResource CardStyle}"
+                            Margin="0,0,10,0">
 
                         <StackPanel>
 
@@ -70,28 +73,39 @@
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
 
+                            <TextBlock
+                                Text="Latest period"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
                         </StackPanel>
 
                     </Border>
 
 
-                    <!-- VOLUME -->
+                    <!-- OBSERVATIONS -->
 
-                    <Border
-                        Style="{StaticResource CardStyle}"
-                        Margin="0,0,10,0">
+                    <Border Style="{StaticResource CardStyle}"
+                            Margin="0,0,10,0">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="VOLUME"
+                                Text="OBSERVATIONS"
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
-                                x:Name="VolumeValue"
+                                x:Name="ObservationValue"
                                 Text="—"
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
+
+                            <TextBlock
+                                Text="Current dataset"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
 
                         </StackPanel>
 
@@ -100,13 +114,12 @@
 
                     <!-- VOLATILITY -->
 
-                    <Border
-                        Style="{StaticResource CardStyle}">
+                    <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="VOLATILITY"
+                                Text="ANNUALIZED VOL."
                                 Style="{StaticResource LabelStyle}"/>
 
                             <TextBlock
@@ -115,6 +128,12 @@
                                 Style="{StaticResource MetricValueStyle}"
                                 Margin="0,12,0,0"/>
 
+                            <TextBlock
+                                Text="Historical volatility"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
                         </StackPanel>
 
                     </Border>
@@ -122,11 +141,10 @@
                 </UniformGrid>
 
 
-                <!-- MARKET CHART -->
+                <!-- MARKET OVERVIEW -->
 
-                <Border
-                    Style="{StaticResource CardStyle}"
-                    Height="380">
+                <Border Style="{StaticResource CardStyle}"
+                        Height="380">
 
                     <Grid>
 
@@ -138,13 +156,12 @@
 
                         <!-- HEADER -->
 
-                        <Grid Grid.Row="0">
+                        <Grid>
 
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
-
 
                             <StackPanel>
 
@@ -161,8 +178,6 @@
 
                             </StackPanel>
 
-
-                            <!-- STATUS -->
 
                             <StackPanel
                                 Grid.Column="1"
@@ -187,34 +202,66 @@
                         </Grid>
 
 
-                        <!-- CHART / EMPTY STATE -->
+                        <!-- MINI CHART -->
 
-                        <Grid Grid.Row="1">
+                        <Grid Grid.Row="1"
+                              Margin="0,18,0,0"
+                              SizeChanged="DashboardChart_SizeChanged">
 
-                            <Border
-                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                BorderThickness="0,1,0,0"
-                                Margin="0,18,0,0"/>
+                            <Grid IsHitTestVisible="False">
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="*"/>
+                                </Grid.RowDefinitions>
+
+                                <Border Grid.Row="0"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,0,0,1"/>
+
+                                <Border Grid.Row="1"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,0,0,1"/>
+
+                                <Border Grid.Row="2"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,0,0,1"/>
+
+                            </Grid>
+
+
+                            <Canvas
+                                x:Name="DashboardChartCanvas"
+                                Margin="10"
+                                ClipToBounds="True">
+
+                                <Polyline
+                                    x:Name="DashboardPriceLine"
+                                    Stroke="{DynamicResource AccentBrush}"
+                                    StrokeThickness="2"
+                                    StrokeLineJoin="Round"/>
+
+                            </Canvas>
 
 
                             <StackPanel
-                                x:Name="EmptyMarketState"
+                                x:Name="DashboardEmptyState"
                                 HorizontalAlignment="Center"
                                 VerticalAlignment="Center">
 
                                 <TextBlock
-                                    Text="Market data unavailable"
+                                    Text="No market data available"
                                     Foreground="{DynamicResource TextSecondaryBrush}"
                                     FontSize="14"
-                                    FontWeight="SemiBold"
-                                    HorizontalAlignment="Center"/>
+                                    FontWeight="SemiBold"/>
 
                                 <TextBlock
-                                    Text="The application will refresh market data automatically"
+                                    Text="Import data or connect to a market provider"
                                     Foreground="{DynamicResource TextMutedBrush}"
                                     FontSize="11"
-                                    Margin="0,7,0,0"
-                                    HorizontalAlignment="Center"/>
+                                    Margin="0,7,0,0"/>
 
                             </StackPanel>
 

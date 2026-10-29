@@ -16,6 +16,12 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <PackageReference Include="ExcelDataReader" Version="3.9.0" />
+	  <PackageReference Include="Microsoft.Identity.Client" Version="4.92.0" />
+	  <PackageReference Include="Microsoft.Identity.Client.Broker" Version="4.92.0" />
+	</ItemGroup>
+
 	<Target Name="CopyQuantEngine" AfterTargets="Build">
 
 		<Copy SourceFiles="$(MSBuildProjectDirectory)\..\QuantEngine\x64\$(Configuration)\QuantEngine.dll" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" />
