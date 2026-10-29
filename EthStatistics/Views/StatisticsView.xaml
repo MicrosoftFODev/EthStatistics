@@ -1,0 +1,90 @@
+﻿<UserControl x:Class="EthStatistics.Views.StatisticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="#F5F7FA">
+
+        <StackPanel Margin="35">
+
+            <TextBlock
+                Text="Statistics"
+                FontSize="30"
+                FontWeight="SemiBold"
+                Foreground="#111827"/>
+
+            <TextBlock
+                Text="Statistical analysis of market data"
+                FontSize="14"
+                Foreground="#6B7280"
+                Margin="0,6,0,30"/>
+
+            <UniformGrid Columns="3">
+
+                <Border
+                    Background="White"
+                    CornerRadius="10"
+                    Padding="20"
+                    Margin="0,0,15,0">
+
+                    <StackPanel>
+                        <TextBlock
+                            Text="Mean"
+                            Foreground="#6B7280"/>
+
+                        <TextBlock
+                            Text="—"
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                </Border>
+
+
+                <Border
+                    Background="White"
+                    CornerRadius="10"
+                    Padding="20"
+                    Margin="0,0,15,0">
+
+                    <StackPanel>
+                        <TextBlock
+                            Text="Variance"
+                            Foreground="#6B7280"/>
+
+                        <TextBlock
+                            Text="—"
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                </Border>
+
+
+                <Border
+                    Background="White"
+                    CornerRadius="10"
+                    Padding="20">
+
+                    <StackPanel>
+                        <TextBlock
+                            Text="Standard Deviation"
+                            Foreground="#6B7280"/>
+
+                        <TextBlock
+                            Text="—"
+                            FontSize="26"
+                            FontWeight="SemiBold"
+                            Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                </Border>
+
+            </UniformGrid>
+
+        </StackPanel>
+
+    </Grid>
+
+</UserControl>

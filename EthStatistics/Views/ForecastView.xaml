@@ -1,0 +1,46 @@
+﻿<UserControl x:Class="EthStatistics.Views.ForecastView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Grid Background="#F5F7FA">
+
+        <StackPanel Margin="35">
+
+            <TextBlock
+                Text="Forecast"
+                FontSize="30"
+                FontWeight="SemiBold"
+                Foreground="#111827"/>
+
+            <TextBlock
+                Text="Forecasting models and future analysis"
+                FontSize="14"
+                Foreground="#6B7280"
+                Margin="0,6,0,30"/>
+
+            <Border
+                Background="White"
+                CornerRadius="10"
+                Padding="25">
+
+                <StackPanel>
+
+                    <TextBlock
+                        Text="Forecasting"
+                        FontSize="18"
+                        FontWeight="SemiBold"/>
+
+                    <TextBlock
+                        Text="Forecasting functionality will be added later."
+                        Foreground="#6B7280"
+                        Margin="0,10,0,0"/>
+
+                </StackPanel>
+
+            </Border>
+
+        </StackPanel>
+
+    </Grid>
+
+</UserControl>

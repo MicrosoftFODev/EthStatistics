@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using EthStatistics.Views;
 
 namespace EthStatistics
 {
@@ -7,11 +8,51 @@ namespace EthStatistics
         public MainWindow()
         {
             InitializeComponent();
+
+            ShowDashboard();
         }
 
-        private void LoadData_Click(object sender, RoutedEventArgs e)
+        private void ShowDashboard()
         {
-            
+            MainContent.Content = new DashboardView();
+        }
+
+        private void DashboardButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            ShowDashboard();
+        }
+
+        private void ChartButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MainContent.Content = new ChartView();
+        }
+
+        private void StatisticsButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MainContent.Content = new StatisticsView();
+        }
+
+        private void ForecastButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MainContent.Content = new ForecastView();
+        }
+
+        private void UserButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MessageBox.Show(
+                "User preferences will be added here.",
+                "User"
+            );
         }
     }
 }
