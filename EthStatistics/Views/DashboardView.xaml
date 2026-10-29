@@ -13,7 +13,6 @@
 
             <StackPanel>
 
-
                 <!-- ================================= -->
                 <!-- HEADER -->
                 <!-- ================================= -->
@@ -39,7 +38,6 @@
                 <UniformGrid
                     Columns="4"
                     Margin="0,0,0,22">
-
 
                     <!-- LATEST VALUE -->
 
@@ -81,6 +79,7 @@
                         <StackPanel>
 
                             <TextBlock
+                                x:Name="ChangeLabel"
                                 Text="DAILY CHANGE"
                                 Style="{StaticResource LabelStyle}"/>
 
@@ -91,6 +90,7 @@
                                 Margin="0,12,0,0"/>
 
                             <TextBlock
+                                x:Name="ChangeDescription"
                                 Text="Previous close to latest close"
                                 Foreground="{DynamicResource TextMutedBrush}"
                                 FontSize="10"
@@ -120,7 +120,7 @@
                                 Margin="0,12,0,0"/>
 
                             <TextBlock
-                                Text="Observations loaded"
+                                Text="Observations currently loaded"
                                 Foreground="{DynamicResource TextMutedBrush}"
                                 FontSize="10"
                                 Margin="0,7,0,0"/>
@@ -148,7 +148,7 @@
                                 Margin="0,12,0,0"/>
 
                             <TextBlock
-                                Text="Historical volatility"
+                                Text="Annualized historical volatility"
                                 Foreground="{DynamicResource TextMutedBrush}"
                                 FontSize="10"
                                 Margin="0,7,0,0"/>
@@ -161,12 +161,12 @@
 
 
                 <!-- ================================= -->
-                <!-- CURRENT MARKET -->
+                <!-- PRICE CHART -->
                 <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
-                    Height="400">
+                    Height="440">
 
                     <Grid>
 
@@ -176,7 +176,9 @@
                         </Grid.RowDefinitions>
 
 
-                        <!-- HEADER -->
+                        <!-- ================================= -->
+                        <!-- CHART HEADER -->
+                        <!-- ================================= -->
 
                         <Grid Grid.Row="0">
 
@@ -225,81 +227,222 @@
                         </Grid>
 
 
-                        <!-- CHART -->
+                        <!-- ================================= -->
+                        <!-- CHART AND AXES -->
+                        <!-- ================================= -->
 
                         <Grid
                             Grid.Row="1"
-                            Margin="0,18,0,0"
+                            Margin="0,20,0,0"
                             SizeChanged="DashboardChart_SizeChanged">
 
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="78"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                            <!-- GRID -->
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="38"/>
+                            </Grid.RowDefinitions>
 
-                            <Grid IsHitTestVisible="False">
+
+                            <!-- ================================= -->
+                            <!-- Y-AXIS LABELS -->
+                            <!-- ================================= -->
+
+                            <Grid
+                                Grid.Row="0"
+                                Grid.Column="0"
+                                Margin="0,8,10,8">
 
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
-                                <Border
+
+                                <TextBlock
+                                    x:Name="YAxisMaximumText"
                                     Grid.Row="0"
-                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"/>
 
-                                <Border
-                                    Grid.Row="1"
-                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
-
-                                <Border
+                                <TextBlock
+                                    x:Name="YAxisUpperMiddleText"
                                     Grid.Row="2"
-                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"/>
+
+                                <TextBlock
+                                    x:Name="YAxisMiddleText"
+                                    Grid.Row="4"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"/>
+
+                                <TextBlock
+                                    x:Name="YAxisLowerMiddleText"
+                                    Grid.Row="6"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"/>
+
+                                <TextBlock
+                                    x:Name="YAxisMinimumText"
+                                    Grid.Row="8"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"/>
 
                             </Grid>
 
 
-                            <!-- PRICE -->
+                            <!-- ================================= -->
+                            <!-- GRAPH AREA -->
+                            <!-- ================================= -->
+
+                            <Grid
+                                x:Name="DashboardGraphArea"
+                                Grid.Row="0"
+                                Grid.Column="1">
+
+                                <!-- HORIZONTAL GRID LINES -->
+
+                                <Grid IsHitTestVisible="False">
+
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="*"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <Border
+                                        Grid.Row="0"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,1,0,0"/>
+
+                                    <Border
+                                        Grid.Row="2"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,1,0,0"/>
+
+                                    <Border
+                                        Grid.Row="4"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,1,0,0"/>
+
+                                    <Border
+                                        Grid.Row="6"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,1,0,0"/>
+
+                                    <Border
+                                        Grid.Row="8"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="0,1,0,0"/>
+
+                                </Grid>
+
+
+                                <!-- MONTHLY VERTICAL GRID LINES -->
+
+                                <Canvas
+                                    x:Name="MonthlyGridCanvas"
+                                    IsHitTestVisible="False"
+                                    ClipToBounds="True"/>
+
+
+                                <!-- PRICE SERIES -->
+
+                                <Canvas
+                                    x:Name="DashboardChartCanvas"
+                                    Margin="0,8,0,8"
+                                    ClipToBounds="True">
+
+                                    <Polyline
+                                        x:Name="DashboardPriceLine"
+                                        Stroke="{DynamicResource AccentBrush}"
+                                        StrokeThickness="2"
+                                        StrokeLineJoin="Round"
+                                        StrokeStartLineCap="Round"
+                                        StrokeEndLineCap="Round"/>
+
+                                </Canvas>
+
+
+                                <!-- EMPTY STATE -->
+
+                                <StackPanel
+                                    x:Name="DashboardEmptyState"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+
+                                    <TextBlock
+                                        Text="No market data available"
+                                        Foreground="{DynamicResource TextSecondaryBrush}"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        HorizontalAlignment="Center"/>
+
+                                    <TextBlock
+                                        Text="Select a market from Chart or import Excel data"
+                                        Foreground="{DynamicResource TextMutedBrush}"
+                                        FontSize="11"
+                                        Margin="0,7,0,0"
+                                        HorizontalAlignment="Center"/>
+
+                                </StackPanel>
+
+                            </Grid>
+
+
+                            <!-- ================================= -->
+                            <!-- Y-AXIS TITLE -->
+                            <!-- ================================= -->
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Grid.Column="0"
+                                Text="PRICE"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="8"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Margin="0,7,10,0"/>
+
+
+                            <!-- ================================= -->
+                            <!-- MONTHLY X-AXIS -->
+                            <!-- ================================= -->
 
                             <Canvas
-                                x:Name="DashboardChartCanvas"
-                                Margin="10"
-                                ClipToBounds="True">
-
-                                <Polyline
-                                    x:Name="DashboardPriceLine"
-                                    Stroke="{DynamicResource AccentBrush}"
-                                    StrokeThickness="2"
-                                    StrokeLineJoin="Round"/>
-
-                            </Canvas>
-
-
-                            <!-- EMPTY -->
-
-                            <StackPanel
-                                x:Name="DashboardEmptyState"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center">
-
-                                <TextBlock
-                                    Text="No market data available"
-                                    Foreground="{DynamicResource TextSecondaryBrush}"
-                                    FontSize="14"
-                                    FontWeight="SemiBold"
-                                    HorizontalAlignment="Center"/>
-
-                                <TextBlock
-                                    Text="Select a market from Chart or import Excel data"
-                                    Foreground="{DynamicResource TextMutedBrush}"
-                                    FontSize="11"
-                                    Margin="0,7,0,0"
-                                    HorizontalAlignment="Center"/>
-
-                            </StackPanel>
+                                x:Name="MonthlyLabelsCanvas"
+                                Grid.Row="1"
+                                Grid.Column="1"
+                                Height="38"
+                                ClipToBounds="False"/>
 
                         </Grid>
 

@@ -761,12 +761,12 @@ namespace EthStatistics
         private void ShowChart()
         {
             var chartView =
-                new ChartView();
-
+                new ChartView(
+                    _preferences.QuoteCurrency
+                );
 
             chartView.ChartPreferencesChanged +=
                 ChartPreferencesChanged;
-
 
             MainContent.Content =
                 chartView;
@@ -931,8 +931,8 @@ namespace EthStatistics
 
 
         private async void SettingsView_DataPreferencesChanged(
-            object? sender,
-            DataPreferencesChangedEventArgs e)
+      object? sender,
+      DataPreferencesChangedEventArgs e)
         {
             MarketDataStore store =
                 MarketDataStore.Instance;
@@ -953,6 +953,7 @@ namespace EthStatistics
                 null;
 
 
+
             if (currentMarket is not null)
             {
                 selectedMarket =
@@ -971,6 +972,7 @@ namespace EthStatistics
                             )
                     );
             }
+
 
 
             selectedMarket ??=
@@ -1005,9 +1007,6 @@ namespace EthStatistics
 
             _preferences.MarketPair =
                 selectedMarket.Pair;
-
-            _preferences.IntervalMinutes =
-                DailyInterval;
 
             _preferences.PeriodDays =
                 periodDays;

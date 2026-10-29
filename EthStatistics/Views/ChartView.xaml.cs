@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,17 +14,43 @@ namespace EthStatistics.Views
     public partial class ChartView : UserControl
     {
         // ==========================================
-        // STATE
+        // CONSTANTS
         // ==========================================
 
         private const int DailyInterval =
             1440;
+
+        private const int YAxisTickCount =
+            5;
+
+        private const double MinimumMonthLabelWidth =
+            68.0;
+
+        private const double ChartVerticalPadding =
+            8.0;
+
+
+        // ==========================================
+        // USER SETTINGS
+        // ==========================================
+
+        private readonly string?
+            _quoteCurrency;
+
+
+        // ==========================================
+        // STATE
+        // ==========================================
 
         private bool
             _initialized;
 
         private bool
             _isImportedDataset;
+
+        private IReadOnlyList<MarketCandle>
+            _displayedCandles =
+                Array.Empty<MarketCandle>();
 
 
         // ==========================================
@@ -38,8 +65,14 @@ namespace EthStatistics.Views
         // CONSTRUCTOR
         // ==========================================
 
-        public ChartView()
+        public ChartView(
+            string? quoteCurrency)
         {
+            _quoteCurrency =
+                quoteCurrency?
+                    .Trim()
+                    .ToUpperInvariant();
+
             InitializeComponent();
 
             Loaded +=
@@ -94,6 +127,100 @@ namespace EthStatistics.Views
 
 
         // ==========================================
+        // AVAILABLE MARKETS
+        // ==========================================
+
+        private List<KrakenMarket> GetAvailableMarkets(
+            MarketDataStore store)
+        {
+            IEnumerable<KrakenMarket> markets =
+                store.Markets;
+
+
+            if (
+                !string.IsNullOrWhiteSpace(
+                    _quoteCurrency
+                )
+            )
+            {
+                markets =
+                    markets.Where(
+                        market =>
+                            string.Equals(
+                                market.QuoteAsset,
+                                _quoteCurrency,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                    );
+            }
+
+
+            return markets
+                .OrderBy(
+                    market =>
+                        market.BaseAsset
+                )
+                .ThenBy(
+                    market =>
+                        market.DisplayName
+                )
+                .ToList();
+        }
+
+
+        private KrakenMarket? FindPreferredMarket(
+            IReadOnlyList<KrakenMarket> availableMarkets,
+            string? currentPair)
+        {
+            KrakenMarket? selectedMarket =
+                null;
+
+
+            // First try the active pair.
+
+            if (
+                !string.IsNullOrWhiteSpace(
+                    currentPair
+                )
+            )
+            {
+                selectedMarket =
+                    availableMarkets.FirstOrDefault(
+                        market =>
+                            string.Equals(
+                                market.Pair,
+                                currentPair,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                    );
+            }
+
+
+            // Prefer ETH with the selected
+            // quote currency for a new profile.
+
+            selectedMarket ??=
+                availableMarkets.FirstOrDefault(
+                    market =>
+                        string.Equals(
+                            market.BaseAsset,
+                            "ETH",
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                );
+
+
+            // Otherwise use the first available pair.
+
+            selectedMarket ??=
+                availableMarkets.FirstOrDefault();
+
+
+            return selectedMarket;
+        }
+
+
+        // ==========================================
         // POPULATE CONTROLS
         // ==========================================
 
@@ -105,16 +232,19 @@ namespace EthStatistics.Views
             _initialized =
                 false;
 
+
+            List<KrakenMarket> availableMarkets =
+                GetAvailableMarkets(
+                    store
+                );
+
+
             MarketComboBox.ItemsSource =
-                store.Markets;
+                availableMarkets;
 
             PeriodComboBox.ItemsSource =
                 store.Periods;
 
-
-            // --------------------------------------
-            // EXCEL DATA
-            // --------------------------------------
 
             if (_isImportedDataset)
             {
@@ -130,6 +260,12 @@ namespace EthStatistics.Views
                 PeriodComboBox.IsEnabled =
                     false;
 
+                MarketComboBox.Visibility =
+                    Visibility.Collapsed;
+
+                PeriodComboBox.Visibility =
+                    Visibility.Collapsed;
+
                 _initialized =
                     true;
 
@@ -137,64 +273,37 @@ namespace EthStatistics.Views
             }
 
 
-            // --------------------------------------
-            // API DATA
-            // --------------------------------------
+            MarketComboBox.Visibility =
+                Visibility.Visible;
+
+            PeriodComboBox.Visibility =
+                Visibility.Visible;
 
             MarketComboBox.IsEnabled =
-                true;
+                availableMarkets.Count > 0;
 
             PeriodComboBox.IsEnabled =
-                true;
+                store.Periods.Count > 0;
 
-
-            // --------------------------------------
-            // RESTORE MARKET
-            // --------------------------------------
 
             KrakenMarket? selectedMarket =
-                null;
-
-            if (
-                !string.IsNullOrWhiteSpace(
+                FindPreferredMarket(
+                    availableMarkets,
                     store.Pair
-                )
-            )
-            {
-                selectedMarket =
-                    store.Markets.FirstOrDefault(
-                        market =>
-                            string.Equals(
-                                market.Pair,
-                                store.Pair,
-                                StringComparison.OrdinalIgnoreCase
-                            )
-                    );
-            }
-
-            selectedMarket ??=
-                store.Markets.FirstOrDefault(
-                    market =>
-                        string.Equals(
-                            market.Pair,
-                            "ETHUSD",
-                            StringComparison.OrdinalIgnoreCase
-                        )
                 );
 
-            selectedMarket ??=
-                store.Markets.FirstOrDefault();
 
             if (selectedMarket is not null)
             {
                 MarketComboBox.SelectedValue =
                     selectedMarket.Pair;
             }
+            else
+            {
+                MarketComboBox.SelectedIndex =
+                    -1;
+            }
 
-
-            // --------------------------------------
-            // RESTORE PERIOD
-            // --------------------------------------
 
             MarketPeriod? selectedPeriod =
                 store.Periods.FirstOrDefault(
@@ -203,20 +312,29 @@ namespace EthStatistics.Views
                         store.PeriodDays
                 );
 
+
             selectedPeriod ??=
                 store.Periods.FirstOrDefault(
                     period =>
                         period.IsDefault
                 );
 
+
             selectedPeriod ??=
                 store.Periods.FirstOrDefault();
+
 
             if (selectedPeriod is not null)
             {
                 PeriodComboBox.SelectedValue =
                     selectedPeriod.Days;
             }
+            else
+            {
+                PeriodComboBox.SelectedIndex =
+                    -1;
+            }
+
 
             _initialized =
                 true;
@@ -224,7 +342,7 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // USER SELECTION
+        // SELECTION
         // ==========================================
 
         private void SelectionChanged(
@@ -238,6 +356,7 @@ namespace EthStatistics.Views
             {
                 return;
             }
+
 
             RaiseSelectionChanged();
         }
@@ -255,6 +374,7 @@ namespace EthStatistics.Views
             {
                 return;
             }
+
 
             ChartPreferencesChanged?.Invoke(
                 this,
@@ -286,7 +406,7 @@ namespace EthStatistics.Views
                 {
                     UpdateImportState();
 
-                    UpdateControlState();
+                    SynchronizeControls();
 
                     UpdateFromStore();
                 }
@@ -294,9 +414,27 @@ namespace EthStatistics.Views
         }
 
 
-        private void UpdateControlState()
+        private void SynchronizeControls()
         {
-            ApiControlsVisibility();
+            MarketDataStore store =
+                MarketDataStore.Instance;
+
+            _initialized =
+                false;
+
+
+            Visibility selectorVisibility =
+                _isImportedDataset
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+
+
+            MarketComboBox.Visibility =
+                selectorVisibility;
+
+            PeriodComboBox.Visibility =
+                selectorVisibility;
+
 
             if (_isImportedDataset)
             {
@@ -306,75 +444,82 @@ namespace EthStatistics.Views
                 PeriodComboBox.IsEnabled =
                     false;
 
+                _initialized =
+                    true;
+
                 return;
             }
 
+
+            List<KrakenMarket> availableMarkets =
+                GetAvailableMarkets(
+                    store
+                );
+
+
+            MarketComboBox.ItemsSource =
+                availableMarkets;
+
+            PeriodComboBox.ItemsSource =
+                store.Periods;
+
+
             MarketComboBox.IsEnabled =
-                true;
+                availableMarkets.Count > 0;
 
             PeriodComboBox.IsEnabled =
-                true;
-
-            SynchronizeSelections();
-        }
+                store.Periods.Count > 0;
 
 
-        private void ApiControlsVisibility()
-        {
-            Visibility visibility =
-                _isImportedDataset
-                    ? Visibility.Collapsed
-                    : Visibility.Visible;
-
-            MarketComboBox.Visibility =
-                visibility;
-
-            PeriodComboBox.Visibility =
-                visibility;
-        }
-
-
-        private void SynchronizeSelections()
-        {
-            MarketDataStore store =
-                MarketDataStore.Instance;
-
-            _initialized =
-                false;
-
-            if (
-                MarketComboBox.ItemsSource
-                != store.Markets
-            )
-            {
-                MarketComboBox.ItemsSource =
-                    store.Markets;
-            }
-
-            if (
-                PeriodComboBox.ItemsSource
-                != store.Periods
-            )
-            {
-                PeriodComboBox.ItemsSource =
-                    store.Periods;
-            }
-
-            if (
-                !string.IsNullOrWhiteSpace(
+            KrakenMarket? selectedMarket =
+                FindPreferredMarket(
+                    availableMarkets,
                     store.Pair
-                )
-            )
+                );
+
+
+            if (selectedMarket is not null)
             {
                 MarketComboBox.SelectedValue =
-                    store.Pair;
+                    selectedMarket.Pair;
+            }
+            else
+            {
+                MarketComboBox.SelectedIndex =
+                    -1;
             }
 
-            if (store.PeriodDays > 0)
+
+            MarketPeriod? selectedPeriod =
+                store.Periods.FirstOrDefault(
+                    period =>
+                        period.Days ==
+                        store.PeriodDays
+                );
+
+
+            selectedPeriod ??=
+                store.Periods.FirstOrDefault(
+                    period =>
+                        period.IsDefault
+                );
+
+
+            selectedPeriod ??=
+                store.Periods.FirstOrDefault();
+
+
+            if (selectedPeriod is not null)
             {
                 PeriodComboBox.SelectedValue =
-                    store.PeriodDays;
+                    selectedPeriod.Days;
             }
+            else
+            {
+                PeriodComboBox.SelectedIndex =
+                    -1;
+            }
+
 
             _initialized =
                 true;
@@ -390,10 +535,11 @@ namespace EthStatistics.Views
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+
             if (store.IsLoading)
             {
                 ChartMarketText.Text =
-                    $"Loading {store.Pair}...";
+                    $"Loading {GetMarketDisplayName(store)}...";
 
                 RefreshStatusText.Text =
                     "Refreshing";
@@ -408,6 +554,7 @@ namespace EthStatistics.Views
                 return;
             }
 
+
             if (
                 !string.IsNullOrWhiteSpace(
                     store.Error
@@ -415,7 +562,8 @@ namespace EthStatistics.Views
             )
             {
                 ChartMarketText.Text =
-                    $"{store.Pair} · Data unavailable";
+                    $"{GetMarketDisplayName(store)} · " +
+                    "Data unavailable";
 
                 RefreshStatusText.Text =
                     "Unavailable";
@@ -430,7 +578,8 @@ namespace EthStatistics.Views
                 return;
             }
 
-            if (store.Candles.Count == 0)
+
+            if (store.Candles.Count < 2)
             {
                 ChartMarketText.Text =
                     "Waiting for market data";
@@ -451,6 +600,30 @@ namespace EthStatistics.Views
                 return;
             }
 
+
+            _displayedCandles =
+                store.Candles
+                    .Where(
+                        candle =>
+                            double.IsFinite(
+                                candle.Close
+                            )
+                    )
+                    .OrderBy(
+                        candle =>
+                            candle.Date
+                    )
+                    .ToList();
+
+
+            if (_displayedCandles.Count < 2)
+            {
+                ClearChart();
+
+                return;
+            }
+
+
             string intervalDescription =
                 _isImportedDataset
                     ? GetImportedIntervalDescription(
@@ -458,30 +631,48 @@ namespace EthStatistics.Views
                     )
                     : "Daily";
 
+
             ChartMarketText.Text =
-                $"{store.Pair} · " +
-                $"{store.Candles.Count} observations · " +
+                $"{GetMarketDisplayName(store)} · " +
+                $"{_displayedCandles.Count:N0} observations · " +
                 intervalDescription;
+
 
             RefreshStatusText.Text =
                 _isImportedDataset
                     ? "Imported"
                     : "Updated";
 
+
             RefreshStatusIndicator.Fill =
                 FindBrush(
                     "PositiveBrush"
                 );
 
+
             VolumeMarketText.Text =
                 store.DataSource;
 
+
+            DrawCharts(
+                _displayedCandles
+            );
+        }
+
+
+        // ==========================================
+        // DRAW CHARTS
+        // ==========================================
+
+        private void DrawCharts(
+            IReadOnlyList<MarketCandle> candles)
+        {
             DrawPriceChart(
-                store.Candles
+                candles
             );
 
             DrawVolumeChart(
-                store.Candles
+                candles
             );
         }
 
@@ -499,6 +690,7 @@ namespace EthStatistics.Views
             double height =
                 PriceCanvas.ActualHeight;
 
+
             if (
                 width <= 1 ||
                 height <= 1 ||
@@ -508,80 +700,90 @@ namespace EthStatistics.Views
                 return;
             }
 
-            double[] values =
-                candles
-                    .Select(
-                        candle =>
-                            candle.Close
-                    )
-                    .Where(
-                        double.IsFinite
-                    )
-                    .ToArray();
 
-            if (values.Length < 2)
-            {
-                ClearChart();
+            double dataMinimum =
+                candles.Min(
+                    candle =>
+                        candle.Close
+                );
 
-                return;
-            }
 
-            double minimum =
-                values.Min();
+            double dataMaximum =
+                candles.Max(
+                    candle =>
+                        candle.Close
+                );
 
-            double maximum =
-                values.Max();
+
+            PriceAxisScale scale =
+                CreateNicePriceScale(
+                    dataMinimum,
+                    dataMaximum,
+                    YAxisTickCount
+                );
+
+
+            DrawYAxis(
+                scale
+            );
+
 
             double range =
-                maximum - minimum;
+                scale.Maximum -
+                scale.Minimum;
+
 
             if (range <= 0)
             {
-                range = 1;
+                range =
+                    1;
             }
 
-            const double verticalPadding =
-                6.0;
 
             double drawableHeight =
                 Math.Max(
                     1,
                     height -
-                    verticalPadding * 2
+                    ChartVerticalPadding * 2
                 );
+
 
             var points =
                 new PointCollection(
-                    values.Length
+                    candles.Count
                 );
+
 
             for (
                 int index = 0;
-                index < values.Length;
+                index < candles.Count;
                 index++
             )
             {
                 double x =
                     index *
                     width /
-                    (values.Length - 1);
+                    (candles.Count - 1);
 
-                double normalized =
+
+                double normalizedPrice =
                     (
-                        values[index] -
-                        minimum
+                        candles[index].Close -
+                        scale.Minimum
                     )
                     /
                     range;
 
+
                 double y =
-                    verticalPadding +
+                    ChartVerticalPadding +
                     (
                         1.0 -
-                        normalized
+                        normalizedPrice
                     )
                     *
                     drawableHeight;
+
 
                 points.Add(
                     new Point(
@@ -591,20 +793,26 @@ namespace EthStatistics.Views
                 );
             }
 
+
             PricePolyline.Points =
                 points;
 
-            MaximumChartValueText.Text =
-                maximum.ToString("N2");
 
-            MinimumChartValueText.Text =
-                minimum.ToString("N2");
+            DrawMonthlyAxis(
+                candles,
+                width,
+                PriceGraphArea.ActualHeight,
+                PriceMonthlyGridCanvas,
+                PriceMonthlyLabelsCanvas
+            );
 
-            EmptyChartState.Visibility =
-                Visibility.Collapsed;
 
             PricePolyline.Visibility =
                 Visibility.Visible;
+
+
+            EmptyChartState.Visibility =
+                Visibility.Collapsed;
         }
 
 
@@ -617,11 +825,15 @@ namespace EthStatistics.Views
         {
             VolumeCanvas.Children.Clear();
 
+            VolumeMonthlyGridCanvas.Children.Clear();
+
+
             double width =
                 VolumeCanvas.ActualWidth;
 
             double height =
                 VolumeCanvas.ActualHeight;
+
 
             if (
                 width <= 1 ||
@@ -629,8 +841,11 @@ namespace EthStatistics.Views
                 candles.Count == 0
             )
             {
+                ClearVolumeAxis();
+
                 return;
             }
+
 
             double maximumVolume =
                 candles
@@ -639,25 +854,61 @@ namespace EthStatistics.Views
                             candle.Volume
                     )
                     .Where(
-                        double.IsFinite
+                        volume =>
+                            double.IsFinite(
+                                volume
+                            )
+                            &&
+                            volume >= 0
                     )
                     .DefaultIfEmpty(0)
                     .Max();
 
+
             if (maximumVolume <= 0)
             {
+                ClearVolumeAxis();
+
                 EmptyVolumeState.Visibility =
                     Visibility.Visible;
 
                 return;
             }
 
+
+            // Top = 100% of displayed maximum.
+            // Middle = 50% of displayed maximum.
+            // Bottom = 0.
+
+            VolumeMaximumText.Text =
+                FormatVolume(
+                    maximumVolume
+                );
+
+
+            VolumeMiddleText.Text =
+                FormatVolume(
+                    maximumVolume *
+                    0.50
+                );
+
+
+            VolumeMinimumText.Text =
+                "0";
+
+
+            double slotWidth =
+                width /
+                candles.Count;
+
+
             double barWidth =
                 Math.Max(
                     1,
-                    width /
-                    candles.Count
+                    slotWidth *
+                    0.75
                 );
+
 
             for (
                 int index = 0;
@@ -665,83 +916,786 @@ namespace EthStatistics.Views
                 index++
             )
             {
+                MarketCandle candle =
+                    candles[index];
+
+
                 double volume =
-                    Math.Max(
-                        0,
-                        candles[index].Volume
-                    );
+                    double.IsFinite(
+                        candle.Volume
+                    )
+                        ? Math.Max(
+                            0,
+                            candle.Volume
+                        )
+                        : 0;
+
+
+                double normalizedVolume =
+                    volume /
+                    maximumVolume;
+
 
                 double barHeight =
-                    volume /
-                    maximumVolume *
+                    normalizedVolume *
                     height;
+
+
+                Brush barBrush;
+
+
+                if (candle.Close > candle.Open)
+                {
+                    barBrush =
+                        FindBrush(
+                            "PositiveBrush"
+                        );
+                }
+                else if (candle.Close < candle.Open)
+                {
+                    barBrush =
+                        FindBrush(
+                            "NegativeBrush"
+                        );
+                }
+                else
+                {
+                    barBrush =
+                        FindBrush(
+                            "TextMutedBrush"
+                        );
+                }
+
 
                 var rectangle =
                     new Rectangle
                     {
                         Width =
-                            Math.Max(
-                                1,
-                                barWidth - 1
-                            ),
+                            barWidth,
 
                         Height =
                             Math.Max(
-                                0,
+                                1,
                                 barHeight
                             ),
 
                         Fill =
-                            FindBrush(
-                                "AccentSoftBrush"
+                            barBrush,
+
+                        Opacity =
+                            0.75,
+
+                        ToolTip =
+                            CreateVolumeToolTip(
+                                candle
                             )
                     };
 
+
+                double x =
+                    index *
+                    slotWidth
+                    +
+                    (
+                        slotWidth -
+                        barWidth
+                    )
+                    /
+                    2.0;
+
+
                 Canvas.SetLeft(
                     rectangle,
-                    index * barWidth
+                    x
                 );
+
 
                 Canvas.SetTop(
                     rectangle,
-                    height - barHeight
+                    height -
+                    barHeight
                 );
+
 
                 VolumeCanvas.Children.Add(
                     rectangle
                 );
             }
 
+
+            DrawMonthlyGridLinesOnly(
+                candles,
+                width,
+                height,
+                VolumeMonthlyGridCanvas
+            );
+
+
             EmptyVolumeState.Visibility =
                 Visibility.Collapsed;
         }
 
 
-        // ==========================================
-        // CLEAR
-        // ==========================================
-
-        private void ClearChart()
+        private static string CreateVolumeToolTip(
+            MarketCandle candle)
         {
-            PricePolyline.Points =
-                new PointCollection();
+            string direction =
+                candle.Close > candle.Open
+                    ? "Bullish"
+                    : candle.Close < candle.Open
+                        ? "Bearish"
+                        : "Unchanged";
 
-            PricePolyline.Visibility =
-                Visibility.Collapsed;
 
-            MaximumChartValueText.Text =
+            return
+                $"{candle.Date:dd MMM yyyy}\n" +
+                $"Volume: {FormatVolume(candle.Volume)}\n" +
+                $"Open: {candle.Open:N2}\n" +
+                $"Close: {candle.Close:N2}\n" +
+                $"Direction: {direction}";
+        }
+
+
+        private void ClearVolumeAxis()
+        {
+            VolumeMaximumText.Text =
                 "";
 
-            MinimumChartValueText.Text =
+            VolumeMiddleText.Text =
                 "";
 
-            EmptyChartState.Visibility =
-                Visibility.Visible;
+            VolumeMinimumText.Text =
+                "0";
+        }
 
-            VolumeCanvas.Children.Clear();
 
-            EmptyVolumeState.Visibility =
-                Visibility.Visible;
+        // ==========================================
+        // PRICE Y-AXIS
+        // ==========================================
+
+        private void DrawYAxis(
+            PriceAxisScale scale)
+        {
+            double[] values =
+            {
+                scale.Maximum,
+                scale.Maximum - scale.Step,
+                scale.Maximum - scale.Step * 2,
+                scale.Maximum - scale.Step * 3,
+                scale.Minimum
+            };
+
+
+            YAxisMaximumText.Text =
+                FormatAxisPrice(
+                    values[0],
+                    scale.Step
+                );
+
+
+            YAxisUpperMiddleText.Text =
+                FormatAxisPrice(
+                    values[1],
+                    scale.Step
+                );
+
+
+            YAxisMiddleText.Text =
+                FormatAxisPrice(
+                    values[2],
+                    scale.Step
+                );
+
+
+            YAxisLowerMiddleText.Text =
+                FormatAxisPrice(
+                    values[3],
+                    scale.Step
+                );
+
+
+            YAxisMinimumText.Text =
+                FormatAxisPrice(
+                    values[4],
+                    scale.Step
+                );
+        }
+
+
+        private static PriceAxisScale
+            CreateNicePriceScale(
+                double dataMinimum,
+                double dataMaximum,
+                int tickCount)
+        {
+            if (
+                !double.IsFinite(
+                    dataMinimum
+                )
+                ||
+                !double.IsFinite(
+                    dataMaximum
+                )
+            )
+            {
+                return new PriceAxisScale(
+                    0,
+                    1,
+                    0.25
+                );
+            }
+
+
+            if (dataMaximum < dataMinimum)
+            {
+                (
+                    dataMinimum,
+                    dataMaximum
+                ) =
+                (
+                    dataMaximum,
+                    dataMinimum
+                );
+            }
+
+
+            double rawRange =
+                dataMaximum -
+                dataMinimum;
+
+
+            if (rawRange <= 0)
+            {
+                double expansion =
+                    Math.Abs(
+                        dataMaximum
+                    ) *
+                    0.05;
+
+
+                if (expansion <= 0)
+                {
+                    expansion =
+                        1;
+                }
+
+
+                dataMinimum -=
+                    expansion;
+
+                dataMaximum +=
+                    expansion;
+
+                rawRange =
+                    dataMaximum -
+                    dataMinimum;
+            }
+
+
+            int intervalCount =
+                Math.Max(
+                    1,
+                    tickCount - 1
+                );
+
+
+            double rawStep =
+                rawRange /
+                intervalCount;
+
+
+            double niceStep =
+                CalculateNiceStep(
+                    rawStep
+                );
+
+
+            double niceMinimum =
+                Math.Floor(
+                    dataMinimum /
+                    niceStep
+                )
+                *
+                niceStep;
+
+
+            double niceMaximum =
+                niceMinimum +
+                niceStep *
+                intervalCount;
+
+
+            while (
+                niceMaximum <
+                dataMaximum
+            )
+            {
+                niceMaximum +=
+                    niceStep;
+
+                niceMinimum =
+                    niceMaximum -
+                    niceStep *
+                    intervalCount;
+            }
+
+
+            return new PriceAxisScale(
+                niceMinimum,
+                niceMaximum,
+                niceStep
+            );
+        }
+
+
+        private static double CalculateNiceStep(
+            double rawStep)
+        {
+            if (
+                !double.IsFinite(
+                    rawStep
+                )
+                ||
+                rawStep <= 0
+            )
+            {
+                return 1;
+            }
+
+
+            double exponent =
+                Math.Floor(
+                    Math.Log10(
+                        rawStep
+                    )
+                );
+
+
+            double magnitude =
+                Math.Pow(
+                    10,
+                    exponent
+                );
+
+
+            double normalized =
+                rawStep /
+                magnitude;
+
+
+            double niceNormalized;
+
+
+            if (normalized <= 1)
+            {
+                niceNormalized =
+                    1;
+            }
+            else if (normalized <= 2)
+            {
+                niceNormalized =
+                    2;
+            }
+            else if (normalized <= 2.5)
+            {
+                niceNormalized =
+                    2.5;
+            }
+            else if (normalized <= 5)
+            {
+                niceNormalized =
+                    5;
+            }
+            else
+            {
+                niceNormalized =
+                    10;
+            }
+
+
+            return
+                niceNormalized *
+                magnitude;
+        }
+
+
+        // ==========================================
+        // MONTHLY AXIS
+        // ==========================================
+
+        private void DrawMonthlyAxis(
+            IReadOnlyList<MarketCandle> candles,
+            double width,
+            double graphHeight,
+            Canvas gridCanvas,
+            Canvas labelsCanvas)
+        {
+            gridCanvas.Children.Clear();
+
+            labelsCanvas.Children.Clear();
+
+
+            List<MonthTick> allTicks =
+                CreateMonthTicks(
+                    candles
+                );
+
+
+            List<MonthTick> visibleTicks =
+                SelectVisibleMonthTicks(
+                    allTicks,
+                    width
+                );
+
+
+            bool multipleYears =
+                candles[0].Date.Year !=
+                candles[^1].Date.Year;
+
+
+            foreach (
+                MonthTick tick
+                in visibleTicks
+            )
+            {
+                double x =
+                    GetTickXPosition(
+                        tick,
+                        candles.Count,
+                        width
+                    );
+
+
+                AddVerticalGridLine(
+                    gridCanvas,
+                    x,
+                    graphHeight
+                );
+
+
+                AddMonthLabel(
+                    labelsCanvas,
+                    tick,
+                    x,
+                    width,
+                    multipleYears
+                );
+            }
+        }
+
+
+        private void DrawMonthlyGridLinesOnly(
+            IReadOnlyList<MarketCandle> candles,
+            double width,
+            double graphHeight,
+            Canvas gridCanvas)
+        {
+            gridCanvas.Children.Clear();
+
+
+            List<MonthTick> ticks =
+                SelectVisibleMonthTicks(
+                    CreateMonthTicks(
+                        candles
+                    ),
+                    width
+                );
+
+
+            foreach (
+                MonthTick tick
+                in ticks
+            )
+            {
+                double x =
+                    GetTickXPosition(
+                        tick,
+                        candles.Count,
+                        width
+                    );
+
+
+                AddVerticalGridLine(
+                    gridCanvas,
+                    x,
+                    graphHeight
+                );
+            }
+        }
+
+
+        private static List<MonthTick>
+            CreateMonthTicks(
+                IReadOnlyList<MarketCandle> candles)
+        {
+            var ticks =
+                new List<MonthTick>();
+
+
+            int? previousYear =
+                null;
+
+            int? previousMonth =
+                null;
+
+
+            for (
+                int index = 0;
+                index < candles.Count;
+                index++
+            )
+            {
+                DateTimeOffset date =
+                    candles[index].Date;
+
+
+                if (
+                    previousYear ==
+                        date.Year
+                    &&
+                    previousMonth ==
+                        date.Month
+                )
+                {
+                    continue;
+                }
+
+
+                ticks.Add(
+                    new MonthTick(
+                        index,
+                        date.Year,
+                        date.Month
+                    )
+                );
+
+
+                previousYear =
+                    date.Year;
+
+                previousMonth =
+                    date.Month;
+            }
+
+
+            return ticks;
+        }
+
+
+        private static List<MonthTick>
+            SelectVisibleMonthTicks(
+                IReadOnlyList<MonthTick> allTicks,
+                double width)
+        {
+            if (allTicks.Count == 0)
+            {
+                return new List<MonthTick>();
+            }
+
+
+            int maximumLabels =
+                Math.Max(
+                    2,
+                    (int)Math.Floor(
+                        width /
+                        MinimumMonthLabelWidth
+                    )
+                );
+
+
+            int step =
+                Math.Max(
+                    1,
+                    (int)Math.Ceiling(
+                        allTicks.Count /
+                        (double)maximumLabels
+                    )
+                );
+
+
+            List<MonthTick> visible =
+                allTicks
+                    .Where(
+                        (
+                            tick,
+                            index
+                        ) =>
+                            index % step ==
+                            0
+                    )
+                    .ToList();
+
+
+            MonthTick last =
+                allTicks[^1];
+
+
+            if (
+                visible.Count == 0 ||
+                visible[^1].Year !=
+                    last.Year
+                ||
+                visible[^1].Month !=
+                    last.Month
+            )
+            {
+                visible.Add(
+                    last
+                );
+            }
+
+
+            return visible;
+        }
+
+
+        private static double GetTickXPosition(
+            MonthTick tick,
+            int candleCount,
+            double width)
+        {
+            if (candleCount <= 1)
+            {
+                return 0;
+            }
+
+
+            return
+                tick.CandleIndex *
+                width /
+                (candleCount - 1);
+        }
+
+
+        private void AddVerticalGridLine(
+            Canvas canvas,
+            double x,
+            double height)
+        {
+            var line =
+                new Line
+                {
+                    X1 =
+                        x,
+
+                    X2 =
+                        x,
+
+                    Y1 =
+                        0,
+
+                    Y2 =
+                        height,
+
+                    Stroke =
+                        FindBrush(
+                            "BorderSubtleBrush"
+                        ),
+
+                    StrokeThickness =
+                        1,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+
+            canvas.Children.Add(
+                line
+            );
+        }
+
+
+        private void AddMonthLabel(
+            Canvas canvas,
+            MonthTick tick,
+            double x,
+            double totalWidth,
+            bool includeYear)
+        {
+            DateTime date =
+                new(
+                    tick.Year,
+                    tick.Month,
+                    1
+                );
+
+
+            string label =
+                includeYear
+                    ? date.ToString(
+                        "MMM yy",
+                        CultureInfo.CurrentCulture
+                    )
+                    : date.ToString(
+                        "MMM",
+                        CultureInfo.CurrentCulture
+                    );
+
+
+            var textBlock =
+                new TextBlock
+                {
+                    Text =
+                        label,
+
+                    Foreground =
+                        FindBrush(
+                            "TextMutedBrush"
+                        ),
+
+                    FontSize =
+                        9,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+
+            textBlock.Measure(
+                new Size(
+                    double.PositiveInfinity,
+                    double.PositiveInfinity
+                )
+            );
+
+
+            double labelWidth =
+                textBlock.DesiredSize.Width;
+
+
+            double left =
+                x -
+                labelWidth /
+                2;
+
+
+            left =
+                Math.Max(
+                    0,
+                    Math.Min(
+                        totalWidth -
+                        labelWidth,
+                        left
+                    )
+                );
+
+
+            Canvas.SetLeft(
+                textBlock,
+                left
+            );
+
+
+            Canvas.SetTop(
+                textBlock,
+                7
+            );
+
+
+            canvas.Children.Add(
+                textBlock
+            );
         }
 
 
@@ -753,27 +1707,110 @@ namespace EthStatistics.Views
             object sender,
             SizeChangedEventArgs e)
         {
-            MarketDataStore store =
-                MarketDataStore.Instance;
-
-            if (store.Candles.Count == 0)
+            if (_displayedCandles.Count < 2)
             {
                 return;
             }
 
-            DrawPriceChart(
-                store.Candles
-            );
 
-            DrawVolumeChart(
-                store.Candles
+            DrawCharts(
+                _displayedCandles
             );
         }
 
 
         // ==========================================
-        // HELPERS
+        // CLEAR
         // ==========================================
+
+        private void ClearChart()
+        {
+            _displayedCandles =
+                Array.Empty<MarketCandle>();
+
+
+            PricePolyline.Points =
+                new PointCollection();
+
+
+            PricePolyline.Visibility =
+                Visibility.Collapsed;
+
+
+            EmptyChartState.Visibility =
+                Visibility.Visible;
+
+
+            VolumeCanvas.Children.Clear();
+
+
+            EmptyVolumeState.Visibility =
+                Visibility.Visible;
+
+
+            PriceMonthlyGridCanvas.Children.Clear();
+
+            PriceMonthlyLabelsCanvas.Children.Clear();
+
+            VolumeMonthlyGridCanvas.Children.Clear();
+
+
+            YAxisMaximumText.Text =
+                "";
+
+            YAxisUpperMiddleText.Text =
+                "";
+
+            YAxisMiddleText.Text =
+                "";
+
+            YAxisLowerMiddleText.Text =
+                "";
+
+            YAxisMinimumText.Text =
+                "";
+
+
+            ClearVolumeAxis();
+        }
+
+
+        // ==========================================
+        // DISPLAY HELPERS
+        // ==========================================
+
+        private static string GetMarketDisplayName(
+            MarketDataStore store)
+        {
+            if (
+                string.IsNullOrWhiteSpace(
+                    store.Pair
+                )
+            )
+            {
+                return "Market";
+            }
+
+
+            KrakenMarket? market =
+                store.Markets.FirstOrDefault(
+                    item =>
+                        string.Equals(
+                            item.Pair,
+                            store.Pair,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                );
+
+
+            return
+                !string.IsNullOrWhiteSpace(
+                    market?.DisplayName
+                )
+                    ? market.DisplayName
+                    : store.Pair;
+        }
+
 
         private static string
             GetImportedIntervalDescription(
@@ -783,6 +1820,7 @@ namespace EthStatistics.Views
             {
                 return "Imported";
             }
+
 
             return interval.Value switch
             {
@@ -819,6 +1857,86 @@ namespace EthStatistics.Views
         }
 
 
+        private static string FormatAxisPrice(
+            double value,
+            double step)
+        {
+            double absoluteStep =
+                Math.Abs(
+                    step
+                );
+
+
+            string format =
+                absoluteStep >= 1
+                    ? "N0"
+                    : absoluteStep >= 0.01
+                        ? "N2"
+                        : "N6";
+
+
+            return value.ToString(
+                format,
+                CultureInfo.CurrentCulture
+            );
+        }
+
+
+        private static string FormatVolume(
+            double value)
+        {
+            double absoluteValue =
+                Math.Abs(
+                    value
+                );
+
+
+            if (absoluteValue >= 1_000_000_000)
+            {
+                return (
+                    value /
+                    1_000_000_000
+                ).ToString(
+                    "0.##",
+                    CultureInfo.CurrentCulture
+                )
+                + "B";
+            }
+
+
+            if (absoluteValue >= 1_000_000)
+            {
+                return (
+                    value /
+                    1_000_000
+                ).ToString(
+                    "0.##",
+                    CultureInfo.CurrentCulture
+                )
+                + "M";
+            }
+
+
+            if (absoluteValue >= 1_000)
+            {
+                return (
+                    value /
+                    1_000
+                ).ToString(
+                    "0.##",
+                    CultureInfo.CurrentCulture
+                )
+                + "K";
+            }
+
+
+            return value.ToString(
+                "N0",
+                CultureInfo.CurrentCulture
+            );
+        }
+
+
         private Brush FindBrush(
             string resourceName)
         {
@@ -845,5 +1963,23 @@ namespace EthStatistics.Views
             PeriodComboBox.SelectionChanged -=
                 SelectionChanged;
         }
+
+
+        // ==========================================
+        // INTERNAL TYPES
+        // ==========================================
+
+        private sealed record PriceAxisScale(
+            double Minimum,
+            double Maximum,
+            double Step
+        );
+
+
+        private sealed record MonthTick(
+            int CandleIndex,
+            int Year,
+            int Month
+        );
     }
 }

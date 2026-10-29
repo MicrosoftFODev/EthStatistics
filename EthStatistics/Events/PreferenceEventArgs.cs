@@ -16,7 +16,7 @@ namespace EthStatistics
     {
         public required string QuoteCurrency { get; init; }
 
-        public required int Interval { get; init; }
+      
     }
 
 

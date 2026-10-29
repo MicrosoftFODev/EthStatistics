@@ -2,7 +2,10 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
+    <ScrollViewer
+        VerticalScrollBarVisibility="Auto"
+        HorizontalScrollBarVisibility="Disabled"
+        CanContentScroll="False">
 
         <Grid Background="{DynamicResource AppBackgroundBrush}">
 
@@ -11,7 +14,10 @@
                 MaxWidth="760"
                 HorizontalAlignment="Left">
 
+
+                <!-- ================================= -->
                 <!-- PAGE HEADER -->
+                <!-- ================================= -->
 
                 <TextBlock
                     Text="Settings"
@@ -23,7 +29,9 @@
                     Margin="0,5,0,28"/>
 
 
+                <!-- ================================= -->
                 <!-- LANGUAGE -->
+                <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -35,6 +43,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="260"/>
                         </Grid.ColumnDefinitions>
+
 
                         <StackPanel>
 
@@ -49,6 +58,7 @@
 
                         </StackPanel>
 
+
                         <ComboBox
                             x:Name="LanguageComboBox"
                             Grid.Column="1"
@@ -60,7 +70,9 @@
                 </Border>
 
 
+                <!-- ================================= -->
                 <!-- APPEARANCE -->
+                <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -72,6 +84,7 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="260"/>
                         </Grid.ColumnDefinitions>
+
 
                         <StackPanel>
 
@@ -86,6 +99,7 @@
 
                         </StackPanel>
 
+
                         <ComboBox
                             x:Name="ThemeComboBox"
                             Grid.Column="1"
@@ -97,72 +111,51 @@
                 </Border>
 
 
+                <!-- ================================= -->
                 <!-- MARKET DEFAULTS -->
+                <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
                     Margin="0,0,0,14">
 
-                    <StackPanel>
+                    <Grid>
 
-                        <TextBlock
-                            Text="Market Defaults"
-                            Style="{StaticResource SectionTitleStyle}"/>
-
-                        <TextBlock
-                            Text="Choose the defaults used when loading market analysis"
-                            Style="{StaticResource LabelStyle}"
-                            Margin="0,6,0,20"/>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="260"/>
+                        </Grid.ColumnDefinitions>
 
 
-                        <Grid>
+                        <StackPanel>
 
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="30"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                            <TextBlock
+                                Text="Quote Currency"
+                                Style="{StaticResource SectionTitleStyle}"/>
 
+                            <TextBlock
+                                Text="Choose your preferred quote currency for market analysis"
+                                Style="{StaticResource LabelStyle}"
+                                TextWrapping="Wrap"
+                                Margin="0,6,20,0"/>
 
-                            <!-- QUOTE CURRENCY -->
-
-                            <StackPanel Grid.Column="0">
-
-                                <TextBlock
-                                    Text="Quote Currency"
-                                    Style="{StaticResource LabelStyle}"
-                                    Margin="0,0,0,7"/>
-
-                                <ComboBox
-                                    x:Name="CurrencyComboBox"
-                                    Style="{StaticResource ProfessionalComboBoxStyle}"/>
-
-                            </StackPanel>
+                        </StackPanel>
 
 
-                            <!-- TIMEFRAME -->
+                        <ComboBox
+                            x:Name="CurrencyComboBox"
+                            Grid.Column="1"
+                            Style="{StaticResource ProfessionalComboBoxStyle}"
+                            VerticalAlignment="Center"/>
 
-                            <StackPanel Grid.Column="2">
-
-                                <TextBlock
-                                    Text="Timeframe"
-                                    Style="{StaticResource LabelStyle}"
-                                    Margin="0,0,0,7"/>
-
-                                <ComboBox
-                                    x:Name="TimeframeComboBox"
-                                    Style="{StaticResource ProfessionalComboBoxStyle}"/>
-
-                            </StackPanel>
-
-                        </Grid>
-
-                    </StackPanel>
+                    </Grid>
 
                 </Border>
 
 
-                <!-- STORAGE INFORMATION -->
+                <!-- ================================= -->
+                <!-- API DATA INFORMATION -->
+                <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -174,6 +167,58 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
+
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="API Market Data"
+                                Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock
+                                Text="API market analysis uses daily candles. Market and analysis period are selected from the Chart page."
+                                Style="{StaticResource LabelStyle}"
+                                TextWrapping="Wrap"
+                                Margin="0,6,20,0"/>
+
+                        </StackPanel>
+
+
+                        <Border
+                            Grid.Column="1"
+                            Background="{DynamicResource AccentSoftBrush}"
+                            CornerRadius="5"
+                            Padding="12,6"
+                            VerticalAlignment="Center">
+
+                            <TextBlock
+                                Text="DAILY"
+                                Foreground="{DynamicResource AccentBrush}"
+                                FontSize="10"
+                                FontWeight="SemiBold"/>
+
+                        </Border>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- ================================= -->
+                <!-- STORAGE -->
+                <!-- ================================= -->
+
+                <Border
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,14">
+
+                    <Grid>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
 
                         <StackPanel>
 
@@ -188,6 +233,7 @@
                                 Margin="0,6,20,0"/>
 
                         </StackPanel>
+
 
                         <Border
                             Grid.Column="1"
@@ -209,7 +255,9 @@
                 </Border>
 
 
-                <!-- APPLICATION INFORMATION -->
+                <!-- ================================= -->
+                <!-- APPLICATION -->
+                <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
@@ -234,19 +282,14 @@
                             FontSize="12"
                             Margin="0,4,0,0"/>
 
-                        <TextBlock
-                            Text="Market metadata and timeframes are provided dynamically by the active data provider."
-                            Foreground="{DynamicResource TextMutedBrush}"
-                            FontSize="11"
-                            TextWrapping="Wrap"
-                            Margin="0,12,0,0"/>
-
                     </StackPanel>
 
                 </Border>
 
 
-                <!-- SAVE BUTTON -->
+                <!-- ================================= -->
+                <!-- SAVE -->
+                <!-- ================================= -->
 
                 <StackPanel
                     Orientation="Horizontal"

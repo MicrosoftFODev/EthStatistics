@@ -99,13 +99,12 @@
                     Margin="20,0,0,9">
 
                     <Border
-                        Background="{DynamicResource SurfaceElevatedBrush}"
+                        Background="{DynamicResource AccentSoftBrush}"
                         CornerRadius="5"
                         Padding="9,5"
                         Margin="0,0,14,0">
 
-                        <StackPanel
-                            Orientation="Horizontal">
+                        <StackPanel Orientation="Horizontal">
 
                             <TextBlock
                                 Text="DAILY"
@@ -154,12 +153,12 @@
 
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="150"/>
+                <RowDefinition Height="180"/>
             </Grid.RowDefinitions>
 
 
             <!-- ================================= -->
-            <!-- PRICE -->
+            <!-- PRICE CHART -->
             <!-- ================================= -->
 
             <Border
@@ -201,8 +200,6 @@
                         </StackPanel>
 
 
-                        <!-- LEGEND -->
-
                         <StackPanel
                             Grid.Column="1"
                             Orientation="Horizontal"
@@ -225,56 +222,148 @@
                     </Grid>
 
 
-                    <!-- PRICE CONTENT -->
+                    <!-- ================================= -->
+                    <!-- PRICE GRAPH + AXES -->
+                    <!-- ================================= -->
 
                     <Grid
                         Grid.Row="1"
-                        Margin="0,18,0,0">
+                        Margin="0,18,0,0"
+                        SizeChanged="ChartContainer_SizeChanged">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="78"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="38"/>
+                        </Grid.RowDefinitions>
+
+
+                        <!-- Y-AXIS -->
 
                         <Grid
-                            x:Name="PriceChartContainer"
-                            SizeChanged="ChartContainer_SizeChanged">
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Margin="0,8,10,8">
+
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
 
 
-                            <!-- HORIZONTAL GRID LINES -->
+                            <TextBlock
+                                x:Name="YAxisMaximumText"
+                                Grid.Row="0"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"/>
+
+                            <TextBlock
+                                x:Name="YAxisUpperMiddleText"
+                                Grid.Row="2"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"/>
+
+                            <TextBlock
+                                x:Name="YAxisMiddleText"
+                                Grid.Row="4"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"/>
+
+                            <TextBlock
+                                x:Name="YAxisLowerMiddleText"
+                                Grid.Row="6"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"/>
+
+                            <TextBlock
+                                x:Name="YAxisMinimumText"
+                                Grid.Row="8"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"/>
+
+                        </Grid>
+
+
+                        <!-- PRICE GRAPH -->
+
+                        <Grid
+                            x:Name="PriceGraphArea"
+                            Grid.Row="0"
+                            Grid.Column="1">
+
+                            <!-- HORIZONTAL LINES -->
 
                             <Grid IsHitTestVisible="False">
 
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
 
                                 <Border
                                     Grid.Row="0"
                                     BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
-
-                                <Border
-                                    Grid.Row="1"
-                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
+                                    BorderThickness="0,1,0,0"/>
 
                                 <Border
                                     Grid.Row="2"
                                     BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
+                                    BorderThickness="0,1,0,0"/>
 
                                 <Border
-                                    Grid.Row="3"
+                                    Grid.Row="4"
                                     BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="0,0,0,1"/>
+                                    BorderThickness="0,1,0,0"/>
+
+                                <Border
+                                    Grid.Row="6"
+                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                    BorderThickness="0,1,0,0"/>
+
+                                <Border
+                                    Grid.Row="8"
+                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                    BorderThickness="0,1,0,0"/>
 
                             </Grid>
 
 
-                            <!-- PRICE SERIES -->
+                            <!-- MONTH LINES -->
+
+                            <Canvas
+                                x:Name="PriceMonthlyGridCanvas"
+                                IsHitTestVisible="False"
+                                ClipToBounds="True"/>
+
+
+                            <!-- PRICE LINE -->
 
                             <Canvas
                                 x:Name="PriceCanvas"
-                                Margin="8,10,60,10"
+                                Margin="0,8,0,8"
                                 ClipToBounds="True">
 
                                 <Polyline
@@ -288,7 +377,7 @@
                             </Canvas>
 
 
-                            <!-- EMPTY STATE -->
+                            <!-- EMPTY -->
 
                             <StackPanel
                                 x:Name="EmptyChartState"
@@ -311,41 +400,31 @@
 
                             </StackPanel>
 
-
-                            <!-- MAX VALUE -->
-
-                            <Border
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Top"
-                                Background="{DynamicResource SurfaceBrush}"
-                                Padding="5,2"
-                                Margin="0,10,4,0">
-
-                                <TextBlock
-                                    x:Name="MaximumChartValueText"
-                                    Foreground="{DynamicResource TextMutedBrush}"
-                                    FontSize="10"/>
-
-                            </Border>
-
-
-                            <!-- MIN VALUE -->
-
-                            <Border
-                                HorizontalAlignment="Right"
-                                VerticalAlignment="Bottom"
-                                Background="{DynamicResource SurfaceBrush}"
-                                Padding="5,2"
-                                Margin="0,0,4,10">
-
-                                <TextBlock
-                                    x:Name="MinimumChartValueText"
-                                    Foreground="{DynamicResource TextMutedBrush}"
-                                    FontSize="10"/>
-
-                            </Border>
-
                         </Grid>
+
+
+                        <!-- PRICE AXIS TITLE -->
+
+                        <TextBlock
+                            Grid.Row="1"
+                            Grid.Column="0"
+                            Text="PRICE"
+                            Foreground="{DynamicResource TextMutedBrush}"
+                            FontSize="8"
+                            FontWeight="SemiBold"
+                            HorizontalAlignment="Right"
+                            VerticalAlignment="Top"
+                            Margin="0,7,10,0"/>
+
+
+                        <!-- MONTH LABELS -->
+
+                        <Canvas
+                            x:Name="PriceMonthlyLabelsCanvas"
+                            Grid.Row="1"
+                            Grid.Column="1"
+                            Height="38"
+                            ClipToBounds="False"/>
 
                     </Grid>
 
@@ -355,7 +434,7 @@
 
 
             <!-- ================================= -->
-            <!-- VOLUME -->
+            <!-- VOLUME CHART -->
             <!-- ================================= -->
 
             <Border
@@ -379,35 +458,131 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
+
                         <TextBlock
                             Text="Volume"
                             Style="{StaticResource SectionTitleStyle}"/>
 
-                        <TextBlock
+                        <StackPanel
                             Grid.Column="1"
-                            x:Name="VolumeMarketText"
-                            Text="—"
-                            Foreground="{DynamicResource TextMutedBrush}"
-                            FontSize="11"
-                            VerticalAlignment="Center"/>
+                            Orientation="Horizontal"
+                            VerticalAlignment="Center">
+
+                            <Ellipse
+                                Width="7"
+                                Height="7"
+                                Fill="{DynamicResource PositiveBrush}"
+                                Margin="0,0,5,0"/>
+
+                            <TextBlock
+                                Text="Up"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,0,12,0"/>
+
+                            <Ellipse
+                                Width="7"
+                                Height="7"
+                                Fill="{DynamicResource NegativeBrush}"
+                                Margin="0,0,5,0"/>
+
+                            <TextBlock
+                                Text="Down"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,0,18,0"/>
+
+                            <TextBlock
+                                x:Name="VolumeMarketText"
+                                Text="—"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="11"/>
+
+                        </StackPanel>
 
                     </Grid>
 
 
+                    <!-- ================================= -->
                     <!-- VOLUME CONTENT -->
+                    <!-- ================================= -->
 
                     <Grid
                         Grid.Row="1"
-                        Margin="0,12,0,0">
+                        Margin="0,12,0,0"
+                        SizeChanged="ChartContainer_SizeChanged">
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="78"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+
+                        <!-- ================================= -->
+                        <!-- VOLUME Y AXIS -->
+                        <!-- ================================= -->
 
                         <Grid
-                            x:Name="VolumeChartContainer"
-                            SizeChanged="ChartContainer_SizeChanged">
+                            Grid.Column="0"
+                            Margin="0,4,10,4">
+
+                            <TextBlock
+                                x:Name="VolumeMaximumText"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"/>
+
+                            <TextBlock
+                                x:Name="VolumeMiddleText"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"/>
+
+                            <TextBlock
+                                x:Name="VolumeMinimumText"
+                                Text="0"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="9"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Bottom"/>
+
+                        </Grid>
+
+
+                        <!-- ================================= -->
+                        <!-- VOLUME GRAPH -->
+                        <!-- ================================= -->
+
+                        <Grid Grid.Column="1">
+
+                            <!-- 50% HORIZONTAL LINE -->
+
+                            <Border
+                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                BorderThickness="0,1,0,0"
+                                VerticalAlignment="Center"
+                                IsHitTestVisible="False"/>
+
+
+                            <!-- MONTH LINES -->
+
+                            <Canvas
+                                x:Name="VolumeMonthlyGridCanvas"
+                                IsHitTestVisible="False"
+                                ClipToBounds="True"/>
+
+
+                            <!-- BARS -->
 
                             <Canvas
                                 x:Name="VolumeCanvas"
-                                Margin="8"
+                                Margin="0,4,0,4"
                                 ClipToBounds="True"/>
+
+
+                            <!-- EMPTY -->
 
                             <TextBlock
                                 x:Name="EmptyVolumeState"

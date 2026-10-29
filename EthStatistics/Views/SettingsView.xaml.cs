@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Linq;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using EthStatistics.Models;
 using EthStatistics.Services;
 using EthStatistics.Settings;
 
@@ -192,30 +191,9 @@ namespace EthStatistics.Views
                 MarketDataStore.Instance;
 
 
-            // Quote currencies come from currently
-            // available market metadata.
-
             CurrencyComboBox.ItemsSource =
                 store.QuoteCurrencies;
 
-
-            // Intervals also come from metadata.
-
-            TimeframeComboBox.ItemsSource =
-                store.Intervals;
-
-
-            TimeframeComboBox.DisplayMemberPath =
-                nameof(MarketInterval.Name);
-
-
-            TimeframeComboBox.SelectedValuePath =
-                nameof(MarketInterval.Minutes);
-
-
-            // --------------------------------------
-            // RESTORE QUOTE CURRENCY
-            // --------------------------------------
 
             if (
                 !string.IsNullOrWhiteSpace(
@@ -237,48 +215,11 @@ namespace EthStatistics.Views
                 CurrencyComboBox.SelectedIndex =
                     0;
             }
-
-
-            // --------------------------------------
-            // RESTORE INTERVAL
-            // --------------------------------------
-
-            MarketInterval? selectedInterval =
-                null;
-
-
-            if (
-                _preferences.IntervalMinutes.HasValue
-            )
-            {
-                selectedInterval =
-                    store.Intervals.FirstOrDefault(
-                        interval =>
-                            interval.Minutes ==
-                            _preferences.IntervalMinutes.Value
-                    );
-            }
-
-
-            selectedInterval ??=
-                store.Intervals.FirstOrDefault(
-                    interval =>
-                        interval.IsDefault
-                )
-                ??
-                store.Intervals.FirstOrDefault();
-
-
-            if (selectedInterval is not null)
-            {
-                TimeframeComboBox.SelectedValue =
-                    selectedInterval.Minutes;
-            }
         }
 
 
         // ==========================================
-        // EVENT MANAGEMENT
+        // EVENTS
         // ==========================================
 
         private void AddControlEvents()
@@ -292,10 +233,6 @@ namespace EthStatistics.Views
 
 
             CurrencyComboBox.SelectionChanged +=
-                DataPreference_SelectionChanged;
-
-
-            TimeframeComboBox.SelectionChanged +=
                 DataPreference_SelectionChanged;
         }
 
@@ -311,10 +248,6 @@ namespace EthStatistics.Views
 
 
             CurrencyComboBox.SelectionChanged -=
-                DataPreference_SelectionChanged;
-
-
-            TimeframeComboBox.SelectionChanged -=
                 DataPreference_SelectionChanged;
         }
 
@@ -378,7 +311,7 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // UPDATE PREFERENCE MODEL
+        // UPDATE PREFERENCES
         // ==========================================
 
         private void UpdatePreferencesFromControls()
@@ -399,21 +332,11 @@ namespace EthStatistics.Views
                 CurrencyComboBox
                     .SelectedItem?
                     .ToString();
-
-
-            if (
-                TimeframeComboBox.SelectedValue
-                is int interval
-            )
-            {
-                _preferences.IntervalMinutes =
-                    interval;
-            }
         }
 
 
         // ==========================================
-        // SAVE CURRENT PROFILE
+        // SAVE PROFILE
         // ==========================================
 
         private async Task SavePreferencesAsync()
@@ -435,8 +358,6 @@ namespace EthStatistics.Views
                 string.IsNullOrWhiteSpace(
                     _preferences.QuoteCurrency
                 )
-                ||
-                !_preferences.IntervalMinutes.HasValue
             )
             {
                 return;
@@ -448,10 +369,7 @@ namespace EthStatistics.Views
                 new DataPreferencesChangedEventArgs
                 {
                     QuoteCurrency =
-                        _preferences.QuoteCurrency,
-
-                    Interval =
-                        _preferences.IntervalMinutes.Value
+                        _preferences.QuoteCurrency
                 }
             );
         }
