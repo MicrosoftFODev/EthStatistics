@@ -1,0 +1,231 @@
+﻿<UserControl x:Class="EthStatistics.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+
+        <Grid Background="{DynamicResource AppBackgroundBrush}">
+
+            <StackPanel Margin="32"
+                        MaxWidth="760"
+                        HorizontalAlignment="Left">
+
+                <!-- HEADER -->
+
+                <TextBlock
+                    Text="Settings"
+                    Style="{StaticResource PageTitleStyle}"/>
+
+                <TextBlock
+                    Text="Manage application preferences"
+                    Style="{StaticResource PageSubtitleStyle}"
+                    Margin="0,5,0,28"/>
+
+
+                <!-- LANGUAGE -->
+
+                <Border
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,14">
+
+                    <Grid>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="260"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="Language"
+                                Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock
+                                Text="Choose the application's display language"
+                                Style="{StaticResource LabelStyle}"
+                                Margin="0,6,0,0"/>
+
+                        </StackPanel>
+
+                        <ComboBox
+                            x:Name="LanguageComboBox"
+                            Grid.Column="1"
+                            Style="{StaticResource ProfessionalComboBoxStyle}"
+                            VerticalAlignment="Center">
+
+                            <ComboBoxItem Content="English"/>
+                            <ComboBoxItem Content="Greek"/>
+
+                        </ComboBox>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- APPEARANCE -->
+
+                <Border
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,14">
+
+                    <Grid>
+
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="260"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="Appearance"
+                                Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock
+                                Text="Select the application's visual theme"
+                                Style="{StaticResource LabelStyle}"
+                                Margin="0,6,0,0"/>
+
+                        </StackPanel>
+
+                        <ComboBox
+                            x:Name="ThemeComboBox"
+                            Grid.Column="1"
+                            Style="{StaticResource ProfessionalComboBoxStyle}"
+                            VerticalAlignment="Center">
+
+                            <ComboBoxItem Content="Dark"/>
+                            <ComboBoxItem Content="Light"/>
+                            <ComboBoxItem Content="System"/>
+
+                        </ComboBox>
+
+                    </Grid>
+
+                </Border>
+
+
+                <!-- MARKET DEFAULTS -->
+
+                <Border
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,14">
+
+                    <StackPanel>
+
+                        <TextBlock
+                            Text="Market Defaults"
+                            Style="{StaticResource SectionTitleStyle}"/>
+
+                        <TextBlock
+                            Text="Default options used when opening market analysis"
+                            Style="{StaticResource LabelStyle}"
+                            Margin="0,6,0,20"/>
+
+
+                        <Grid>
+
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="30"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+
+
+                            <!-- CURRENCY -->
+
+                            <StackPanel Grid.Column="0">
+
+                                <TextBlock
+                                    Text="Currency"
+                                    Style="{StaticResource LabelStyle}"
+                                    Margin="0,0,0,7"/>
+
+                                <ComboBox
+                                    x:Name="CurrencyComboBox"
+                                    Style="{StaticResource ProfessionalComboBoxStyle}">
+
+                                    <ComboBoxItem Content="USD"/>
+                                    <ComboBoxItem Content="EUR"/>
+
+                                </ComboBox>
+
+                            </StackPanel>
+
+
+                            <!-- TIMEFRAME -->
+
+                            <StackPanel Grid.Column="2">
+
+                                <TextBlock
+                                    Text="Timeframe"
+                                    Style="{StaticResource LabelStyle}"
+                                    Margin="0,0,0,7"/>
+
+                                <ComboBox
+                                    x:Name="TimeframeComboBox"
+                                    Style="{StaticResource ProfessionalComboBoxStyle}">
+
+                                    <ComboBoxItem Content="Hourly"/>
+                                    <ComboBoxItem Content="Daily"/>
+                                    <ComboBoxItem Content="Weekly"/>
+
+                                </ComboBox>
+
+                            </StackPanel>
+
+                        </Grid>
+
+                    </StackPanel>
+
+                </Border>
+
+
+                <!-- ABOUT -->
+
+                <Border
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,22">
+
+                    <StackPanel>
+
+                        <TextBlock
+                            Text="Application"
+                            Style="{StaticResource SectionTitleStyle}"/>
+
+                        <TextBlock
+                            Text="Crypto Statistics"
+                            Foreground="{DynamicResource TextPrimaryBrush}"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Margin="0,15,0,0"/>
+
+                        <TextBlock
+                            Text="Quantitative cryptocurrency analytics"
+                            Foreground="{DynamicResource TextSecondaryBrush}"
+                            FontSize="12"
+                            Margin="0,4,0,0"/>
+
+                    </StackPanel>
+
+                </Border>
+
+
+                <!-- SAVE -->
+
+                <Button
+                    Content="Save Preferences"
+                    Width="155"
+                    HorizontalAlignment="Left"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Click="SavePreferences_Click"/>
+
+            </StackPanel>
+
+        </Grid>
+
+    </ScrollViewer>
+
+</UserControl>

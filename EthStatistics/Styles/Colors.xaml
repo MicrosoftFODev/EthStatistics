@@ -1,0 +1,110 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Main backgrounds -->
+
+    <Color x:Key="AppBackgroundColor">#0B0F17</Color>
+    <Color x:Key="SidebarColor">#10151F</Color>
+    <Color x:Key="TopBarColor">#0D121B</Color>
+
+    <!-- Surfaces -->
+
+    <Color x:Key="SurfaceColor">#141A24</Color>
+    <Color x:Key="SurfaceHoverColor">#1A2230</Color>
+    <Color x:Key="SurfaceElevatedColor">#1C2431</Color>
+
+    <!-- Borders -->
+
+    <Color x:Key="BorderColor">#263142</Color>
+    <Color x:Key="BorderSubtleColor">#1E2936</Color>
+
+    <!-- Text -->
+
+    <Color x:Key="TextPrimaryColor">#F3F6FA</Color>
+    <Color x:Key="TextSecondaryColor">#98A4B5</Color>
+    <Color x:Key="TextMutedColor">#687586</Color>
+
+    <!-- Accent -->
+
+    <Color x:Key="AccentColor">#3B82F6</Color>
+    <Color x:Key="AccentHoverColor">#2563EB</Color>
+    <Color x:Key="AccentSoftColor">#18294A</Color>
+
+    <!-- Financial status -->
+
+    <Color x:Key="PositiveColor">#22C55E</Color>
+    <Color x:Key="NegativeColor">#EF4444</Color>
+    <Color x:Key="WarningColor">#F59E0B</Color>
+
+    <!-- Brushes -->
+
+    <SolidColorBrush
+        x:Key="AppBackgroundBrush"
+        Color="{StaticResource AppBackgroundColor}"/>
+
+    <SolidColorBrush
+        x:Key="SidebarBrush"
+        Color="{StaticResource SidebarColor}"/>
+
+    <SolidColorBrush
+        x:Key="TopBarBrush"
+        Color="{StaticResource TopBarColor}"/>
+
+    <SolidColorBrush
+        x:Key="SurfaceBrush"
+        Color="{StaticResource SurfaceColor}"/>
+
+    <SolidColorBrush
+        x:Key="SurfaceHoverBrush"
+        Color="{StaticResource SurfaceHoverColor}"/>
+
+    <SolidColorBrush
+        x:Key="SurfaceElevatedBrush"
+        Color="{StaticResource SurfaceElevatedColor}"/>
+
+    <SolidColorBrush
+        x:Key="BorderBrush"
+        Color="{StaticResource BorderColor}"/>
+
+    <SolidColorBrush
+        x:Key="BorderSubtleBrush"
+        Color="{StaticResource BorderSubtleColor}"/>
+
+    <SolidColorBrush
+        x:Key="TextPrimaryBrush"
+        Color="{StaticResource TextPrimaryColor}"/>
+
+    <SolidColorBrush
+        x:Key="TextSecondaryBrush"
+        Color="{StaticResource TextSecondaryColor}"/>
+
+    <SolidColorBrush
+        x:Key="TextMutedBrush"
+        Color="{StaticResource TextMutedColor}"/>
+
+    <SolidColorBrush
+        x:Key="AccentBrush"
+        Color="{StaticResource AccentColor}"/>
+
+    <SolidColorBrush
+        x:Key="AccentHoverBrush"
+        Color="{StaticResource AccentHoverColor}"/>
+
+    <SolidColorBrush
+        x:Key="AccentSoftBrush"
+        Color="{StaticResource AccentSoftColor}"/>
+
+    <SolidColorBrush
+        x:Key="PositiveBrush"
+        Color="{StaticResource PositiveColor}"/>
+
+    <SolidColorBrush
+        x:Key="NegativeBrush"
+        Color="{StaticResource NegativeColor}"/>
+
+    <SolidColorBrush
+        x:Key="WarningBrush"
+        Color="{StaticResource WarningColor}"/>
+
+</ResourceDictionary>

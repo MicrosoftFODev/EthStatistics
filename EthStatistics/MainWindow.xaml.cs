@@ -45,13 +45,20 @@ namespace EthStatistics
             MainContent.Content = new ForecastView();
         }
 
-        private void UserButton_Click(
+        private void SettingsMenuItem_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            MainContent.Content = new SettingsView();
+        }
+
+        private void AboutMenuItem_Click(
             object sender,
             RoutedEventArgs e)
         {
             MessageBox.Show(
-                "User preferences will be added here.",
-                "User"
+                "Crypto Statistics\nQuantitative cryptocurrency analysis.",
+                "About"
             );
         }
     }

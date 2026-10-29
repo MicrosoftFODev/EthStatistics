@@ -2,89 +2,316 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Grid Background="#F5F7FA">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
 
-        <StackPanel Margin="35">
+        <Grid Background="{DynamicResource AppBackgroundBrush}"
+              Margin="32">
 
-            <TextBlock
-                Text="Statistics"
-                FontSize="30"
-                FontWeight="SemiBold"
-                Foreground="#111827"/>
+            <StackPanel>
 
-            <TextBlock
-                Text="Statistical analysis of market data"
-                FontSize="14"
-                Foreground="#6B7280"
-                Margin="0,6,0,30"/>
+                <!-- HEADER -->
 
-            <UniformGrid Columns="3">
+                <TextBlock
+                    Text="Statistics"
+                    Style="{StaticResource PageTitleStyle}"/>
+
+                <TextBlock
+                    Text="Descriptive statistics and quantitative market analysis"
+                    Style="{StaticResource PageSubtitleStyle}"
+                    Margin="0,5,0,28"/>
+
+
+                <!-- MARKET INFORMATION -->
 
                 <Border
-                    Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="0,0,15,0">
+                    Style="{StaticResource CardStyle}"
+                    Margin="0,0,0,16">
 
-                    <StackPanel>
-                        <TextBlock
-                            Text="Mean"
-                            Foreground="#6B7280"/>
+                    <Grid>
 
-                        <TextBlock
-                            Text="—"
-                            FontSize="26"
-                            FontWeight="SemiBold"
-                            Margin="0,10,0,0"/>
-                    </StackPanel>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="Market Analysis"
+                                Style="{StaticResource SectionTitleStyle}"/>
+
+                            <TextBlock
+                                Text="No market data loaded"
+                                Style="{StaticResource LabelStyle}"
+                                Margin="0,5,0,0"/>
+
+                        </StackPanel>
+
+                        <Border
+                            Grid.Column="1"
+                            Background="{DynamicResource AccentSoftBrush}"
+                            CornerRadius="5"
+                            Padding="12,6"
+                            VerticalAlignment="Center">
+
+                            <TextBlock
+                                Text="NO DATA"
+                                Foreground="{DynamicResource AccentBrush}"
+                                FontSize="10"
+                                FontWeight="SemiBold"/>
+
+                        </Border>
+
+                    </Grid>
 
                 </Border>
 
 
+                <!-- CORE STATISTICS -->
+
+                <TextBlock
+                    Text="Descriptive Statistics"
+                    Style="{StaticResource SectionTitleStyle}"
+                    Margin="0,8,0,12"/>
+
+                <UniformGrid Columns="4"
+                             Margin="0,0,0,22">
+
+                    <!-- MEAN -->
+
+                    <Border
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,10,0">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="MEAN"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="MeanValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                            <TextBlock
+                                Text="Average value"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+
+                    <!-- VARIANCE -->
+
+                    <Border
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,10,0">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="VARIANCE"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="VarianceValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                            <TextBlock
+                                Text="Sample variance"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+
+                    <!-- STANDARD DEVIATION -->
+
+                    <Border
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,10,0">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="STD. DEVIATION"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="StandardDeviationValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                            <TextBlock
+                                Text="Sample standard deviation"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+
+                    <!-- VOLATILITY -->
+
+                    <Border
+                        Style="{StaticResource CardStyle}">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="VOLATILITY"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="VolatilityValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                            <TextBlock
+                                Text="Historical volatility"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="10"
+                                Margin="0,7,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </UniformGrid>
+
+
+                <!-- RANGE -->
+
+                <TextBlock
+                    Text="Market Range"
+                    Style="{StaticResource SectionTitleStyle}"
+                    Margin="0,0,0,12"/>
+
+                <UniformGrid Columns="3"
+                             Margin="0,0,0,22">
+
+                    <Border
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,10,0">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="MINIMUM"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="MinimumValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+
+                    <Border
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,10,0">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="MAXIMUM"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="MaximumValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+
+                    <Border
+                        Style="{StaticResource CardStyle}">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Text="OBSERVATIONS"
+                                Style="{StaticResource LabelStyle}"/>
+
+                            <TextBlock
+                                x:Name="ObservationCountValue"
+                                Text="—"
+                                Style="{StaticResource MetricValueStyle}"
+                                Margin="0,12,0,0"/>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </UniformGrid>
+
+
+                <!-- DISTRIBUTION PLACEHOLDER -->
+
                 <Border
-                    Background="White"
-                    CornerRadius="10"
-                    Padding="20"
-                    Margin="0,0,15,0">
+                    Style="{StaticResource CardStyle}"
+                    Height="240">
 
-                    <StackPanel>
-                        <TextBlock
-                            Text="Variance"
-                            Foreground="#6B7280"/>
+                    <Grid>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
 
                         <TextBlock
-                            Text="—"
-                            FontSize="26"
-                            FontWeight="SemiBold"
-                            Margin="0,10,0,0"/>
-                    </StackPanel>
+                            Text="Return Distribution"
+                            Style="{StaticResource SectionTitleStyle}"/>
+
+                        <StackPanel
+                            Grid.Row="1"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center">
+
+                            <TextBlock
+                                Text="No statistical data available"
+                                Foreground="{DynamicResource TextSecondaryBrush}"
+                                FontSize="14"
+                                FontWeight="SemiBold"/>
+
+                            <TextBlock
+                                Text="Distribution analysis will appear after market data is loaded"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="11"
+                                Margin="0,7,0,0"/>
+
+                        </StackPanel>
+
+                    </Grid>
 
                 </Border>
 
+            </StackPanel>
 
-                <Border
-                    Background="White"
-                    CornerRadius="10"
-                    Padding="20">
+        </Grid>
 
-                    <StackPanel>
-                        <TextBlock
-                            Text="Standard Deviation"
-                            Foreground="#6B7280"/>
-
-                        <TextBlock
-                            Text="—"
-                            FontSize="26"
-                            FontWeight="SemiBold"
-                            Margin="0,10,0,0"/>
-                    </StackPanel>
-
-                </Border>
-
-            </UniformGrid>
-
-        </StackPanel>
-
-    </Grid>
+    </ScrollViewer>
 
 </UserControl>

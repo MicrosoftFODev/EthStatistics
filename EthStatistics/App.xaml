@@ -5,37 +5,19 @@
 
     <Application.Resources>
 
-        <Style x:Key="NavigationButtonStyle"
-               TargetType="Button">
+        <ResourceDictionary>
 
-            <Setter Property="Height"
-                    Value="45"/>
+            <ResourceDictionary.MergedDictionaries>
 
-            <Setter Property="Margin"
-                    Value="0,3"/>
+                <ResourceDictionary Source="Styles/Colors.xaml"/>
 
-            <Setter Property="HorizontalContentAlignment"
-                    Value="Left"/>
+                <ResourceDictionary Source="Styles/Typography.xaml"/>
 
-            <Setter Property="Padding"
-                    Value="18,0"/>
+                <ResourceDictionary Source="Styles/Controls.xaml"/>
 
-            <Setter Property="Background"
-                    Value="Transparent"/>
+            </ResourceDictionary.MergedDictionaries>
 
-            <Setter Property="Foreground"
-                    Value="#D1D5DB"/>
-
-            <Setter Property="BorderThickness"
-                    Value="0"/>
-
-            <Setter Property="FontSize"
-                    Value="14"/>
-
-            <Setter Property="Cursor"
-                    Value="Hand"/>
-
-        </Style>
+        </ResourceDictionary>
 
     </Application.Resources>
 
