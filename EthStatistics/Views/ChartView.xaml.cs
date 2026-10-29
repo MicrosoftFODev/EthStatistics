@@ -12,24 +12,43 @@ namespace EthStatistics.Views
 {
     public partial class ChartView : UserControl
     {
-        private bool _initialized;
-        private bool _isImportedDataset;
+        // ==========================================
+        // STATE
+        // ==========================================
+
+        private const int DailyInterval =
+            1440;
+
+        private bool
+            _initialized;
+
+        private bool
+            _isImportedDataset;
+
+
+        // ==========================================
+        // EVENTS
+        // ==========================================
 
         public event EventHandler<ChartPreferencesChangedEventArgs>?
             ChartPreferencesChanged;
 
 
+        // ==========================================
+        // CONSTRUCTOR
+        // ==========================================
+
         public ChartView()
         {
             InitializeComponent();
 
-            Loaded += ChartView_Loaded;
-            Unloaded += ChartView_Unloaded;
+            Loaded +=
+                ChartView_Loaded;
+
+            Unloaded +=
+                ChartView_Unloaded;
 
             MarketComboBox.SelectionChanged +=
-                SelectionChanged;
-
-            IntervalComboBox.SelectionChanged +=
                 SelectionChanged;
 
             PeriodComboBox.SelectionChanged +=
@@ -39,6 +58,10 @@ namespace EthStatistics.Views
                 StoreChanged;
         }
 
+
+        // ==========================================
+        // LOAD
+        // ==========================================
 
         private void ChartView_Loaded(
             object sender,
@@ -52,10 +75,15 @@ namespace EthStatistics.Views
         }
 
 
+        // ==========================================
+        // IMPORT STATE
+        // ==========================================
+
         private void UpdateImportState()
         {
             string dataSource =
-                MarketDataStore.Instance.DataSource ?? "";
+                MarketDataStore.Instance.DataSource
+                ?? "";
 
             _isImportedDataset =
                 dataSource.StartsWith(
@@ -65,98 +93,124 @@ namespace EthStatistics.Views
         }
 
 
+        // ==========================================
+        // POPULATE CONTROLS
+        // ==========================================
+
         private void PopulateFromStore()
         {
             MarketDataStore store =
                 MarketDataStore.Instance;
 
-            _initialized = false;
-
+            _initialized =
+                false;
 
             MarketComboBox.ItemsSource =
                 store.Markets;
-
-            IntervalComboBox.ItemsSource =
-                store.Intervals;
 
             PeriodComboBox.ItemsSource =
                 store.Periods;
 
 
+            // --------------------------------------
+            // EXCEL DATA
+            // --------------------------------------
+
             if (_isImportedDataset)
             {
-                MarketComboBox.SelectedIndex = -1;
-                IntervalComboBox.SelectedIndex = -1;
-                PeriodComboBox.SelectedIndex = -1;
+                MarketComboBox.SelectedIndex =
+                    -1;
 
-                MarketComboBox.IsEnabled = false;
-                IntervalComboBox.IsEnabled = false;
-                PeriodComboBox.IsEnabled = false;
+                PeriodComboBox.SelectedIndex =
+                    -1;
 
-                _initialized = true;
+                MarketComboBox.IsEnabled =
+                    false;
+
+                PeriodComboBox.IsEnabled =
+                    false;
+
+                _initialized =
+                    true;
 
                 return;
             }
 
 
-            MarketComboBox.IsEnabled = true;
-            IntervalComboBox.IsEnabled = true;
-            PeriodComboBox.IsEnabled = true;
+            // --------------------------------------
+            // API DATA
+            // --------------------------------------
 
+            MarketComboBox.IsEnabled =
+                true;
+
+            PeriodComboBox.IsEnabled =
+                true;
+
+
+            // --------------------------------------
+            // RESTORE MARKET
+            // --------------------------------------
+
+            KrakenMarket? selectedMarket =
+                null;
 
             if (
-                store.Pair is not null &&
-                store.Markets.Any(
-                    market =>
-                        market.Pair == store.Pair
+                !string.IsNullOrWhiteSpace(
+                    store.Pair
                 )
             )
             {
+                selectedMarket =
+                    store.Markets.FirstOrDefault(
+                        market =>
+                            string.Equals(
+                                market.Pair,
+                                store.Pair,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                    );
+            }
+
+            selectedMarket ??=
+                store.Markets.FirstOrDefault(
+                    market =>
+                        string.Equals(
+                            market.Pair,
+                            "ETHUSD",
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                );
+
+            selectedMarket ??=
+                store.Markets.FirstOrDefault();
+
+            if (selectedMarket is not null)
+            {
                 MarketComboBox.SelectedValue =
-                    store.Pair;
-            }
-            else if (store.Markets.Count > 0)
-            {
-                MarketComboBox.SelectedIndex = 0;
+                    selectedMarket.Pair;
             }
 
 
-            MarketInterval? selectedInterval =
-                store.Intervals.FirstOrDefault(
-                    item =>
-                        item.Minutes ==
-                        store.Interval
-                )
-                ??
-                store.Intervals.FirstOrDefault(
-                    item =>
-                        item.IsDefault
-                )
-                ??
-                store.Intervals.FirstOrDefault();
-
-
-            if (selectedInterval is not null)
-            {
-                IntervalComboBox.SelectedValue =
-                    selectedInterval.Minutes;
-            }
-
+            // --------------------------------------
+            // RESTORE PERIOD
+            // --------------------------------------
 
             MarketPeriod? selectedPeriod =
                 store.Periods.FirstOrDefault(
-                    item =>
-                        item.Days ==
+                    period =>
+                        period.Days ==
                         store.PeriodDays
-                )
-                ??
-                store.Periods.FirstOrDefault(
-                    item =>
-                        item.IsDefault
-                )
-                ??
-                store.Periods.FirstOrDefault();
+                );
 
+            selectedPeriod ??=
+                store.Periods.FirstOrDefault(
+                    period =>
+                        period.IsDefault
+                );
+
+            selectedPeriod ??=
+                store.Periods.FirstOrDefault();
 
             if (selectedPeriod is not null)
             {
@@ -164,10 +218,14 @@ namespace EthStatistics.Views
                     selectedPeriod.Days;
             }
 
-
-            _initialized = true;
+            _initialized =
+                true;
         }
 
+
+        // ==========================================
+        // USER SELECTION
+        // ==========================================
 
         private void SelectionChanged(
             object sender,
@@ -191,9 +249,6 @@ namespace EthStatistics.Views
                 MarketComboBox.SelectedValue
                     is not string pair
                 ||
-                IntervalComboBox.SelectedValue
-                    is not int interval
-                ||
                 PeriodComboBox.SelectedValue
                     is not int periodDays
             )
@@ -201,18 +256,26 @@ namespace EthStatistics.Views
                 return;
             }
 
-
             ChartPreferencesChanged?.Invoke(
                 this,
                 new ChartPreferencesChangedEventArgs
                 {
-                    Pair = pair,
-                    Interval = interval,
-                    PeriodDays = periodDays
+                    Pair =
+                        pair,
+
+                    Interval =
+                        DailyInterval,
+
+                    PeriodDays =
+                        periodDays
                 }
             );
         }
 
+
+        // ==========================================
+        // STORE CHANGED
+        // ==========================================
 
         private void StoreChanged(
             object? sender,
@@ -222,17 +285,110 @@ namespace EthStatistics.Views
                 () =>
                 {
                     UpdateImportState();
+
+                    UpdateControlState();
+
                     UpdateFromStore();
                 }
             );
         }
 
 
-        private void UpdateFromStore()
+        private void UpdateControlState()
+        {
+            ApiControlsVisibility();
+
+            if (_isImportedDataset)
+            {
+                MarketComboBox.IsEnabled =
+                    false;
+
+                PeriodComboBox.IsEnabled =
+                    false;
+
+                return;
+            }
+
+            MarketComboBox.IsEnabled =
+                true;
+
+            PeriodComboBox.IsEnabled =
+                true;
+
+            SynchronizeSelections();
+        }
+
+
+        private void ApiControlsVisibility()
+        {
+            Visibility visibility =
+                _isImportedDataset
+                    ? Visibility.Collapsed
+                    : Visibility.Visible;
+
+            MarketComboBox.Visibility =
+                visibility;
+
+            PeriodComboBox.Visibility =
+                visibility;
+        }
+
+
+        private void SynchronizeSelections()
         {
             MarketDataStore store =
                 MarketDataStore.Instance;
 
+            _initialized =
+                false;
+
+            if (
+                MarketComboBox.ItemsSource
+                != store.Markets
+            )
+            {
+                MarketComboBox.ItemsSource =
+                    store.Markets;
+            }
+
+            if (
+                PeriodComboBox.ItemsSource
+                != store.Periods
+            )
+            {
+                PeriodComboBox.ItemsSource =
+                    store.Periods;
+            }
+
+            if (
+                !string.IsNullOrWhiteSpace(
+                    store.Pair
+                )
+            )
+            {
+                MarketComboBox.SelectedValue =
+                    store.Pair;
+            }
+
+            if (store.PeriodDays > 0)
+            {
+                PeriodComboBox.SelectedValue =
+                    store.PeriodDays;
+            }
+
+            _initialized =
+                true;
+        }
+
+
+        // ==========================================
+        // UPDATE VIEW
+        // ==========================================
+
+        private void UpdateFromStore()
+        {
+            MarketDataStore store =
+                MarketDataStore.Instance;
 
             if (store.IsLoading)
             {
@@ -243,15 +399,20 @@ namespace EthStatistics.Views
                     "Refreshing";
 
                 RefreshStatusIndicator.Fill =
-                    FindBrush("WarningBrush");
+                    FindBrush(
+                        "WarningBrush"
+                    );
 
                 ClearChart();
 
                 return;
             }
 
-
-            if (!string.IsNullOrWhiteSpace(store.Error))
+            if (
+                !string.IsNullOrWhiteSpace(
+                    store.Error
+                )
+            )
             {
                 ChartMarketText.Text =
                     $"{store.Pair} · Data unavailable";
@@ -260,13 +421,14 @@ namespace EthStatistics.Views
                     "Unavailable";
 
                 RefreshStatusIndicator.Fill =
-                    FindBrush("NegativeBrush");
+                    FindBrush(
+                        "NegativeBrush"
+                    );
 
                 ClearChart();
 
                 return;
             }
-
 
             if (store.Candles.Count == 0)
             {
@@ -277,7 +439,9 @@ namespace EthStatistics.Views
                     "Waiting";
 
                 RefreshStatusIndicator.Fill =
-                    FindBrush("TextMutedBrush");
+                    FindBrush(
+                        "TextMutedBrush"
+                    );
 
                 VolumeMarketText.Text =
                     "—";
@@ -287,36 +451,44 @@ namespace EthStatistics.Views
                 return;
             }
 
+            string intervalDescription =
+                _isImportedDataset
+                    ? GetImportedIntervalDescription(
+                        store.Interval
+                    )
+                    : "Daily";
 
             ChartMarketText.Text =
                 $"{store.Pair} · " +
-                $"{store.Candles.Count} observations";
-
+                $"{store.Candles.Count} observations · " +
+                intervalDescription;
 
             RefreshStatusText.Text =
                 _isImportedDataset
                     ? "Imported"
                     : "Updated";
 
-
             RefreshStatusIndicator.Fill =
-                FindBrush("PositiveBrush");
-
+                FindBrush(
+                    "PositiveBrush"
+                );
 
             VolumeMarketText.Text =
                 store.DataSource;
 
-
             DrawPriceChart(
                 store.Candles
             );
-
 
             DrawVolumeChart(
                 store.Candles
             );
         }
 
+
+        // ==========================================
+        // PRICE CHART
+        // ==========================================
 
         private void DrawPriceChart(
             IReadOnlyList<MarketCandle> candles)
@@ -327,7 +499,6 @@ namespace EthStatistics.Views
             double height =
                 PriceCanvas.ActualHeight;
 
-
             if (
                 width <= 1 ||
                 height <= 1 ||
@@ -336,7 +507,6 @@ namespace EthStatistics.Views
             {
                 return;
             }
-
 
             double[] values =
                 candles
@@ -349,14 +519,12 @@ namespace EthStatistics.Views
                     )
                     .ToArray();
 
-
             if (values.Length < 2)
             {
                 ClearChart();
 
                 return;
             }
-
 
             double minimum =
                 values.Min();
@@ -367,16 +535,13 @@ namespace EthStatistics.Views
             double range =
                 maximum - minimum;
 
-
             if (range <= 0)
             {
                 range = 1;
             }
 
-
-            double verticalPadding =
+            const double verticalPadding =
                 6.0;
-
 
             double drawableHeight =
                 Math.Max(
@@ -385,23 +550,21 @@ namespace EthStatistics.Views
                     verticalPadding * 2
                 );
 
-
             var points =
                 new PointCollection(
                     values.Length
                 );
 
-
             for (
                 int index = 0;
                 index < values.Length;
-                index++)
+                index++
+            )
             {
                 double x =
                     index *
                     width /
                     (values.Length - 1);
-
 
                 double normalized =
                     (
@@ -410,7 +573,6 @@ namespace EthStatistics.Views
                     )
                     /
                     range;
-
 
                 double y =
                     verticalPadding +
@@ -421,7 +583,6 @@ namespace EthStatistics.Views
                     *
                     drawableHeight;
 
-
                 points.Add(
                     new Point(
                         x,
@@ -430,33 +591,31 @@ namespace EthStatistics.Views
                 );
             }
 
-
             PricePolyline.Points =
                 points;
-
 
             MaximumChartValueText.Text =
                 maximum.ToString("N2");
 
-
             MinimumChartValueText.Text =
                 minimum.ToString("N2");
 
-
             EmptyChartState.Visibility =
                 Visibility.Collapsed;
-
 
             PricePolyline.Visibility =
                 Visibility.Visible;
         }
 
 
+        // ==========================================
+        // VOLUME CHART
+        // ==========================================
+
         private void DrawVolumeChart(
             IReadOnlyList<MarketCandle> candles)
         {
             VolumeCanvas.Children.Clear();
-
 
             double width =
                 VolumeCanvas.ActualWidth;
@@ -464,15 +623,14 @@ namespace EthStatistics.Views
             double height =
                 VolumeCanvas.ActualHeight;
 
-
             if (
                 width <= 1 ||
-                height <= 1
+                height <= 1 ||
+                candles.Count == 0
             )
             {
                 return;
             }
-
 
             double maximumVolume =
                 candles
@@ -486,7 +644,6 @@ namespace EthStatistics.Views
                     .DefaultIfEmpty(0)
                     .Max();
 
-
             if (maximumVolume <= 0)
             {
                 EmptyVolumeState.Visibility =
@@ -495,7 +652,6 @@ namespace EthStatistics.Views
                 return;
             }
 
-
             double barWidth =
                 Math.Max(
                     1,
@@ -503,11 +659,11 @@ namespace EthStatistics.Views
                     candles.Count
                 );
 
-
             for (
                 int index = 0;
                 index < candles.Count;
-                index++)
+                index++
+            )
             {
                 double volume =
                     Math.Max(
@@ -515,12 +671,10 @@ namespace EthStatistics.Views
                         candles[index].Volume
                     );
 
-
                 double barHeight =
                     volume /
                     maximumVolume *
                     height;
-
 
                 var rectangle =
                     new Rectangle
@@ -532,7 +686,10 @@ namespace EthStatistics.Views
                             ),
 
                         Height =
-                            barHeight,
+                            Math.Max(
+                                0,
+                                barHeight
+                            ),
 
                         Fill =
                             FindBrush(
@@ -540,39 +697,37 @@ namespace EthStatistics.Views
                             )
                     };
 
-
                 Canvas.SetLeft(
                     rectangle,
                     index * barWidth
                 );
-
 
                 Canvas.SetTop(
                     rectangle,
                     height - barHeight
                 );
 
-
                 VolumeCanvas.Children.Add(
                     rectangle
                 );
             }
-
 
             EmptyVolumeState.Visibility =
                 Visibility.Collapsed;
         }
 
 
+        // ==========================================
+        // CLEAR
+        // ==========================================
+
         private void ClearChart()
         {
             PricePolyline.Points =
                 new PointCollection();
 
-
             PricePolyline.Visibility =
                 Visibility.Collapsed;
-
 
             MaximumChartValueText.Text =
                 "";
@@ -580,18 +735,19 @@ namespace EthStatistics.Views
             MinimumChartValueText.Text =
                 "";
 
-
             EmptyChartState.Visibility =
                 Visibility.Visible;
 
-
             VolumeCanvas.Children.Clear();
-
 
             EmptyVolumeState.Visibility =
                 Visibility.Visible;
         }
 
+
+        // ==========================================
+        // RESIZE
+        // ==========================================
 
         private void ChartContainer_SizeChanged(
             object sender,
@@ -600,21 +756,66 @@ namespace EthStatistics.Views
             MarketDataStore store =
                 MarketDataStore.Instance;
 
-
             if (store.Candles.Count == 0)
             {
                 return;
             }
 
-
             DrawPriceChart(
                 store.Candles
             );
 
-
             DrawVolumeChart(
                 store.Candles
             );
+        }
+
+
+        // ==========================================
+        // HELPERS
+        // ==========================================
+
+        private static string
+            GetImportedIntervalDescription(
+                int? interval)
+        {
+            if (!interval.HasValue)
+            {
+                return "Imported";
+            }
+
+            return interval.Value switch
+            {
+                1 =>
+                    "1 Minute",
+
+                5 =>
+                    "5 Minutes",
+
+                15 =>
+                    "15 Minutes",
+
+                30 =>
+                    "30 Minutes",
+
+                60 =>
+                    "1 Hour",
+
+                240 =>
+                    "4 Hours",
+
+                1440 =>
+                    "Daily",
+
+                10080 =>
+                    "Weekly",
+
+                21600 =>
+                    "15 Days",
+
+                _ =>
+                    $"{interval.Value} Minutes"
+            };
         }
 
 
@@ -627,6 +828,10 @@ namespace EthStatistics.Views
         }
 
 
+        // ==========================================
+        // UNLOAD
+        // ==========================================
+
         private void ChartView_Unloaded(
             object sender,
             RoutedEventArgs e)
@@ -634,14 +839,8 @@ namespace EthStatistics.Views
             MarketDataStore.Instance.Changed -=
                 StoreChanged;
 
-
             MarketComboBox.SelectionChanged -=
                 SelectionChanged;
-
-
-            IntervalComboBox.SelectionChanged -=
-                SelectionChanged;
-
 
             PeriodComboBox.SelectionChanged -=
                 SelectionChanged;

@@ -16,6 +16,17 @@ namespace EthStatistics
     public partial class MainWindow : Window
     {
         // ==========================================
+        // CONSTANTS
+        // ==========================================
+
+        private const int DailyInterval =
+            1440;
+
+        private const int DefaultPeriodDays =
+            365;
+
+
+        // ==========================================
         // SERVICES
         // ==========================================
 
@@ -98,8 +109,11 @@ namespace EthStatistics
             WindowState =
                 WindowState.Normal;
 
-            Left = 0;
-            Top = 0;
+            Left =
+                0;
+
+            Top =
+                0;
 
             Width =
                 SystemParameters.PrimaryScreenWidth;
@@ -127,7 +141,8 @@ namespace EthStatistics
             RoutedEventArgs e)
         {
             WindowState =
-                WindowState == WindowState.Maximized
+                WindowState ==
+                WindowState.Maximized
                     ? WindowState.Normal
                     : WindowState.Maximized;
         }
@@ -146,7 +161,8 @@ namespace EthStatistics
             EventArgs e)
         {
             MaximizeButton.Content =
-                WindowState == WindowState.Maximized
+                WindowState ==
+                WindowState.Maximized
                     ? "❐"
                     : "□";
         }
@@ -242,6 +258,11 @@ namespace EthStatistics
                     CurrentPreferenceAccountId
                 );
 
+            // API data is always daily.
+
+            _preferences.IntervalMinutes =
+                DailyInterval;
+
             _themeService.ApplyTheme(
                 _preferences.Theme
             );
@@ -250,6 +271,11 @@ namespace EthStatistics
 
         private async Task SaveCurrentUserPreferencesAsync()
         {
+            // Guarantee daily API data.
+
+            _preferences.IntervalMinutes =
+                DailyInterval;
+
             await _preferencesService.SaveAsync(
                 _preferences,
                 CurrentPreferenceAccountId
@@ -304,8 +330,11 @@ namespace EthStatistics
                     selectedMarket =
                         result.Markets.FirstOrDefault(
                             market =>
-                                market.Pair ==
-                                _preferences.MarketPair
+                                string.Equals(
+                                    market.Pair,
+                                    _preferences.MarketPair,
+                                    StringComparison.OrdinalIgnoreCase
+                                )
                         );
                 }
 
@@ -320,10 +349,26 @@ namespace EthStatistics
                     selectedMarket =
                         result.Markets.FirstOrDefault(
                             market =>
-                                market.QuoteAsset ==
-                                _preferences.QuoteCurrency
+                                string.Equals(
+                                    market.QuoteAsset,
+                                    _preferences.QuoteCurrency,
+                                    StringComparison.OrdinalIgnoreCase
+                                )
                         );
                 }
+
+
+                // Prefer ETH/USD for a brand-new profile.
+
+                selectedMarket ??=
+                    result.Markets.FirstOrDefault(
+                        market =>
+                            string.Equals(
+                                market.Pair,
+                                "ETHUSD",
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                    );
 
 
                 selectedMarket ??=
@@ -331,32 +376,25 @@ namespace EthStatistics
 
 
                 // ----------------------------------
-                // RESTORE INTERVAL
+                // DAILY API INTERVAL
                 // ----------------------------------
 
                 MarketInterval? selectedInterval =
-                    null;
-
-                if (
-                    _preferences.IntervalMinutes.HasValue
-                )
-                {
-                    selectedInterval =
-                        result.Intervals.FirstOrDefault(
-                            interval =>
-                                interval.Minutes ==
-                                _preferences.IntervalMinutes.Value
-                        );
-                }
-
-
-                selectedInterval ??=
                     result.Intervals.FirstOrDefault(
                         interval =>
-                            interval.IsDefault
-                    )
-                    ??
-                    result.Intervals.FirstOrDefault();
+                            interval.Minutes ==
+                            DailyInterval
+                    );
+
+
+                if (selectedInterval is null)
+                {
+                    ShowErrorStatus(
+                        "The API provider does not support daily candles."
+                    );
+
+                    return;
+                }
 
 
                 // ----------------------------------
@@ -365,6 +403,7 @@ namespace EthStatistics
 
                 MarketPeriod? selectedPeriod =
                     null;
+
 
                 if (
                     _preferences.PeriodDays.HasValue
@@ -383,8 +422,18 @@ namespace EthStatistics
                     result.Periods.FirstOrDefault(
                         period =>
                             period.IsDefault
-                    )
-                    ??
+                    );
+
+
+                selectedPeriod ??=
+                    result.Periods.FirstOrDefault(
+                        period =>
+                            period.Days ==
+                            DefaultPeriodDays
+                    );
+
+
+                selectedPeriod ??=
                     result.Periods.FirstOrDefault();
 
 
@@ -394,7 +443,6 @@ namespace EthStatistics
 
                 if (
                     selectedMarket is null ||
-                    selectedInterval is null ||
                     selectedPeriod is null
                 )
                 {
@@ -417,7 +465,7 @@ namespace EthStatistics
                     selectedMarket.QuoteAsset;
 
                 _preferences.IntervalMinutes =
-                    selectedInterval.Minutes;
+                    DailyInterval;
 
                 _preferences.PeriodDays =
                     selectedPeriod.Days;
@@ -432,7 +480,6 @@ namespace EthStatistics
 
                 await ApplySelectionAndRefreshAsync(
                     selectedMarket.Pair,
-                    selectedInterval.Minutes,
                     selectedPeriod.Days
                 );
             }
@@ -455,12 +502,11 @@ namespace EthStatistics
 
         private async Task ApplySelectionAndRefreshAsync(
             string pair,
-            int interval,
             int periodDays)
         {
             MarketDataStore.Instance.SetSelection(
                 pair,
-                interval,
+                DailyInterval,
                 periodDays
             );
 
@@ -482,8 +528,6 @@ namespace EthStatistics
                 string.IsNullOrWhiteSpace(
                     store.Pair
                 )
-                ||
-                store.Interval is null
             )
             {
                 return;
@@ -493,6 +537,7 @@ namespace EthStatistics
             _refreshCancellation?.Cancel();
             _refreshCancellation?.Dispose();
 
+
             _refreshCancellation =
                 new CancellationTokenSource();
 
@@ -500,14 +545,12 @@ namespace EthStatistics
             string pair =
                 store.Pair;
 
-            int interval =
-                store.Interval.Value;
-
 
             MarketDataStore.Instance.SetLoading();
 
+
             ShowLoadingStatus(
-                $"Loading {pair}..."
+                $"Loading {GetMarketDisplayName(pair)}..."
             );
 
 
@@ -517,9 +560,25 @@ namespace EthStatistics
                     await _marketDataService
                         .GetMarketDataAsync(
                             pair,
-                            interval,
+                            DailyInterval,
                             _refreshCancellation.Token
                         );
+
+
+                // Kraken returns recent daily candles.
+                // Apply the selected period locally.
+
+                List<MarketCandle> filteredCandles =
+     FilterCandlesByPeriod(
+         result.Candles,
+         store.PeriodDays
+     );
+
+                result.Candles.Clear();
+                result.Candles.AddRange(
+                    filteredCandles
+                );
+
 
                 MarketDataStore.Instance.SetResult(
                     result
@@ -558,6 +617,47 @@ namespace EthStatistics
         }
 
 
+        private static System.Collections.Generic.List<MarketCandle>
+            FilterCandlesByPeriod(
+                System.Collections.Generic.IReadOnlyList<MarketCandle> candles,
+                int periodDays)
+        {
+            if (
+                candles.Count == 0 ||
+                periodDays <= 0
+            )
+            {
+                return candles.ToList();
+            }
+
+
+            DateTimeOffset latestDate =
+                candles.Max(
+                    candle =>
+                        candle.Date
+                );
+
+
+            DateTimeOffset earliestDate =
+                latestDate.AddDays(
+                    -periodDays
+                );
+
+
+            return candles
+                .Where(
+                    candle =>
+                        candle.Date >=
+                        earliestDate
+                )
+                .OrderBy(
+                    candle =>
+                        candle.Date
+                )
+                .ToList();
+        }
+
+
         // ==========================================
         // SWITCH EXCEL TO API
         // ==========================================
@@ -568,14 +668,18 @@ namespace EthStatistics
         {
             _refreshCancellation?.Cancel();
 
+
             MarketDataStore.Instance
                 .ClearImportedData();
+
 
             ShowLoadingStatus(
                 "Loading available markets..."
             );
 
+
             await LoadMetadataAsync();
+
 
             ShowDashboard();
         }
@@ -659,8 +763,10 @@ namespace EthStatistics
             var chartView =
                 new ChartView();
 
+
             chartView.ChartPreferencesChanged +=
                 ChartPreferencesChanged;
+
 
             MainContent.Content =
                 chartView;
@@ -678,31 +784,49 @@ namespace EthStatistics
             KrakenMarket? selectedMarket =
                 store.Markets.FirstOrDefault(
                     market =>
-                        market.Pair ==
-                        e.Pair
+                        string.Equals(
+                            market.Pair,
+                            e.Pair,
+                            StringComparison.OrdinalIgnoreCase
+                        )
                 );
 
 
+            if (selectedMarket is null)
+            {
+                ShowErrorStatus(
+                    "The selected market is not available."
+                );
+
+                return;
+            }
+
+
+            int periodDays =
+                e.PeriodDays > 0
+                    ? e.PeriodDays
+                    : DefaultPeriodDays;
+
+
             _preferences.MarketPair =
-                e.Pair;
+                selectedMarket.Pair;
 
             _preferences.QuoteCurrency =
-                selectedMarket?.QuoteAsset;
+                selectedMarket.QuoteAsset;
 
             _preferences.IntervalMinutes =
-                e.Interval;
+                DailyInterval;
 
             _preferences.PeriodDays =
-                e.PeriodDays;
+                periodDays;
 
 
             await SaveCurrentUserPreferencesAsync();
 
 
             await ApplySelectionAndRefreshAsync(
-                e.Pair,
-                e.Interval,
-                e.PeriodDays
+                selectedMarket.Pair,
+                periodDays
             );
         }
 
@@ -718,8 +842,10 @@ namespace EthStatistics
             var importView =
                 new ImportExcelView();
 
+
             importView.ImportCompleted +=
                 ImportExcelView_ImportCompleted;
+
 
             MainContent.Content =
                 importView;
@@ -815,8 +941,11 @@ namespace EthStatistics
             KrakenMarket? currentMarket =
                 store.Markets.FirstOrDefault(
                     market =>
-                        market.Pair ==
-                        store.Pair
+                        string.Equals(
+                            market.Pair,
+                            store.Pair,
+                            StringComparison.OrdinalIgnoreCase
+                        )
                 );
 
 
@@ -829,11 +958,17 @@ namespace EthStatistics
                 selectedMarket =
                     store.Markets.FirstOrDefault(
                         market =>
-                            market.BaseAsset ==
-                                currentMarket.BaseAsset
+                            string.Equals(
+                                market.BaseAsset,
+                                currentMarket.BaseAsset,
+                                StringComparison.OrdinalIgnoreCase
+                            )
                             &&
-                            market.QuoteAsset ==
-                                e.QuoteCurrency
+                            string.Equals(
+                                market.QuoteAsset,
+                                e.QuoteCurrency,
+                                StringComparison.OrdinalIgnoreCase
+                            )
                     );
             }
 
@@ -841,8 +976,11 @@ namespace EthStatistics
             selectedMarket ??=
                 store.Markets.FirstOrDefault(
                     market =>
-                        market.QuoteAsset ==
-                        e.QuoteCurrency
+                        string.Equals(
+                            market.QuoteAsset,
+                            e.QuoteCurrency,
+                            StringComparison.OrdinalIgnoreCase
+                        )
                 );
 
 
@@ -856,46 +994,31 @@ namespace EthStatistics
             }
 
 
+            int periodDays =
+                store.PeriodDays > 0
+                    ? store.PeriodDays
+                    : DefaultPeriodDays;
+
+
             _preferences.QuoteCurrency =
-                e.QuoteCurrency;
+                selectedMarket.QuoteAsset;
 
             _preferences.MarketPair =
                 selectedMarket.Pair;
 
             _preferences.IntervalMinutes =
-                e.Interval;
+                DailyInterval;
+
+            _preferences.PeriodDays =
+                periodDays;
 
 
             await SaveCurrentUserPreferencesAsync();
 
 
-            int period =
-                store.PeriodDays;
-
-
-            if (period == 0)
-            {
-                MarketPeriod? defaultPeriod =
-                    store.Periods.FirstOrDefault(
-                        item =>
-                            item.IsDefault
-                    )
-                    ??
-                    store.Periods.FirstOrDefault();
-
-
-                if (defaultPeriod is not null)
-                {
-                    period =
-                        defaultPeriod.Days;
-                }
-            }
-
-
             await ApplySelectionAndRefreshAsync(
                 selectedMarket.Pair,
-                e.Interval,
-                period
+                periodDays
             );
         }
 
@@ -984,19 +1107,11 @@ namespace EthStatistics
                         );
 
 
-                // ----------------------------------
-                // LOAD THIS USER'S PREFERENCES
-                // ----------------------------------
-
                 await LoadCurrentUserPreferencesAsync();
 
 
                 UpdateUserInterface();
 
-
-                // ----------------------------------
-                // RESTORE THIS USER'S MARKET
-                // ----------------------------------
 
                 MarketDataStore.Instance
                     .ClearImportedData();
@@ -1011,8 +1126,6 @@ namespace EthStatistics
                 when (IsAuthenticationCancellation(error))
             {
                 // User cancelled.
-                // Leave the application in its
-                // existing state.
             }
             catch (Exception error)
             {
@@ -1044,19 +1157,11 @@ namespace EthStatistics
                     UserSession.Guest();
 
 
-                // ----------------------------------
-                // LOAD GUEST PREFERENCES
-                // ----------------------------------
-
                 await LoadCurrentUserPreferencesAsync();
 
 
                 UpdateUserInterface();
 
-
-                // ----------------------------------
-                // RETURN TO GUEST DATA SETTINGS
-                // ----------------------------------
 
                 MarketDataStore.Instance
                     .ClearImportedData();
@@ -1076,6 +1181,31 @@ namespace EthStatistics
                     MessageBoxImage.Warning
                 );
             }
+        }
+
+
+        // ==========================================
+        // DISPLAY HELPERS
+        // ==========================================
+
+        private string GetMarketDisplayName(
+            string pair)
+        {
+            KrakenMarket? market =
+                MarketDataStore.Instance.Markets
+                    .FirstOrDefault(
+                        item =>
+                            string.Equals(
+                                item.Pair,
+                                pair,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                    );
+
+
+            return
+                market?.DisplayName
+                ?? pair;
         }
 
 
@@ -1102,7 +1232,8 @@ namespace EthStatistics
             int count)
         {
             DataStatusText.Text =
-                $"{pair} · {count} observations";
+                $"{GetMarketDisplayName(pair)} · " +
+                $"{count} daily observations";
 
 
             DataStatusIndicator.Fill =

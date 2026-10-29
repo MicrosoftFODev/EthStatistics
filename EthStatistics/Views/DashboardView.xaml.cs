@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,17 +15,28 @@ namespace EthStatistics.Views
             _statisticsService = new();
 
 
+        // ==========================================
+        // CONSTRUCTOR
+        // ==========================================
+
         public DashboardView()
         {
             InitializeComponent();
 
-            Loaded += DashboardView_Loaded;
-            Unloaded += DashboardView_Unloaded;
+            Loaded +=
+                DashboardView_Loaded;
+
+            Unloaded +=
+                DashboardView_Unloaded;
 
             MarketDataStore.Instance.Changed +=
                 MarketDataStore_Changed;
         }
 
+
+        // ==========================================
+        // LOAD
+        // ==========================================
 
         private void DashboardView_Loaded(
             object sender,
@@ -33,6 +45,10 @@ namespace EthStatistics.Views
             RefreshDashboard();
         }
 
+
+        // ==========================================
+        // STORE CHANGED
+        // ==========================================
 
         private void MarketDataStore_Changed(
             object? sender,
@@ -44,6 +60,10 @@ namespace EthStatistics.Views
         }
 
 
+        // ==========================================
+        // REFRESH
+        // ==========================================
+
         private void RefreshDashboard()
         {
             MarketDataStore store =
@@ -53,13 +73,15 @@ namespace EthStatistics.Views
             if (store.IsLoading)
             {
                 MarketPairText.Text =
-                    $"Loading {store.Pair}...";
+                    $"Loading {GetMarketDisplayName(store)}...";
 
                 MarketStatusText.Text =
                     "Loading";
 
                 MarketStatusIndicator.Fill =
-                    FindBrush("WarningBrush");
+                    FindBrush(
+                        "WarningBrush"
+                    );
 
                 ClearDashboard();
 
@@ -69,7 +91,8 @@ namespace EthStatistics.Views
 
             if (
                 !string.IsNullOrWhiteSpace(
-                    store.Error)
+                    store.Error
+                )
             )
             {
                 MarketPairText.Text =
@@ -79,7 +102,9 @@ namespace EthStatistics.Views
                     "Unavailable";
 
                 MarketStatusIndicator.Fill =
-                    FindBrush("NegativeBrush");
+                    FindBrush(
+                        "NegativeBrush"
+                    );
 
                 ClearDashboard();
 
@@ -99,7 +124,9 @@ namespace EthStatistics.Views
                     "Waiting";
 
                 MarketStatusIndicator.Fill =
-                    FindBrush("TextMutedBrush");
+                    FindBrush(
+                        "TextMutedBrush"
+                    );
 
                 ClearDashboard();
 
@@ -120,14 +147,17 @@ namespace EthStatistics.Views
                 MarketCandle latest =
                     store.Candles[^1];
 
+
                 MarketCandle previous =
                     store.Candles[^2];
 
 
                 double change =
-                    previous.Close != 0
-                        ? latest.Close /
-                          previous.Close - 1.0
+                    previous.Close > 0
+                        ? (
+                            latest.Close /
+                            previous.Close
+                        ) - 1.0
                         : 0.0;
 
 
@@ -135,6 +165,17 @@ namespace EthStatistics.Views
                     store.ImportedValueType ==
                     ImportedValueType.PercentageReturn;
 
+
+                bool isExcel =
+                    store.DataSource.StartsWith(
+                        "Excel",
+                        StringComparison.OrdinalIgnoreCase
+                    );
+
+
+                // ==================================
+                // METRICS
+                // ==================================
 
                 PriceLabel.Text =
                     importedReturns
@@ -145,27 +186,40 @@ namespace EthStatistics.Views
                 PriceDescription.Text =
                     importedReturns
                         ? "Base index = 100"
-                        : "Latest closing value";
+                        : isExcel
+                            ? "Latest observation"
+                            : "Latest daily close";
 
 
                 PriceValue.Text =
-                    latest.Close.ToString("N2");
+                    latest.Close.ToString(
+                        "N2"
+                    );
 
 
                 ChangeValue.Text =
-                    change.ToString("+0.00%;-0.00%;0.00%");
+                    change.ToString(
+                        "+0.00%;-0.00%;0.00%"
+                    );
 
 
                 ChangeValue.Foreground =
                     change > 0
-                        ? FindBrush("PositiveBrush")
+                        ? FindBrush(
+                            "PositiveBrush"
+                        )
                         : change < 0
-                            ? FindBrush("NegativeBrush")
-                            : FindBrush("TextPrimaryBrush");
+                            ? FindBrush(
+                                "NegativeBrush"
+                            )
+                            : FindBrush(
+                                "TextPrimaryBrush"
+                            );
 
 
                 ObservationValue.Text =
-                    store.Candles.Count.ToString();
+                    store.Candles.Count
+                        .ToString();
 
 
                 VolatilityValue.Text =
@@ -174,23 +228,40 @@ namespace EthStatistics.Views
                         .ToString("P2");
 
 
+                // ==================================
+                // CURRENT DATASET
+                // ==================================
+
+                string marketName =
+                    GetMarketDisplayName(
+                        store
+                    );
+
+
+                string intervalName =
+                    isExcel
+                        ? GetIntervalLabel(
+                            store.Interval.Value
+                        )
+                        : "Daily";
+
+
                 MarketPairText.Text =
-                    $"{store.Pair} · {store.DataSource}";
+                    $"{marketName} · " +
+                    $"{intervalName} · " +
+                    $"{store.Candles.Count} observations";
 
 
                 MarketStatusText.Text =
-                    importedReturns
-                        ? "Imported Returns"
-                        : store.DataSource.StartsWith(
-                            "Excel",
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                            ? "Imported"
-                            : "Updated";
+                    isExcel
+                        ? "Imported"
+                        : "Updated";
 
 
                 MarketStatusIndicator.Fill =
-                    FindBrush("PositiveBrush");
+                    FindBrush(
+                        "PositiveBrush"
+                    );
 
 
                 DrawDashboardChart(
@@ -201,20 +272,72 @@ namespace EthStatistics.Views
             {
                 ClearDashboard();
 
+
                 MarketStatusText.Text =
                     "Error";
 
+
                 MarketStatusIndicator.Fill =
-                    FindBrush("NegativeBrush");
+                    FindBrush(
+                        "NegativeBrush"
+                    );
             }
         }
 
+
+        // ==========================================
+        // MARKET DISPLAY NAME
+        // ==========================================
+
+        private static string GetMarketDisplayName(
+            MarketDataStore store)
+        {
+            if (
+                string.IsNullOrWhiteSpace(
+                    store.Pair
+                )
+            )
+            {
+                return "Market";
+            }
+
+
+            KrakenMarket? market =
+                store.Markets.FirstOrDefault(
+                    item =>
+                        string.Equals(
+                            item.Pair,
+                            store.Pair,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                );
+
+
+            if (
+                market is not null &&
+                !string.IsNullOrWhiteSpace(
+                    market.DisplayName
+                )
+            )
+            {
+                return market.DisplayName;
+            }
+
+
+            return store.Pair;
+        }
+
+
+        // ==========================================
+        // CHART
+        // ==========================================
 
         private void DrawDashboardChart(
             IReadOnlyList<MarketCandle> candles)
         {
             double width =
                 DashboardChartCanvas.ActualWidth;
+
 
             double height =
                 DashboardChartCanvas.ActualHeight;
@@ -232,8 +355,13 @@ namespace EthStatistics.Views
 
             double[] values =
                 candles
-                    .Select(candle => candle.Close)
-                    .Where(double.IsFinite)
+                    .Select(
+                        candle =>
+                            candle.Close
+                    )
+                    .Where(
+                        double.IsFinite
+                    )
                     .ToArray();
 
 
@@ -246,25 +374,32 @@ namespace EthStatistics.Views
             double minimum =
                 values.Min();
 
+
             double maximum =
                 values.Max();
 
+
             double range =
-                maximum - minimum;
+                maximum -
+                minimum;
 
 
             if (range <= 0)
             {
-                range = 1;
+                range =
+                    1;
             }
 
 
-            const double padding = 8;
+            const double padding =
+                8;
+
 
             double drawableHeight =
                 Math.Max(
                     1,
-                    height - padding * 2
+                    height -
+                    padding * 2
                 );
 
 
@@ -277,7 +412,8 @@ namespace EthStatistics.Views
             for (
                 int index = 0;
                 index < values.Length;
-                index++)
+                index++
+            )
             {
                 double x =
                     index *
@@ -297,14 +433,18 @@ namespace EthStatistics.Views
                 double y =
                     padding +
                     (
-                        1 - normalized
+                        1 -
+                        normalized
                     )
                     *
                     drawableHeight;
 
 
                 points.Add(
-                    new Point(x, y)
+                    new Point(
+                        x,
+                        y
+                    )
                 );
             }
 
@@ -312,8 +452,10 @@ namespace EthStatistics.Views
             DashboardPriceLine.Points =
                 points;
 
+
             DashboardPriceLine.Visibility =
                 Visibility.Visible;
+
 
             DashboardEmptyState.Visibility =
                 Visibility.Collapsed;
@@ -324,45 +466,116 @@ namespace EthStatistics.Views
             object sender,
             SizeChangedEventArgs e)
         {
+            MarketDataStore store =
+                MarketDataStore.Instance;
+
+
             if (
-                MarketDataStore.Instance
-                    .Candles.Count > 1
+                store.Candles.Count > 1
             )
             {
                 DrawDashboardChart(
-                    MarketDataStore.Instance.Candles
+                    store.Candles
                 );
             }
         }
 
 
+        // ==========================================
+        // CLEAR
+        // ==========================================
+
         private void ClearDashboard()
         {
-            PriceValue.Text = "—";
-            ChangeValue.Text = "—";
-            ObservationValue.Text = "—";
-            VolatilityValue.Text = "—";
+            PriceValue.Text =
+                "—";
+
+
+            ChangeValue.Text =
+                "—";
+
+
+            ObservationValue.Text =
+                "—";
+
+
+            VolatilityValue.Text =
+                "—";
+
 
             ChangeValue.Foreground =
-                FindBrush("TextPrimaryBrush");
+                FindBrush(
+                    "TextPrimaryBrush"
+                );
+
 
             DashboardPriceLine.Points =
                 new PointCollection();
 
+
             DashboardPriceLine.Visibility =
                 Visibility.Collapsed;
+
 
             DashboardEmptyState.Visibility =
                 Visibility.Visible;
         }
 
 
-        private Brush FindBrush(
-            string name)
+        // ==========================================
+        // HELPERS
+        // ==========================================
+
+        private static string GetIntervalLabel(
+            int interval)
         {
-            return (Brush)FindResource(name);
+            return interval switch
+            {
+                1 =>
+                    "1 Minute",
+
+                5 =>
+                    "5 Minutes",
+
+                15 =>
+                    "15 Minutes",
+
+                30 =>
+                    "30 Minutes",
+
+                60 =>
+                    "1 Hour",
+
+                240 =>
+                    "4 Hours",
+
+                1440 =>
+                    "Daily",
+
+                10080 =>
+                    "Weekly",
+
+                21600 =>
+                    "15 Days",
+
+                _ =>
+                    $"{interval} min"
+            };
         }
 
+
+        private Brush FindBrush(
+            string resourceName)
+        {
+            return (Brush)FindResource(
+                resourceName
+            );
+        }
+
+
+        // ==========================================
+        // UNLOAD
+        // ==========================================
 
         private void DashboardView_Unloaded(
             object sender,

@@ -1,22 +1,48 @@
-﻿using System.Text.Json.Serialization;
-
-namespace EthStatistics.Models
+﻿namespace EthStatistics.Models
 {
     public sealed class KrakenMarket
     {
-        [JsonPropertyName("pair")]
-        public string Pair { get; set; } = "";
+        public string Pair { get; init; } =
+            "";
 
-        [JsonPropertyName("displayName")]
-        public string DisplayName { get; set; } = "";
+        public string DisplayName { get; init; } =
+            "";
 
-        [JsonPropertyName("baseAsset")]
-        public string BaseAsset { get; set; } = "";
+        public string BaseAsset { get; init; } =
+            "";
 
-        [JsonPropertyName("quoteAsset")]
-        public string QuoteAsset { get; set; } = "";
+        public string QuoteAsset { get; init; } =
+            "";
 
-        [JsonPropertyName("status")]
-        public string Status { get; set; } = "";
+
+        public override string ToString()
+        {
+            if (
+                !string.IsNullOrWhiteSpace(
+                    DisplayName
+                )
+            )
+            {
+                return DisplayName;
+            }
+
+
+            if (
+                !string.IsNullOrWhiteSpace(
+                    BaseAsset
+                )
+                &&
+                !string.IsNullOrWhiteSpace(
+                    QuoteAsset
+                )
+            )
+            {
+                return
+                    $"{BaseAsset}/{QuoteAsset}";
+            }
+
+
+            return Pair;
+        }
     }
 }
