@@ -1325,7 +1325,30 @@ namespace EthStatistics
             MainContent.Content =
                 new StatisticsView();
         }
+        // ==========================================
+        // DICTIONARY
+        // ==========================================
 
+        private void DictionaryButton_Click(
+            object sender,
+            RoutedEventArgs e)
+        {
+            ShowDictionary();
+        }
+
+
+        private void ShowDictionary()
+        {
+            if (!_currentUser.IsAuthenticated)
+            {
+                ShowSignedOutView();
+
+                return;
+            }
+
+            MainContent.Content =
+                new DictionaryView();
+        }
 
         // ==========================================
         // FORECAST

@@ -305,42 +305,49 @@
                             <!-- DASHBOARD -->
 
                             <Button
-                                Content="Dashboard"
-                                Click="DashboardButton_Click"
-                                Style="{StaticResource NavigationButtonStyle}"/>
+    Content="Dashboard"
+    Click="DashboardButton_Click"
+    Style="{StaticResource NavigationButtonStyle}"/>
 
 
                             <!-- CHART -->
 
                             <Button
-                                Content="Chart"
-                                Click="ChartButton_Click"
-                                Style="{StaticResource NavigationButtonStyle}"/>
+    Content="Chart"
+    Click="ChartButton_Click"
+    Style="{StaticResource NavigationButtonStyle}"/>
 
 
                             <!-- IMPORT EXCEL -->
 
                             <Button
-                                Content="Import Excel"
-                                Click="ImportExcelButton_Click"
-                                Style="{StaticResource NavigationButtonStyle}"/>
+    Content="Import Excel"
+    Click="ImportExcelButton_Click"
+    Style="{StaticResource NavigationButtonStyle}"/>
 
 
                             <!-- STATISTICS -->
 
                             <Button
-                                Content="Statistics"
-                                Click="StatisticsButton_Click"
-                                Style="{StaticResource NavigationButtonStyle}"/>
+    Content="Statistics"
+    Click="StatisticsButton_Click"
+    Style="{StaticResource NavigationButtonStyle}"/>
+
+
+                            <!-- DICTIONARY -->
+
+                            <Button
+    Content="Dictionary"
+    Click="DictionaryButton_Click"
+    Style="{StaticResource NavigationButtonStyle}"/>
 
 
                             <!-- FORECAST -->
 
                             <Button
-                                Content="Forecast"
-                                Click="ForecastButton_Click"
-                                Style="{StaticResource NavigationButtonStyle}"/>
-
+    Content="Forecast"
+    Click="ForecastButton_Click"
+    Style="{StaticResource NavigationButtonStyle}"/>
                         </StackPanel>
 
 

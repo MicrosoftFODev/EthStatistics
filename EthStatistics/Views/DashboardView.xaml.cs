@@ -20,6 +20,9 @@ namespace EthStatistics.Views
         private const int YAxisTickCount =
             5;
 
+        private const int RsiPeriod =
+            14;
+
         private const double MinimumMonthLabelWidth =
             68.0;
 
@@ -90,7 +93,7 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // REFRESH DASHBOARD
+        // REFRESH
         // ==========================================
 
         private void RefreshDashboard()
@@ -98,9 +101,10 @@ namespace EthStatistics.Views
             MarketDataStore store =
                 MarketDataStore.Instance;
 
-
             if (store.IsLoading)
             {
+                ClearDashboard();
+
                 MarketPairText.Text =
                     $"Loading {GetMarketDisplayName(store)}...";
 
@@ -112,11 +116,8 @@ namespace EthStatistics.Views
                         "WarningBrush"
                     );
 
-                ClearDashboard();
-
                 return;
             }
-
 
             if (
                 !string.IsNullOrWhiteSpace(
@@ -124,6 +125,8 @@ namespace EthStatistics.Views
                 )
             )
             {
+                ClearDashboard();
+
                 MarketPairText.Text =
                     "Market data unavailable";
 
@@ -135,17 +138,16 @@ namespace EthStatistics.Views
                         "NegativeBrush"
                     );
 
-                ClearDashboard();
-
                 return;
             }
-
 
             if (
                 store.Candles.Count < 2 ||
                 store.Interval is null
             )
             {
+                ClearDashboard();
+
                 MarketPairText.Text =
                     "Waiting for market data";
 
@@ -157,32 +159,41 @@ namespace EthStatistics.Views
                         "TextMutedBrush"
                     );
 
-                ClearDashboard();
-
                 return;
             }
-
 
             try
             {
                 _displayedCandles =
                     store.Candles
+                        .Where(
+                            candle =>
+                                double.IsFinite(
+                                    candle.Close
+                                )
+                                &&
+                                candle.Close > 0.0
+                        )
                         .OrderBy(
                             candle =>
                                 candle.Date
                         )
                         .ToList();
 
+                if (_displayedCandles.Count < 2)
+                {
+                    ClearDashboard();
+
+                    return;
+                }
 
                 UpdateMetrics(
                     store
                 );
 
-
                 UpdateMarketStatus(
                     store
                 );
-
 
                 DrawDashboardChart(
                     _displayedCandles
@@ -192,10 +203,8 @@ namespace EthStatistics.Views
             {
                 ClearDashboard();
 
-
                 MarketStatusText.Text =
                     "Error";
-
 
                 MarketStatusIndicator.Fill =
                     FindBrush(
@@ -219,42 +228,37 @@ namespace EthStatistics.Views
                     store.ImportedReturns
                 );
 
-
             MarketCandle latest =
                 store.Candles[^1];
-
 
             MarketCandle previous =
                 store.Candles[^2];
 
-
             double arithmeticReturn =
-                previous.Close != 0
-                    ? (
+                previous.Close != 0.0
+                    ?
+                    (
                         latest.Close -
                         previous.Close
                     )
                     /
                     previous.Close
-                    : 0.0;
-
+                    :
+                    0.0;
 
             bool importedReturns =
                 store.ImportedValueType ==
                 ImportedValueType.PercentageReturn;
-
 
             bool isExcel =
                 IsExcelDataset(
                     store
                 );
 
-
             PriceLabel.Text =
                 importedReturns
                     ? "CUMULATIVE INDEX"
                     : "LATEST PRICE";
-
 
             PriceDescription.Text =
                 importedReturns
@@ -263,22 +267,18 @@ namespace EthStatistics.Views
                         ? "Latest observation"
                         : "Latest daily close";
 
-
             PriceValue.Text =
                 FormatPrice(
                     latest.Close
                 );
-
 
             ChangeLabel.Text =
                 isExcel
                     ? "LATEST CHANGE"
                     : "DAILY CHANGE";
 
-
             ChangeDescription.Text =
                 "Previous close to latest close";
-
 
             ChangeValue.Text =
                 arithmeticReturn.ToString(
@@ -286,13 +286,12 @@ namespace EthStatistics.Views
                     CultureInfo.CurrentCulture
                 );
 
-
             ChangeValue.Foreground =
-                arithmeticReturn > 0
+                arithmeticReturn > 0.0
                     ? FindBrush(
                         "PositiveBrush"
                     )
-                    : arithmeticReturn < 0
+                    : arithmeticReturn < 0.0
                         ? FindBrush(
                             "NegativeBrush"
                         )
@@ -300,13 +299,11 @@ namespace EthStatistics.Views
                             "TextPrimaryBrush"
                         );
 
-
             ObservationValue.Text =
                 store.Candles.Count.ToString(
                     "N0",
                     CultureInfo.CurrentCulture
                 );
-
 
             VolatilityValue.Text =
                 statistics
@@ -330,12 +327,10 @@ namespace EthStatistics.Views
                     store
                 );
 
-
             string marketName =
                 GetMarketDisplayName(
                     store
                 );
-
 
             string intervalName =
                 isExcel
@@ -344,18 +339,15 @@ namespace EthStatistics.Views
                     )
                     : "Daily";
 
-
             MarketPairText.Text =
                 $"{marketName} · " +
                 $"{intervalName} · " +
                 $"{store.Candles.Count:N0} observations";
 
-
             MarketStatusText.Text =
                 isExcel
                     ? "Imported"
                     : "Updated";
-
 
             MarketStatusIndicator.Fill =
                 FindBrush(
@@ -374,57 +366,29 @@ namespace EthStatistics.Views
             double width =
                 DashboardChartCanvas.ActualWidth;
 
-
             double height =
                 DashboardChartCanvas.ActualHeight;
 
-
             if (
-                width <= 1 ||
-                height <= 1 ||
+                width <= 1.0 ||
+                height <= 1.0 ||
                 candles.Count < 2
             )
             {
                 return;
             }
 
-
-            List<MarketCandle> validCandles =
-                candles
-                    .Where(
-                        candle =>
-                            double.IsFinite(
-                                candle.Close
-                            )
-                    )
-                    .OrderBy(
-                        candle =>
-                            candle.Date
-                    )
-                    .ToList();
-
-
-            if (validCandles.Count < 2)
-            {
-                ClearDashboard();
-
-                return;
-            }
-
-
             double dataMinimum =
-                validCandles.Min(
+                candles.Min(
                     candle =>
                         candle.Close
                 );
-
 
             double dataMaximum =
-                validCandles.Max(
+                candles.Max(
                     candle =>
                         candle.Close
                 );
-
 
             PriceAxisScale axisScale =
                 CreateNicePriceScale(
@@ -433,30 +397,36 @@ namespace EthStatistics.Views
                     YAxisTickCount
                 );
 
-
             DrawYAxis(
                 axisScale
             );
 
-
             DrawPriceLine(
-                validCandles,
+                candles,
                 axisScale,
                 width,
                 height
             );
 
-
-            DrawMonthlyAxis(
-                validCandles,
+            DrawMeanLine(
+                candles,
+                axisScale,
                 width,
                 height
             );
 
+            DrawRsiChart(
+                candles
+            );
+
+            DrawMonthlyAxis(
+                candles,
+                width,
+                height
+            );
 
             DashboardPriceLine.Visibility =
                 Visibility.Visible;
-
 
             DashboardEmptyState.Visibility =
                 Visibility.Collapsed;
@@ -475,29 +445,25 @@ namespace EthStatistics.Views
         {
             double drawableHeight =
                 Math.Max(
-                    1,
+                    1.0,
                     height -
-                    ChartVerticalPadding * 2
+                    ChartVerticalPadding * 2.0
                 );
-
 
             double axisRange =
                 axisScale.Maximum -
                 axisScale.Minimum;
 
-
-            if (axisRange <= 0)
+            if (axisRange <= 0.0)
             {
                 axisRange =
-                    1;
+                    1.0;
             }
-
 
             var points =
                 new PointCollection(
                     candles.Count
                 );
-
 
             for (
                 int index = 0;
@@ -508,8 +474,7 @@ namespace EthStatistics.Views
                 double x =
                     index *
                     width /
-                    (candles.Count - 1);
-
+                    (candles.Count - 1.0);
 
                 double normalizedPrice =
                     (
@@ -518,7 +483,6 @@ namespace EthStatistics.Views
                     )
                     /
                     axisRange;
-
 
                 double y =
                     ChartVerticalPadding +
@@ -529,7 +493,6 @@ namespace EthStatistics.Views
                     *
                     drawableHeight;
 
-
                 points.Add(
                     new Point(
                         x,
@@ -538,14 +501,592 @@ namespace EthStatistics.Views
                 );
             }
 
-
             DashboardPriceLine.Points =
                 points;
         }
 
 
         // ==========================================
-        // Y-AXIS
+        // MEAN LINE
+        // ==========================================
+
+        private void DrawMeanLine(
+            IReadOnlyList<MarketCandle> candles,
+            PriceAxisScale axisScale,
+            double width,
+            double height)
+        {
+            // Calculated by C++ Mean().
+
+            double meanPrice =
+                _statisticsService.CalculateMeanPrice(
+                    candles
+                );
+
+            if (!double.IsFinite(meanPrice))
+            {
+                ClearMeanLine();
+
+                return;
+            }
+
+            double range =
+                axisScale.Maximum -
+                axisScale.Minimum;
+
+            if (range <= 0.0)
+            {
+                ClearMeanLine();
+
+                return;
+            }
+
+            double drawableHeight =
+                Math.Max(
+                    1.0,
+                    height -
+                    ChartVerticalPadding * 2.0
+                );
+
+            double normalizedMean =
+                (
+                    meanPrice -
+                    axisScale.Minimum
+                )
+                /
+                range;
+
+            double y =
+                ChartVerticalPadding +
+                (
+                    1.0 -
+                    normalizedMean
+                )
+                *
+                drawableHeight;
+
+            DashboardMeanLine.X1 =
+                0.0;
+
+            DashboardMeanLine.X2 =
+                width;
+
+            DashboardMeanLine.Y1 =
+                y;
+
+            DashboardMeanLine.Y2 =
+                y;
+
+            DashboardMeanLine.Visibility =
+                Visibility.Visible;
+
+            MeanLegendText.Text =
+                $"x̄ = {FormatPrice(meanPrice)}";
+        }
+
+
+        // ==========================================
+        // RSI
+        // ==========================================
+
+        private void DrawRsiChart(
+     IReadOnlyList<MarketCandle> candles)
+        {
+            double width =
+                RsiSeriesCanvas.ActualWidth;
+
+            double height =
+                RsiSeriesCanvas.ActualHeight;
+
+            RsiSeriesCanvas.Children.Clear();
+
+            if (
+                width <= 1.0 ||
+                height <= 1.0
+            )
+            {
+                Dispatcher.BeginInvoke(
+                    new Action(
+                        () =>
+                        {
+                            if (_displayedCandles.Any())
+                            {
+                                DrawDashboardChart(
+                                    _displayedCandles
+                                );
+                            }
+                        }
+                    ),
+                    System.Windows.Threading.DispatcherPriority.Loaded
+                );
+
+                return;
+            }
+
+            if (candles.Count <= RsiPeriod)
+            {
+                ClearRsiChart();
+
+                return;
+            }
+
+            double[] rsiValues =
+                _statisticsService.CalculateWilderRsi(
+                    candles,
+                    RsiPeriod
+                );
+
+            if (
+                rsiValues.Length !=
+                candles.Count
+            )
+            {
+                ClearRsiChart();
+
+                return;
+            }
+
+            DrawRsiReferenceLine(
+                Rsi70Line,
+                70.0,
+                width,
+                height
+            );
+
+            DrawRsiReferenceLine(
+                Rsi50Line,
+                50.0,
+                width,
+                height
+            );
+
+            DrawRsiReferenceLine(
+                Rsi30Line,
+                30.0,
+                width,
+                height
+            );
+
+            for (
+                int index = 1;
+                index < rsiValues.Length;
+                index++
+            )
+            {
+                double previousRsi =
+                    rsiValues[index - 1];
+
+                double currentRsi =
+                    rsiValues[index];
+
+                if (
+                    !double.IsFinite(previousRsi) ||
+                    !double.IsFinite(currentRsi)
+                )
+                {
+                    continue;
+                }
+
+                previousRsi =
+                    Math.Clamp(
+                        previousRsi,
+                        0.0,
+                        100.0
+                    );
+
+                currentRsi =
+                    Math.Clamp(
+                        currentRsi,
+                        0.0,
+                        100.0
+                    );
+
+                double x1 =
+                    (index - 1.0)
+                    *
+                    width
+                    /
+                    (rsiValues.Length - 1.0);
+
+                double x2 =
+                    index
+                    *
+                    width
+                    /
+                    (rsiValues.Length - 1.0);
+
+                double y1 =
+                    ConvertRsiToY(
+                        previousRsi,
+                        height
+                    );
+
+                double y2 =
+                    ConvertRsiToY(
+                        currentRsi,
+                        height
+                    );
+
+                DrawRsiSegment(
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    previousRsi,
+                    currentRsi
+                );
+            }
+        }
+
+
+        // ==========================================
+        // RSI COORDINATE
+        // ==========================================
+
+        private static double ConvertRsiToY(
+            double rsi,
+            double height)
+        {
+            return
+                (
+                    1.0 -
+                    rsi / 100.0
+                )
+                *
+                height;
+        }
+
+
+        // ==========================================
+        // RSI SEGMENT
+        // ==========================================
+
+        private void DrawRsiSegment(
+            double x1,
+            double y1,
+            double x2,
+            double y2,
+            double previousRsi,
+            double currentRsi)
+        {
+            // One daily move could theoretically
+            // cross both thresholds.
+            //
+            // Process 30 and 70 as break points.
+
+            List<double> thresholds =
+                new();
+
+            if (
+                CrossesThreshold(
+                    previousRsi,
+                    currentRsi,
+                    30.0
+                )
+            )
+            {
+                thresholds.Add(
+                    30.0
+                );
+            }
+
+            if (
+                CrossesThreshold(
+                    previousRsi,
+                    currentRsi,
+                    70.0
+                )
+            )
+            {
+                thresholds.Add(
+                    70.0
+                );
+            }
+
+            if (thresholds.Count == 0)
+            {
+                AddRsiLine(
+                    x1,
+                    y1,
+                    x2,
+                    y2,
+                    GetRsiBrush(
+                        (
+                            previousRsi +
+                            currentRsi
+                        )
+                        /
+                        2.0
+                    )
+                );
+
+                return;
+            }
+
+            if (currentRsi < previousRsi)
+            {
+                thresholds =
+                    thresholds
+                        .OrderByDescending(
+                            value =>
+                                value
+                        )
+                        .ToList();
+            }
+            else
+            {
+                thresholds =
+                    thresholds
+                        .OrderBy(
+                            value =>
+                                value
+                        )
+                        .ToList();
+            }
+
+            double startX =
+                x1;
+
+            double startY =
+                y1;
+
+            double startRsi =
+                previousRsi;
+
+            foreach (
+                double threshold
+                in thresholds
+            )
+            {
+                double totalRsiDifference =
+                    currentRsi -
+                    previousRsi;
+
+                if (
+                    Math.Abs(
+                        totalRsiDifference
+                    )
+                    <
+                    double.Epsilon
+                )
+                {
+                    continue;
+                }
+
+                double fraction =
+                    (
+                        threshold -
+                        previousRsi
+                    )
+                    /
+                    totalRsiDifference;
+
+                double crossingX =
+                    x1
+                    +
+                    fraction
+                    *
+                    (
+                        x2 -
+                        x1
+                    );
+
+                double crossingY =
+                    y1
+                    +
+                    fraction
+                    *
+                    (
+                        y2 -
+                        y1
+                    );
+
+                double middleRsi =
+                    (
+                        startRsi +
+                        threshold
+                    )
+                    /
+                    2.0;
+
+                AddRsiLine(
+                    startX,
+                    startY,
+                    crossingX,
+                    crossingY,
+                    GetRsiBrush(
+                        middleRsi
+                    )
+                );
+
+                startX =
+                    crossingX;
+
+                startY =
+                    crossingY;
+
+                startRsi =
+                    threshold;
+            }
+
+            double finalMiddleRsi =
+                (
+                    startRsi +
+                    currentRsi
+                )
+                /
+                2.0;
+
+            AddRsiLine(
+                startX,
+                startY,
+                x2,
+                y2,
+                GetRsiBrush(
+                    finalMiddleRsi
+                )
+            );
+        }
+
+
+        // ==========================================
+        // RSI THRESHOLD
+        // ==========================================
+
+        private static bool CrossesThreshold(
+            double first,
+            double second,
+            double threshold)
+        {
+            return
+                (
+                    first < threshold &&
+                    second >= threshold
+                )
+                ||
+                (
+                    first > threshold &&
+                    second <= threshold
+                );
+        }
+
+
+        // ==========================================
+        // RSI COLOR
+        // ==========================================
+
+        private Brush GetRsiBrush(
+            double rsi)
+        {
+            // Overbought.
+
+            if (rsi > 70.0)
+            {
+                return FindBrush(
+                    "NegativeBrush"
+                );
+            }
+
+            // Oversold.
+
+            if (rsi < 30.0)
+            {
+                return FindBrush(
+                    "PositiveBrush"
+                );
+            }
+
+            // Neutral.
+
+            return FindBrush(
+                "AccentBrush"
+            );
+        }
+
+
+        // ==========================================
+        // RSI LINE
+        // ==========================================
+
+        private void AddRsiLine(
+       double x1,
+       double y1,
+       double x2,
+       double y2,
+       Brush brush)
+        {
+            var line =
+                new Line
+                {
+                    X1 =
+                        x1,
+
+                    Y1 =
+                        y1,
+
+                    X2 =
+                        x2,
+
+                    Y2 =
+                        y2,
+
+                    Stroke =
+                        brush,
+
+                    StrokeThickness =
+                        2.0,
+
+                    StrokeStartLineCap =
+                        PenLineCap.Round,
+
+                    StrokeEndLineCap =
+                        PenLineCap.Round,
+
+                    IsHitTestVisible =
+                        false
+                };
+
+            RsiSeriesCanvas.Children.Add(
+                line
+            );
+        }
+
+
+        // ==========================================
+        // RSI REFERENCE LINES
+        // ==========================================
+
+        private static void DrawRsiReferenceLine(
+            Line line,
+            double value,
+            double width,
+            double height)
+        {
+            double y =
+                ConvertRsiToY(
+                    value,
+                    height
+                );
+
+            line.X1 =
+                0.0;
+
+            line.X2 =
+                width;
+
+            line.Y1 =
+                y;
+
+            line.Y2 =
+                y;
+
+            line.Visibility =
+                Visibility.Visible;
+        }
+
+
+        // ==========================================
+        // Y AXIS
         // ==========================================
 
         private void DrawYAxis(
@@ -555,11 +1096,10 @@ namespace EthStatistics.Views
             {
                 scale.Maximum,
                 scale.Maximum - scale.Step,
-                scale.Maximum - scale.Step * 2,
-                scale.Maximum - scale.Step * 3,
+                scale.Maximum - scale.Step * 2.0,
+                scale.Maximum - scale.Step * 3.0,
                 scale.Minimum
             };
-
 
             YAxisMaximumText.Text =
                 FormatAxisPrice(
@@ -567,13 +1107,11 @@ namespace EthStatistics.Views
                     scale.Step
                 );
 
-
             YAxisUpperMiddleText.Text =
                 FormatAxisPrice(
                     values[1],
                     scale.Step
                 );
-
 
             YAxisMiddleText.Text =
                 FormatAxisPrice(
@@ -581,13 +1119,11 @@ namespace EthStatistics.Views
                     scale.Step
                 );
 
-
             YAxisLowerMiddleText.Text =
                 FormatAxisPrice(
                     values[3],
                     scale.Step
                 );
-
 
             YAxisMinimumText.Text =
                 FormatAxisPrice(
@@ -596,6 +1132,10 @@ namespace EthStatistics.Views
                 );
         }
 
+
+        // ==========================================
+        // NICE PRICE SCALE
+        // ==========================================
 
         private static PriceAxisScale
             CreateNicePriceScale(
@@ -614,12 +1154,11 @@ namespace EthStatistics.Views
             )
             {
                 return new PriceAxisScale(
-                    0,
-                    1,
+                    0.0,
+                    1.0,
                     0.25
                 );
             }
-
 
             if (dataMaximum < dataMinimum)
             {
@@ -633,40 +1172,35 @@ namespace EthStatistics.Views
                 );
             }
 
-
             double rawRange =
                 dataMaximum -
                 dataMinimum;
 
-
-            if (rawRange <= 0)
+            if (rawRange <= 0.0)
             {
                 double expansion =
                     Math.Abs(
                         dataMaximum
-                    ) * 0.05;
+                    )
+                    *
+                    0.05;
 
-
-                if (expansion <= 0)
+                if (expansion <= 0.0)
                 {
                     expansion =
-                        1;
+                        1.0;
                 }
-
 
                 dataMinimum -=
                     expansion;
 
-
                 dataMaximum +=
                     expansion;
-
 
                 rawRange =
                     dataMaximum -
                     dataMinimum;
             }
-
 
             int intervalCount =
                 Math.Max(
@@ -674,17 +1208,14 @@ namespace EthStatistics.Views
                     tickCount - 1
                 );
 
-
             double rawStep =
                 rawRange /
                 intervalCount;
-
 
             double niceStep =
                 CalculateNiceStep(
                     rawStep
                 );
-
 
             double niceMinimum =
                 Math.Floor(
@@ -694,7 +1225,6 @@ namespace EthStatistics.Views
                 *
                 niceStep;
 
-
             double niceMaximum =
                 Math.Ceiling(
                     dataMaximum /
@@ -702,7 +1232,6 @@ namespace EthStatistics.Views
                 )
                 *
                 niceStep;
-
 
             int actualIntervals =
                 (int)Math.Ceiling(
@@ -714,12 +1243,13 @@ namespace EthStatistics.Views
                     niceStep
                 );
 
-
             if (actualIntervals < intervalCount)
             {
                 niceMaximum =
-                    niceMinimum +
-                    niceStep *
+                    niceMinimum
+                    +
+                    niceStep
+                    *
                     intervalCount;
             }
             else if (actualIntervals > intervalCount)
@@ -734,7 +1264,6 @@ namespace EthStatistics.Views
                         intervalCount
                     );
 
-
                 niceMinimum =
                     Math.Floor(
                         dataMinimum /
@@ -743,29 +1272,29 @@ namespace EthStatistics.Views
                     *
                     niceStep;
 
-
                 niceMaximum =
-                    niceMinimum +
-                    niceStep *
+                    niceMinimum
+                    +
+                    niceStep
+                    *
                     intervalCount;
-
 
                 while (
                     niceMaximum <
                     dataMaximum
                 )
                 {
-                    niceMinimum +=
-                        -niceStep;
-
+                    niceMinimum -=
+                        niceStep;
 
                     niceMaximum =
-                        niceMinimum +
-                        niceStep *
+                        niceMinimum
+                        +
+                        niceStep
+                        *
                         intervalCount;
                 }
             }
-
 
             return new PriceAxisScale(
                 niceMinimum,
@@ -783,12 +1312,11 @@ namespace EthStatistics.Views
                     rawStep
                 )
                 ||
-                rawStep <= 0
+                rawStep <= 0.0
             )
             {
-                return 1;
+                return 1.0;
             }
-
 
             double exponent =
                 Math.Floor(
@@ -797,48 +1325,43 @@ namespace EthStatistics.Views
                     )
                 );
 
-
             double magnitude =
                 Math.Pow(
-                    10,
+                    10.0,
                     exponent
                 );
-
 
             double normalizedStep =
                 rawStep /
                 magnitude;
 
-
             double niceNormalizedStep;
 
-
-            if (normalizedStep <= 1)
+            if (normalizedStep <= 1.0)
             {
                 niceNormalizedStep =
-                    1;
+                    1.0;
             }
-            else if (normalizedStep <= 2)
+            else if (normalizedStep <= 2.0)
             {
                 niceNormalizedStep =
-                    2;
+                    2.0;
             }
             else if (normalizedStep <= 2.5)
             {
                 niceNormalizedStep =
                     2.5;
             }
-            else if (normalizedStep <= 5)
+            else if (normalizedStep <= 5.0)
             {
                 niceNormalizedStep =
-                    5;
+                    5.0;
             }
             else
             {
                 niceNormalizedStep =
-                    10;
+                    10.0;
             }
-
 
             return
                 niceNormalizedStep *
@@ -847,7 +1370,7 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // MONTHLY X-AXIS
+        // MONTHLY X AXIS
         // ==========================================
 
         private void DrawMonthlyAxis(
@@ -859,27 +1382,23 @@ namespace EthStatistics.Views
 
             MonthlyLabelsCanvas.Children.Clear();
 
-
             if (
                 candles.Count < 2 ||
-                width <= 1
+                width <= 1.0
             )
             {
                 return;
             }
-
 
             List<MonthTick> allMonthTicks =
                 CreateMonthTicks(
                     candles
                 );
 
-
             if (allMonthTicks.Count == 0)
             {
                 return;
             }
-
 
             int maximumVisibleLabelCount =
                 Math.Max(
@@ -890,7 +1409,6 @@ namespace EthStatistics.Views
                     )
                 );
 
-
             int labelStep =
                 Math.Max(
                     1,
@@ -899,7 +1417,6 @@ namespace EthStatistics.Views
                         (double)maximumVisibleLabelCount
                     )
                 );
-
 
             List<MonthTick> visibleTicks =
                 allMonthTicks
@@ -913,16 +1430,13 @@ namespace EthStatistics.Views
                     )
                     .ToList();
 
-
             MonthTick lastMonthTick =
                 allMonthTicks[^1];
-
 
             if (
                 visibleTicks.Count == 0 ||
                 visibleTicks[^1].Year !=
-                    lastMonthTick.Year
-                ||
+                    lastMonthTick.Year ||
                 visibleTicks[^1].Month !=
                     lastMonthTick.Month
             )
@@ -932,11 +1446,9 @@ namespace EthStatistics.Views
                 );
             }
 
-
             bool multipleYears =
                 candles[0].Date.Year !=
                 candles[^1].Date.Year;
-
 
             foreach (
                 MonthTick tick
@@ -944,16 +1456,16 @@ namespace EthStatistics.Views
             )
             {
                 double x =
-                    tick.CandleIndex *
-                    width /
-                    (candles.Count - 1);
-
+                    tick.CandleIndex
+                    *
+                    width
+                    /
+                    (candles.Count - 1.0);
 
                 DrawMonthlyGridLine(
                     x,
                     graphHeight
                 );
-
 
                 DrawMonthLabel(
                     tick,
@@ -972,14 +1484,11 @@ namespace EthStatistics.Views
             var ticks =
                 new List<MonthTick>();
 
-
             int? previousYear =
                 null;
 
-
             int? previousMonth =
                 null;
-
 
             for (
                 int index = 0;
@@ -989,7 +1498,6 @@ namespace EthStatistics.Views
             {
                 DateTimeOffset date =
                     candles[index].Date;
-
 
                 if (
                     previousYear ==
@@ -1002,7 +1510,6 @@ namespace EthStatistics.Views
                     continue;
                 }
 
-
                 ticks.Add(
                     new MonthTick(
                         index,
@@ -1011,15 +1518,12 @@ namespace EthStatistics.Views
                     )
                 );
 
-
                 previousYear =
                     date.Year;
-
 
                 previousMonth =
                     date.Month;
             }
-
 
             return ticks;
         }
@@ -1039,7 +1543,7 @@ namespace EthStatistics.Views
                         x,
 
                     Y1 =
-                        0,
+                        0.0,
 
                     Y2 =
                         graphHeight,
@@ -1050,12 +1554,11 @@ namespace EthStatistics.Views
                         ),
 
                     StrokeThickness =
-                        1,
+                        1.0,
 
                     IsHitTestVisible =
                         false
                 };
-
 
             MonthlyGridCanvas.Children.Add(
                 line
@@ -1076,7 +1579,6 @@ namespace EthStatistics.Views
                     1
                 );
 
-
             string label =
                 includeYear
                     ? labelDate.ToString(
@@ -1087,7 +1589,6 @@ namespace EthStatistics.Views
                         "MMM",
                         CultureInfo.CurrentCulture
                     );
-
 
             var textBlock =
                 new TextBlock
@@ -1101,12 +1602,11 @@ namespace EthStatistics.Views
                         ),
 
                     FontSize =
-                        9,
+                        9.0,
 
                     IsHitTestVisible =
                         false
                 };
-
 
             textBlock.Measure(
                 new Size(
@@ -1115,20 +1615,16 @@ namespace EthStatistics.Views
                 )
             );
 
-
             double labelWidth =
                 textBlock.DesiredSize.Width;
 
-
             double left =
                 x -
-                labelWidth /
-                2;
-
+                labelWidth / 2.0;
 
             left =
                 Math.Max(
-                    0,
+                    0.0,
                     Math.Min(
                         totalWidth -
                         labelWidth,
@@ -1136,18 +1632,15 @@ namespace EthStatistics.Views
                     )
                 );
 
-
             Canvas.SetLeft(
                 textBlock,
                 left
             );
 
-
             Canvas.SetTop(
                 textBlock,
-                7
+                7.0
             );
-
 
             MonthlyLabelsCanvas.Children.Add(
                 textBlock
@@ -1163,13 +1656,10 @@ namespace EthStatistics.Views
             object sender,
             SizeChangedEventArgs e)
         {
-            if (
-                !_displayedCandles.Any()
-            )
+            if (!_displayedCandles.Any())
             {
                 return;
             }
-
 
             DrawDashboardChart(
                 _displayedCandles
@@ -1207,7 +1697,6 @@ namespace EthStatistics.Views
                 return "Market";
             }
 
-
             KrakenMarket? market =
                 store.Markets.FirstOrDefault(
                     item =>
@@ -1218,7 +1707,6 @@ namespace EthStatistics.Views
                         )
                 );
 
-
             if (
                 market is not null &&
                 !string.IsNullOrWhiteSpace(
@@ -1228,7 +1716,6 @@ namespace EthStatistics.Views
             {
                 return market.DisplayName;
             }
-
 
             return store.Pair;
         }
@@ -1280,24 +1767,13 @@ namespace EthStatistics.Views
                     value
                 );
 
-
-            if (absoluteValue >= 1000)
+            if (absoluteValue >= 1.0)
             {
                 return value.ToString(
                     "N2",
                     CultureInfo.CurrentCulture
                 );
             }
-
-
-            if (absoluteValue >= 1)
-            {
-                return value.ToString(
-                    "N2",
-                    CultureInfo.CurrentCulture
-                );
-            }
-
 
             return value.ToString(
                 "N6",
@@ -1315,14 +1791,12 @@ namespace EthStatistics.Views
                     step
                 );
 
-
             string format =
-                absoluteStep >= 1
+                absoluteStep >= 1.0
                     ? "N0"
                     : absoluteStep >= 0.01
                         ? "N2"
                         : "N6";
-
 
             return value.ToString(
                 format,
@@ -1341,7 +1815,75 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // CLEAR
+        // CLEAR MEAN
+        // ==========================================
+
+        private void ClearMeanLine()
+        {
+            DashboardMeanLine.X1 =
+                0.0;
+
+            DashboardMeanLine.X2 =
+                0.0;
+
+            DashboardMeanLine.Y1 =
+                0.0;
+
+            DashboardMeanLine.Y2 =
+                0.0;
+
+            DashboardMeanLine.Visibility =
+                Visibility.Collapsed;
+
+            MeanLegendText.Text =
+                "";
+        }
+
+
+        // ==========================================
+        // CLEAR RSI
+        // ==========================================
+
+        private void ClearRsiChart()
+        {
+            RsiSeriesCanvas.Children.Clear();
+
+            ClearLine(
+                Rsi70Line
+            );
+
+            ClearLine(
+                Rsi50Line
+            );
+
+            ClearLine(
+                Rsi30Line
+            );
+        }
+
+
+        private static void ClearLine(
+            Line line)
+        {
+            line.X1 =
+                0.0;
+
+            line.X2 =
+                0.0;
+
+            line.Y1 =
+                0.0;
+
+            line.Y2 =
+                0.0;
+
+            line.Visibility =
+                Visibility.Collapsed;
+        }
+
+
+        // ==========================================
+        // CLEAR DASHBOARD
         // ==========================================
 
         private void ClearDashboard()
@@ -1349,63 +1891,52 @@ namespace EthStatistics.Views
             _displayedCandles =
                 Array.Empty<MarketCandle>();
 
-
             PriceValue.Text =
                 "—";
-
 
             ChangeValue.Text =
                 "—";
 
-
             ObservationValue.Text =
                 "—";
 
-
             VolatilityValue.Text =
                 "—";
-
 
             ChangeValue.Foreground =
                 FindBrush(
                     "TextPrimaryBrush"
                 );
 
-
             DashboardPriceLine.Points =
                 new PointCollection();
-
 
             DashboardPriceLine.Visibility =
                 Visibility.Collapsed;
 
+            ClearMeanLine();
+
+            ClearRsiChart();
 
             DashboardEmptyState.Visibility =
                 Visibility.Visible;
 
-
             YAxisMaximumText.Text =
                 "";
-
 
             YAxisUpperMiddleText.Text =
                 "";
 
-
             YAxisMiddleText.Text =
                 "";
-
 
             YAxisLowerMiddleText.Text =
                 "";
 
-
             YAxisMinimumText.Text =
                 "";
 
-
             MonthlyGridCanvas.Children.Clear();
-
 
             MonthlyLabelsCanvas.Children.Clear();
         }
@@ -1425,7 +1956,7 @@ namespace EthStatistics.Views
 
 
         // ==========================================
-        // INTERNAL AXIS TYPES
+        // TYPES
         // ==========================================
 
         private sealed record PriceAxisScale(

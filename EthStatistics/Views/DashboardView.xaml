@@ -161,12 +161,12 @@
 
 
                 <!-- ================================= -->
-                <!-- PRICE CHART -->
+                <!-- PRICE + RSI CHART -->
                 <!-- ================================= -->
 
                 <Border
                     Style="{StaticResource CardStyle}"
-                    Height="440">
+                    Height="610">
 
                     <Grid>
 
@@ -177,7 +177,7 @@
 
 
                         <!-- ================================= -->
-                        <!-- CHART HEADER -->
+                        <!-- HEADER -->
                         <!-- ================================= -->
 
                         <Grid Grid.Row="0">
@@ -187,22 +187,32 @@
                                 <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
 
-
                             <StackPanel>
 
                                 <TextBlock
                                     Text="Daily Price"
                                     Style="{StaticResource SectionTitleStyle}"/>
 
-                                <TextBlock
-                                    x:Name="MarketPairText"
-                                    Text="Waiting for market data"
-                                    Foreground="{DynamicResource TextMutedBrush}"
-                                    FontSize="11"
-                                    Margin="0,5,0,0"/>
+                                <StackPanel
+                                    Orientation="Horizontal"
+                                    Margin="0,5,0,0">
+
+                                    <TextBlock
+                                        x:Name="MarketPairText"
+                                        Text="Waiting for market data"
+                                        Foreground="{DynamicResource TextMutedBrush}"
+                                        FontSize="11"/>
+
+                                    <TextBlock
+                                        x:Name="MeanLegendText"
+                                        Text=""
+                                        Foreground="{DynamicResource TextSecondaryBrush}"
+                                        FontSize="11"
+                                        Margin="14,0,0,0"/>
+
+                                </StackPanel>
 
                             </StackPanel>
-
 
                             <StackPanel
                                 Grid.Column="1"
@@ -228,7 +238,7 @@
 
 
                         <!-- ================================= -->
-                        <!-- CHART AND AXES -->
+                        <!-- CHART AREA -->
                         <!-- ================================= -->
 
                         <Grid
@@ -242,13 +252,15 @@
                             </Grid.ColumnDefinitions>
 
                             <Grid.RowDefinitions>
-                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="3*"/>
+                                <RowDefinition Height="18"/>
+                                <RowDefinition Height="1.35*"/>
                                 <RowDefinition Height="38"/>
                             </Grid.RowDefinitions>
 
 
                             <!-- ================================= -->
-                            <!-- Y-AXIS LABELS -->
+                            <!-- PRICE Y AXIS -->
                             <!-- ================================= -->
 
                             <Grid
@@ -267,7 +279,6 @@
                                     <RowDefinition Height="*"/>
                                     <RowDefinition Height="Auto"/>
                                 </Grid.RowDefinitions>
-
 
                                 <TextBlock
                                     x:Name="YAxisMaximumText"
@@ -313,7 +324,7 @@
 
 
                             <!-- ================================= -->
-                            <!-- GRAPH AREA -->
+                            <!-- PRICE GRAPH -->
                             <!-- ================================= -->
 
                             <Grid
@@ -321,7 +332,7 @@
                                 Grid.Row="0"
                                 Grid.Column="1">
 
-                                <!-- HORIZONTAL GRID LINES -->
+                                <!-- Horizontal grid lines -->
 
                                 <Grid IsHitTestVisible="False">
 
@@ -364,8 +375,7 @@
 
                                 </Grid>
 
-
-                                <!-- MONTHLY VERTICAL GRID LINES -->
+                                <!-- Monthly vertical grid -->
 
                                 <Canvas
                                     x:Name="MonthlyGridCanvas"
@@ -373,12 +383,20 @@
                                     ClipToBounds="True"/>
 
 
-                                <!-- PRICE SERIES -->
+                                <!-- Price + mean -->
 
                                 <Canvas
                                     x:Name="DashboardChartCanvas"
                                     Margin="0,8,0,8"
                                     ClipToBounds="True">
+
+                                    <Line
+                                        x:Name="DashboardMeanLine"
+                                        Stroke="{DynamicResource TextSecondaryBrush}"
+                                        StrokeThickness="1.5"
+                                        StrokeDashArray="5,3"
+                                        Visibility="Collapsed"
+                                        IsHitTestVisible="False"/>
 
                                     <Polyline
                                         x:Name="DashboardPriceLine"
@@ -390,8 +408,7 @@
 
                                 </Canvas>
 
-
-                                <!-- EMPTY STATE -->
+                                <!-- Empty state -->
 
                                 <StackPanel
                                     x:Name="DashboardEmptyState"
@@ -416,13 +433,10 @@
 
                             </Grid>
 
-
-                            <!-- ================================= -->
-                            <!-- Y-AXIS TITLE -->
-                            <!-- ================================= -->
+                            <!-- PRICE TITLE -->
 
                             <TextBlock
-                                Grid.Row="1"
+                                Grid.Row="0"
                                 Grid.Column="0"
                                 Text="PRICE"
                                 Foreground="{DynamicResource TextMutedBrush}"
@@ -434,12 +448,127 @@
 
 
                             <!-- ================================= -->
-                            <!-- MONTHLY X-AXIS -->
+                            <!-- RSI Y AXIS -->
                             <!-- ================================= -->
+
+                            <Grid
+                                Grid.Row="2"
+                                Grid.Column="0"
+                                Margin="0,0,10,0">
+
+                                <TextBlock
+                                    Text="100"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"/>
+
+                                <TextBlock
+                                    Text="70"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Top"
+                                    Margin="0,27,0,0"/>
+
+                                <TextBlock
+                                    Text="50"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Center"/>
+
+                                <TextBlock
+                                    Text="30"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"
+                                    Margin="0,0,0,27"/>
+
+                                <TextBlock
+                                    Text="0"
+                                    Foreground="{DynamicResource TextMutedBrush}"
+                                    FontSize="9"
+                                    HorizontalAlignment="Right"
+                                    VerticalAlignment="Bottom"/>
+
+                            </Grid>
+
+
+                            <!-- ================================= -->
+                            <!-- RSI GRAPH -->
+                            <!-- ================================= -->
+
+                            <!-- ================================= -->
+                            <!-- RSI GRAPH -->
+                            <!-- ================================= -->
+
+                            <Grid
+    Grid.Row="2"
+    Grid.Column="1"
+    ClipToBounds="True">
+
+                                <Canvas
+        x:Name="RsiChartCanvas"
+        ClipToBounds="True">
+
+                                    <Line
+            x:Name="Rsi70Line"
+            Stroke="{DynamicResource BorderSubtleBrush}"
+            StrokeThickness="1"
+            StrokeDashArray="4,4"/>
+
+                                    <Line
+            x:Name="Rsi50Line"
+            Stroke="{DynamicResource BorderSubtleBrush}"
+            StrokeThickness="1"/>
+
+                                    <Line
+            x:Name="Rsi30Line"
+            Stroke="{DynamicResource BorderSubtleBrush}"
+            StrokeThickness="1"
+            StrokeDashArray="4,4"/>
+
+                                </Canvas>
+
+                                <Canvas
+        x:Name="RsiSeriesCanvas"
+        Background="Transparent"
+        ClipToBounds="True"
+        IsHitTestVisible="False"/>
+
+                                <TextBlock
+        Text="RSI (14)"
+        Foreground="{DynamicResource TextMutedBrush}"
+        FontSize="8"
+        FontWeight="SemiBold"
+        HorizontalAlignment="Left"
+        VerticalAlignment="Top"
+        Margin="8,6,0,0"
+        IsHitTestVisible="False"/>
+
+                            </Grid>
+
+
+                            <!-- ================================= -->
+                            <!-- DATE AXIS -->
+                            <!-- ================================= -->
+
+                            <TextBlock
+                                Grid.Row="3"
+                                Grid.Column="0"
+                                Text="DATE"
+                                Foreground="{DynamicResource TextMutedBrush}"
+                                FontSize="8"
+                                FontWeight="SemiBold"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Margin="0,7,10,0"/>
 
                             <Canvas
                                 x:Name="MonthlyLabelsCanvas"
-                                Grid.Row="1"
+                                Grid.Row="3"
                                 Grid.Column="1"
                                 Height="38"
                                 ClipToBounds="False"/>
