@@ -12,6 +12,7 @@ using EthStatistics.Services;
 using EthStatistics.Settings;
 using EthStatistics.Views;
 using Microsoft.Identity.Client;
+using EthStatistics.Services;
 
 namespace EthStatistics
 {
@@ -110,6 +111,8 @@ namespace EthStatistics
 
 
             ShowSignedOutView();
+            Loaded += MainWindow_Loaded_CheckForUpdates;
+
         }
 
 
@@ -124,7 +127,19 @@ namespace EthStatistics
             EnterFullScreen();
         }
 
+        private async void MainWindow_Loaded_CheckForUpdates(
+    object sender,
+    RoutedEventArgs e)
+        {
+            Loaded -=
+                MainWindow_Loaded_CheckForUpdates;
 
+            var updateService =
+                new UpdateService();
+
+            await updateService
+                .CheckAndDownloadUpdateAsync();
+        }
         private void EnterFullScreen()
         {
             WindowState =

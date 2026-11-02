@@ -3,6 +3,9 @@
   <PropertyGroup Condition="'$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '15.0'">
     <VisualStudioVersion>15.0</VisualStudioVersion>
   </PropertyGroup>
+  <!-- ========================================== -->
+  <!-- PROJECT CONFIGURATIONS -->
+  <!-- ========================================== -->
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x86">
       <Configuration>Debug</Configuration>
@@ -45,10 +48,16 @@
       <Platform>AnyCPU</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <!-- ========================================== -->
+  <!-- WINDOWS APPLICATION PACKAGING -->
+  <!-- ========================================== -->
   <PropertyGroup>
     <WapProjPath Condition="'$(WapProjPath)'==''">$(MSBuildExtensionsPath)\Microsoft\DesktopBridge\</WapProjPath>
   </PropertyGroup>
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.props" />
+  <!-- ========================================== -->
+  <!-- PACKAGE SETTINGS -->
+  <!-- ========================================== -->
   <PropertyGroup>
     <ProjectGuid>7b3d066f-0d67-4587-bcb0-da8cd6a22650</ProjectGuid>
     <TargetPlatformVersion>10.0.26100.0</TargetPlatformVersion>
@@ -57,19 +66,33 @@
     <AppxPackageSigningEnabled>True</AppxPackageSigningEnabled>
     <NoWarn>$(NoWarn);NU1702</NoWarn>
     <EntryPointProjectUniqueName>..\EthStatistics\EthStatistics.csproj</EntryPointProjectUniqueName>
-    <GenerateAppInstallerFile>True</GenerateAppInstallerFile>
+    <!-- ====================================== -->
+    <!-- SIGNING -->
+    <!-- ====================================== -->
     <PackageCertificateThumbprint>0550DD920F9066E7A9DE580A3F2693EC635C7255</PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
+    <!-- ====================================== -->
+    <!-- PACKAGE GENERATION -->
+    <!-- ====================================== -->
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
     <GenerateTestArtifacts>False</GenerateTestArtifacts>
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+    <!-- ====================================== -->
+    <!-- OLD APPINSTALLER SYSTEM DISABLED -->
+    <!-- ====================================== -->
+    <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
-    <AppInstallerUri>https://microsoftfodev.github.io/EthStatistics/downloads/</AppInstallerUri>
   </PropertyGroup>
+  <!-- ========================================== -->
+  <!-- X64 RELEASE -->
+  <!-- ========================================== -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <AppxBundle>Always</AppxBundle>
   </PropertyGroup>
+  <!-- ========================================== -->
+  <!-- OTHER BUILD CONFIGURATIONS -->
+  <!-- ========================================== -->
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM64'">
     <AppxBundle>Always</AppxBundle>
   </PropertyGroup>
@@ -97,11 +120,17 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <AppxBundle>Always</AppxBundle>
   </PropertyGroup>
+  <!-- ========================================== -->
+  <!-- MANIFEST -->
+  <!-- ========================================== -->
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
       <SubType>Designer</SubType>
     </AppxManifest>
   </ItemGroup>
+  <!-- ========================================== -->
+  <!-- ASSETS / SIGNING KEY -->
+  <!-- ========================================== -->
   <ItemGroup>
     <None Include="EthStatistics.Package_TemporaryKey.pfx" />
     <Content Include="Images\SplashScreen.scale-200.png" />
@@ -112,11 +141,36 @@
     <Content Include="Images\StoreLogo.png" />
     <Content Include="Images\Wide310x150Logo.scale-200.png" />
   </ItemGroup>
+  <!-- ========================================== -->
+  <!-- DESKTOP BRIDGE TARGETS -->
+  <!-- ========================================== -->
   <Import Project="$(WapProjPath)\Microsoft.DesktopBridge.targets" />
+  <!-- ========================================== -->
+  <!-- PACKAGES -->
+  <!-- ========================================== -->
   <ItemGroup>
     <PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.26100.7705" PrivateAssets="all" />
   </ItemGroup>
+  <!-- ========================================== -->
+  <!-- ETHSTATISTICS PROJECT -->
+  <!-- ========================================== -->
   <ItemGroup>
     <ProjectReference Include="..\EthStatistics\EthStatistics.csproj" />
   </ItemGroup>
+  <!-- ========================================== -->
+  <!-- AUTOMATIC RELEASE CHECK -->
+  <!-- ========================================== -->
+  <Target Name="PublishEthStatisticsRelease" AfterTargets="Build" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <PropertyGroup>
+      <EthStatisticsRepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..'))</EthStatisticsRepositoryRoot>
+      <EthStatisticsPublishScript>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Publish-EthStatistics.ps1'))</EthStatisticsPublishScript>
+    </PropertyGroup>
+    <Message Text="==========================================" Importance="high" />
+    <Message Text="Checking for a new EthStatistics release package..." Importance="high" />
+    <Message Text="Repository: $(EthStatisticsRepositoryRoot)" Importance="high" />
+    <Message Text="Release script: $(EthStatisticsPublishScript)" Importance="high" />
+    <Message Text="==========================================" Importance="high" />
+    <Error Condition="!Exists('$(EthStatisticsPublishScript)')" Text="EthStatistics release script was not found: $(EthStatisticsPublishScript)" />
+    <Exec Command="powershell.exe -NoProfile -ExecutionPolicy Bypass -File &quot;$(EthStatisticsPublishScript)&quot; -Auto" WorkingDirectory="$(EthStatisticsRepositoryRoot)" IgnoreExitCode="false" />
+  </Target>
 </Project>
