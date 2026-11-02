@@ -354,9 +354,8 @@
 
                 <StackPanel>
 
-                    <TextBlock Text="Statistical Reference"
-                               Style="{StaticResource PageTitleStyle}"/>
-
+                    <TextBlock Text="Statistical Reference • Updated"
+           Style="{StaticResource PageTitleStyle}"/>
                     <TextBlock
                         Text="Theory, probability distributions, confidence intervals and hypothesis testing"
                         Style="{StaticResource PageSubtitleStyle}"
