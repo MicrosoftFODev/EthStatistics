@@ -160,7 +160,7 @@
   <!-- ========================================== -->
   <!-- AUTOMATIC RELEASE CHECK -->
   <!-- ========================================== -->
-  <Target Name="PublishEthStatisticsRelease" AfterTargets="Build" Condition="'$(Configuration)|$(Platform)' == 'Release|x64' and '$(SkipEthStatisticsAutoPublish)' != 'true'">
+  <Target Name="PublishEthStatisticsRelease" AfterTargets="Build" Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <PropertyGroup>
       <EthStatisticsRepositoryRoot>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..'))</EthStatisticsRepositoryRoot>
       <EthStatisticsPublishScript>$([System.IO.Path]::GetFullPath('$(MSBuildProjectDirectory)\..\Publish-EthStatistics.ps1'))</EthStatisticsPublishScript>
