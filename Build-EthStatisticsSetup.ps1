@@ -60,10 +60,11 @@ $readme = @"
 ETHSTATISTICS $Version
 =====================
 1. Extract this ZIP file.
-2. Right-click Install-EthStatistics.ps1 and select Run with PowerShell.
-3. Accept the administrator prompt.
-4. Leave Launch when ready selected in Windows App Installer.
-5. Select Install.
+2. Run Install EthStatistics.cmd.
+3. Accept the Windows administrator prompt.
+4. Windows App Installer will open.
+5. Leave Launch when ready selected.
+6. Select Install.
 "@
 [System.IO.File]::WriteAllText((Join-Path $tempDirectory "README.txt"), $readme, [System.Text.UTF8Encoding]::new($false))
 Compress-Archive -Path (Join-Path $tempDirectory "*") -DestinationPath $setupPath -CompressionLevel Optimal -Force
