@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<AppInstaller
+	Uri="https://microsoftfodev.github.io/EthStatistics/downloads/EthStatistics.Package.appinstaller"
+	Version="1.1.1.0" xmlns="http://schemas.microsoft.com/appx/appinstaller/2017/2">
+	<MainBundle
+		Name="84e6079f-6509-4d2d-8305-f2f6f28af628"
+		Version="1.1.1.0"
+		Publisher="CN=zoisa"
+		Uri="https://microsoftfodev.github.io/EthStatistics/downloads/EthStatistics.Package_1.1.1.0_Test/EthStatistics.Package_1.1.1.0_x64.msixbundle" />
+	<UpdateSettings>
+		<OnLaunch
+			HoursBetweenUpdateChecks="0" />
+	</UpdateSettings>
+</AppInstaller>
