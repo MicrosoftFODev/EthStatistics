@@ -1,5 +1,6 @@
 {
     "version":  "1.9.11.0",
     "downloadUrl":  "https://microsoftfodev.github.io/EthStatistics/downloads/EthStatistics.Package_1.9.11.0_Test/EthStatistics.Package_1.9.11.0_x64.msixbundle",
+    "setupUrl":  "https://microsoftfodev.github.io/EthStatistics/downloads/EthStatistics-Setup-1.9.11.0.zip",
     "releaseNotes":  "EthStatistics version 1.9.11.0 is now available."
 }

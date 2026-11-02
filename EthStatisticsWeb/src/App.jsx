@@ -19,22 +19,22 @@ function App() {
             const release = await response.json();
 
             if (
-                !release.downloadUrl ||
-                typeof release.downloadUrl !== "string"
+                !(release.setupUrl || release.downloadUrl) ||
+                typeof (release.setupUrl || release.downloadUrl) !== "string"
             ) {
                 throw new Error(
                     "The release metadata does not contain a download URL."
                 );
             }
 
-            const downloadUrl = new URL(release.downloadUrl);
+            const downloadUrl = new URL((release.setupUrl || release.downloadUrl));
 
             if (
                 downloadUrl.protocol !== "https:" ||
                 downloadUrl.hostname !== "microsoftfodev.github.io" ||
                 !downloadUrl.pathname
                     .toLowerCase()
-                    .endsWith(".msixbundle")
+                    .match(/\.(zip|msixbundle)$/i)
             ) {
                 throw new Error(
                     "The release download URL is not valid."
@@ -61,7 +61,7 @@ function App() {
                 <div className="navInner">
                     <a className="logo" href="#home">
                         <div className="logoMark">
-                            <span>Ξ</span>
+                            <span>Îž</span>
                         </div>
 
                         <div className="logoText">
@@ -108,29 +108,29 @@ function App() {
 
                         <div className="heroActions">
                             <button className="buttonPrimary" onClick={downloadApp}>
-                                <span className="buttonIcon">↓</span>
+                                <span className="buttonIcon">â†“</span>
                                 Download for Windows
                             </button>
 
                             <a className="buttonSecondary" href="#features">
                                 Explore platform
-                                <span>→</span>
+                                <span>â†’</span>
                             </a>
                         </div>
 
                         <div className="heroMeta">
                             <div>
-                                <span className="check">✓</span>
+                                <span className="check">âœ“</span>
                                 Windows Application
                             </div>
 
                             <div>
-                                <span className="check">✓</span>
+                                <span className="check">âœ“</span>
                                 Statistical Engine
                             </div>
 
                             <div>
-                                <span className="check">✓</span>
+                                <span className="check">âœ“</span>
                                 Ethereum Analytics
                             </div>
                         </div>
@@ -143,15 +143,15 @@ function App() {
                         <div className="appPreview">
                             <div className="windowBar">
                                 <div className="windowBrand">
-                                    <div className="windowLogo">Ξ</div>
+                                    <div className="windowLogo">Îž</div>
 
                                     <span>EthStatistics</span>
                                 </div>
 
                                 <div className="windowActions">
-                                    <span>−</span>
-                                    <span>□</span>
-                                    <span>×</span>
+                                    <span>âˆ’</span>
+                                    <span>â–¡</span>
+                                    <span>Ã—</span>
                                 </div>
                             </div>
 
@@ -161,24 +161,24 @@ function App() {
                                     <div className="sidebarSection">ANALYTICS</div>
 
                                     <div className="sidebarItem active">
-                                        <span className="sidebarIcon">⌂</span>
+                                        <span className="sidebarIcon">âŒ‚</span>
                                         Dashboard
                                     </div>
 
                                     <div className="sidebarItem">
-                                        <span className="sidebarIcon">⌁</span>
+                                        <span className="sidebarIcon">âŒ</span>
                                         Statistics
                                     </div>
 
                                     <div className="sidebarItem">
-                                        <span className="sidebarIcon">↗</span>
+                                        <span className="sidebarIcon">â†—</span>
                                         Forecasting
                                     </div>
 
                                     <div className="sidebarSection second">LEARN</div>
 
                                     <div className="sidebarItem">
-                                        <span className="sidebarIcon">≡</span>
+                                        <span className="sidebarIcon">â‰¡</span>
                                         Dictionary
                                     </div>
 
@@ -204,9 +204,9 @@ function App() {
                                         </div>
 
                                         <div className="periodSelector">
-                                            <span className="calendarIcon">□</span>
+                                            <span className="calendarIcon">â–¡</span>
                                             Last 30 Days
-                                            <span className="chevron">⌄</span>
+                                            <span className="chevron">âŒ„</span>
                                         </div>
                                     </div>
 
@@ -215,13 +215,13 @@ function App() {
                                         <div className="statCard">
                                             <div className="statHeader">
                                                 <span>ETH PRICE</span>
-                                                <span className="statIcon purple">Ξ</span>
+                                                <span className="statIcon purple">Îž</span>
                                             </div>
 
                                             <strong>$3,842.16</strong>
 
                                             <div className="statFooter positive">
-                                                ↗ 2.48%
+                                                â†— 2.48%
                                                 <span>current period</span>
                                             </div>
                                         </div>
@@ -229,13 +229,13 @@ function App() {
                                         <div className="statCard">
                                             <div className="statHeader">
                                                 <span>MEAN PRICE</span>
-                                                <span className="statIcon blue">μ</span>
+                                                <span className="statIcon blue">Î¼</span>
                                             </div>
 
                                             <strong>$3,714.82</strong>
 
                                             <div className="statFooter">
-                                                x̄ estimator
+                                                xÌ„ estimator
                                                 <span>30 observations</span>
                                             </div>
                                         </div>
@@ -249,7 +249,7 @@ function App() {
                                             <strong>58.42</strong>
 
                                             <div className="statFooter greenText">
-                                                ● Neutral
+                                                â— Neutral
                                                 <span>momentum</span>
                                             </div>
                                         </div>
@@ -257,7 +257,7 @@ function App() {
                                         <div className="statCard">
                                             <div className="statHeader">
                                                 <span>VOLATILITY</span>
-                                                <span className="statIcon orange">σ</span>
+                                                <span className="statIcon orange">Ïƒ</span>
                                             </div>
 
                                             <strong>3.84%</strong>
@@ -456,42 +456,42 @@ function App() {
 
                     <div className="featureGrid">
                         <FeatureCard
-                            icon="Σ"
+                            icon="Î£"
                             number="01"
                             title="Statistical Analysis"
                             text="Explore descriptive statistics and estimators calculated directly from Ethereum market data."
                         />
 
                         <FeatureCard
-                            icon="⌁"
+                            icon="âŒ"
                             number="02"
                             title="Technical Indicators"
                             text="Analyze RSI and other market indicators alongside historical Ethereum price movements."
                         />
 
                         <FeatureCard
-                            icon="↗"
+                            icon="â†—"
                             number="03"
                             title="Interactive Charts"
                             text="Visualize price, mean estimates and indicators across selectable analysis periods."
                         />
 
                         <FeatureCard
-                            icon="σ"
+                            icon="Ïƒ"
                             number="04"
                             title="Quantitative Engine"
                             text="A dedicated native calculation layer handles the application's quantitative calculations."
                         />
 
                         <FeatureCard
-                            icon="◎"
+                            icon="â—Ž"
                             number="05"
                             title="Forecasting"
                             text="A dedicated workspace for exploring forecasting and quantitative market analysis."
                         />
 
                         <FeatureCard
-                            icon="≡"
+                            icon="â‰¡"
                             number="06"
                             title="Statistics Dictionary"
                             text="Review statistical concepts, probability distributions and hypothesis testing in one place."
@@ -555,7 +555,7 @@ function App() {
                             </div>
 
                             <div className="archNode">
-                                <div className="archIcon ethArch">Ξ</div>
+                                <div className="archIcon ethArch">Îž</div>
 
                                 <div>
                                     <strong>Ethereum Market Data</strong>
@@ -572,7 +572,7 @@ function App() {
                     <div className="downloadGlow" />
 
                     <div className="downloadContent">
-                        <div className="downloadLogo">Ξ</div>
+                        <div className="downloadLogo">Îž</div>
 
                         <div className="sectionEyebrow">ETHSTATISTICS</div>
 
@@ -587,7 +587,7 @@ function App() {
                         </p>
 
                         <button className="downloadBig" onClick={downloadApp}>
-                            <span className="downloadArrow">↓</span>
+                            <span className="downloadArrow">â†“</span>
 
                             <span>
                                 <strong>Download EthStatistics</strong>
@@ -596,7 +596,7 @@ function App() {
                         </button>
 
                         <div className="downloadNote">
-                            Version 1.0 • Windows x64
+                            Version 1.0 â€¢ Windows x64
                         </div>
                     </div>
                 </section>
@@ -606,7 +606,7 @@ function App() {
             <footer className="footer">
                 <div className="footerInner">
                     <div className="footerLogo">
-                        <div className="footerMark">Ξ</div>
+                        <div className="footerMark">Îž</div>
 
                         <div>
                             <strong>EthStatistics</strong>

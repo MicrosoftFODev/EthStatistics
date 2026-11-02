@@ -1,4 +1,4 @@
-﻿param(
+param(
     [switch]$Auto
 )
 
@@ -255,6 +255,17 @@ Get-Content $metadataPath -Raw
 
 
 # ------------------------------------------------------------
+
+# BEGIN ETHSTATISTICS SETUP ZIP
+$setupBuilder = Join-Path $repo "Build-EthStatisticsSetup.ps1"
+if (-not (Test-Path $setupBuilder)) { throw "Setup builder not found: $setupBuilder" }
+& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $setupBuilder `
+    -BundlePath $destinationBundle `
+    -Version $versionText `
+    -DownloadsDirectory $webDownloads `
+    -MetadataPath $metadataPath
+if ($LASTEXITCODE -ne 0) { throw "Build-EthStatisticsSetup.ps1 failed." }
+# END ETHSTATISTICS SETUP ZIP
 # Git publish
 # ------------------------------------------------------------
 
