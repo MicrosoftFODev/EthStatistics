@@ -1,50 +1,24 @@
-param(
+﻿param(
     [switch]$Auto
 )
 
 $ErrorActionPreference = "Stop"
 
-# ============================================================
-# ETHSTATISTICS AUTOMATIC RELEASE PUBLISHER
-# ============================================================
-
 $repo = "C:\Users\zoisa\source\repos\EthStatistics"
-
-$appPackages = Join-Path `
-    $repo `
-    "EthStatistics.Package\AppPackages"
-
-$webDownloads = Join-Path `
-    $repo `
-    "EthStatisticsWeb\public\downloads"
-
-$baseUrl =
-    "https://microsoftfodev.github.io/EthStatistics/downloads"
-
-$metadataPath = Join-Path `
-    $webDownloads `
-    "latest-version.json"
-
-
-# ============================================================
-# HEADER
-# ============================================================
+$appPackages = Join-Path $repo "EthStatistics.Package\AppPackages"
+$webDownloads = Join-Path $repo "EthStatisticsWeb\public\downloads"
+$metadataPath = Join-Path $webDownloads "latest-version.json"
+$baseUrl = "https://microsoftfodev.github.io/EthStatistics/downloads"
 
 Write-Host ""
-Write-Host "==============================================" -ForegroundColor Cyan
-Write-Host "       EthStatistics Automatic Publisher" -ForegroundColor Cyan
-Write-Host "==============================================" -ForegroundColor Cyan
-Write-Host ""
+Write-Host "==========================================" -ForegroundColor Cyan
+Write-Host " EthStatistics Release Publisher" -ForegroundColor Cyan
+Write-Host "==========================================" -ForegroundColor Cyan
 
 
-# ============================================================
-# VALIDATE DIRECTORIES
-# ============================================================
-
-if (-not (Test-Path $repo))
-{
-    throw "Repository not found: $repo"
-}
+# ------------------------------------------------------------
+# Validate paths
+# ------------------------------------------------------------
 
 if (-not (Test-Path $appPackages))
 {
@@ -53,8 +27,6 @@ if (-not (Test-Path $appPackages))
 
 if (-not (Test-Path $webDownloads))
 {
-    Write-Host "Creating website downloads directory..." -ForegroundColor Yellow
-
     New-Item `
         -ItemType Directory `
         -Path $webDownloads `
@@ -63,318 +35,191 @@ if (-not (Test-Path $webDownloads))
 }
 
 
-# ============================================================
-# FIND NEWEST MSIX BUNDLE
-# ============================================================
+# ------------------------------------------------------------
+# Find all MSIX bundles and determine highest VERSION
+# ------------------------------------------------------------
 
-Write-Host "Searching for newest published MSIX bundle..." -ForegroundColor Yellow
+Write-Host ""
+Write-Host "Searching for latest package..." -ForegroundColor Yellow
 
-$bundle = Get-ChildItem `
+$bundles = Get-ChildItem `
     -Path $appPackages `
-    -Filter "*.msixbundle" `
+    -Recurse `
     -File `
-    -Recurse |
-    Sort-Object LastWriteTimeUtc -Descending |
+    -Filter "*.msixbundle" |
+ForEach-Object {
+
+    if ($_.Name -match '(\d+\.\d+\.\d+\.\d+)')
+    {
+        [PSCustomObject]@{
+            File    = $_
+            Version = [Version]$Matches[1]
+        }
+    }
+}
+
+$latest = $bundles |
+    Sort-Object Version -Descending |
     Select-Object -First 1
 
 
-if ($null -eq $bundle)
+if ($null -eq $latest)
 {
-    if ($Auto)
-    {
-        Write-Host "No MSIX bundle found. Nothing to publish." -ForegroundColor Yellow
-        exit 0
-    }
-
-    throw "No MSIX bundle was found under $appPackages"
+    throw "No MSIX bundle was found."
 }
 
 
-Write-Host ""
-Write-Host "Newest bundle:" -ForegroundColor Green
-Write-Host $bundle.FullName
-Write-Host ""
+$versionText = $latest.Version.ToString()
+$bundle = $latest.File
 
 
-# ============================================================
-# DETECT VERSION FROM BUNDLE NAME
-# ============================================================
-
-$versionMatch = [regex]::Match(
-    $bundle.Name,
-    '(\d+\.\d+\.\d+\.\d+)'
-)
+Write-Host "Latest package: $versionText" -ForegroundColor Green
+Write-Host "Bundle: $($bundle.FullName)"
 
 
-if (-not $versionMatch.Success)
-{
-    throw "Could not detect package version from $($bundle.Name)"
-}
+# ------------------------------------------------------------
+# Package directory
+# ------------------------------------------------------------
+
+$sourceFolder = $bundle.Directory.FullName
+$folderName = Split-Path $sourceFolder -Leaf
+
+$destinationFolder = Join-Path `
+    $webDownloads `
+    $folderName
 
 
-$versionText =
-    $versionMatch.Groups[1].Value
+# ------------------------------------------------------------
+# Read LOCAL metadata version for information only
+# ------------------------------------------------------------
 
-
-try
-{
-    $newVersion =
-        [Version]$versionText
-}
-catch
-{
-    throw "Invalid package version: $versionText"
-}
-
-
-Write-Host "Detected package version: $newVersion" -ForegroundColor Green
-Write-Host ""
-
-
-# ============================================================
-# READ CURRENTLY PUBLISHED VERSION
-# ============================================================
-
-$currentVersion =
-    [Version]"0.0.0.0"
-
+$localPublishedVersion = [Version]"0.0.0.0"
 
 if (Test-Path $metadataPath)
 {
     try
     {
-        $currentMetadata =
-            Get-Content `
-                -Path $metadataPath `
-                -Raw |
+        $existingMetadata = Get-Content `
+            -Path $metadataPath `
+            -Raw |
             ConvertFrom-Json
 
-
         if (
-            $null -ne $currentMetadata.version `
-            -and `
+            $null -ne $existingMetadata.version -and
             -not [string]::IsNullOrWhiteSpace(
-                [string]$currentMetadata.version
+                [string]$existingMetadata.version
             )
         )
         {
-            $currentVersion =
-                [Version]$currentMetadata.version
+            $localPublishedVersion =
+                [Version]$existingMetadata.version
         }
     }
     catch
     {
-        Write-Host `
-            "Existing latest-version.json could not be read." `
+        Write-Host "Existing metadata is invalid and will be replaced." `
             -ForegroundColor Yellow
-
-        Write-Host `
-            "It will be regenerated." `
-            -ForegroundColor Yellow
-
-        $currentVersion =
-            [Version]"0.0.0.0"
     }
 }
 
 
-Write-Host "Currently published version: $currentVersion" -ForegroundColor Cyan
-Write-Host ""
+Write-Host "Local metadata version: $localPublishedVersion" `
+    -ForegroundColor Cyan
 
 
-# ============================================================
-# CHECK WHETHER THIS IS ACTUALLY A NEW RELEASE
-# ============================================================
-
-if ($newVersion -le $currentVersion)
-{
-    Write-Host "No new release detected." -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Newest package:     $newVersion"
-    Write-Host "Published version:  $currentVersion"
-    Write-Host ""
-    Write-Host "Nothing will be copied, committed or pushed." -ForegroundColor Green
-    Write-Host ""
-
-    exit 0
-}
-
-
-# ============================================================
-# DETERMINE PACKAGE FOLDER
-# ============================================================
-
-$sourceVersionFolder =
-    $bundle.Directory.FullName
-
-$versionFolderName =
-    Split-Path `
-        -Path $sourceVersionFolder `
-        -Leaf
-
-
-Write-Host "Package folder: $versionFolderName" -ForegroundColor Cyan
-
-
-# ============================================================
-# SAFETY CHECK
-# ============================================================
-
-$escapedVersion =
-    [regex]::Escape(
-        $versionText
-    )
-
-
-if ($versionFolderName -notmatch $escapedVersion)
-{
-    throw @"
-Package version mismatch.
-
-Detected version:
-$versionText
-
-Bundle:
-$($bundle.Name)
-
-Folder:
-$versionFolderName
-
-Publishing stopped.
-"@
-}
-
-
-# ============================================================
-# AUTOMATIC RELEASE NOTES
-# ============================================================
-
-$releaseNotes =
-    "EthStatistics version $versionText is now available."
-
-
-# ============================================================
-# COPY PACKAGE TO WEBSITE
-# ============================================================
-
-$destinationVersionFolder =
-    Join-Path `
-        $webDownloads `
-        $versionFolderName
-
+# ------------------------------------------------------------
+# IMPORTANT:
+# Always regenerate/copy metadata for the highest local package.
+#
+# We intentionally do NOT exit just because local JSON already has
+# the same version. A previous failed run may have changed JSON
+# locally without ever pushing it to GitHub.
+# ------------------------------------------------------------
 
 Write-Host ""
-Write-Host "Copying package to website..." -ForegroundColor Yellow
+Write-Host "Preparing website release..." -ForegroundColor Yellow
 
 
-if (Test-Path $destinationVersionFolder)
+# ------------------------------------------------------------
+# Copy version folder
+# ------------------------------------------------------------
+
+if (Test-Path $destinationFolder)
 {
     Remove-Item `
-        -Path $destinationVersionFolder `
+        -Path $destinationFolder `
         -Recurse `
         -Force
 }
 
-
 Copy-Item `
-    -Path $sourceVersionFolder `
-    -Destination $destinationVersionFolder `
+    -Path $sourceFolder `
+    -Destination $destinationFolder `
     -Recurse `
     -Force
 
 
-# ============================================================
-# VERIFY COPIED BUNDLE EXISTS
-# ============================================================
-
-$destinationBundle =
-    Join-Path `
-        $destinationVersionFolder `
-        $bundle.Name
+$destinationBundle = Join-Path `
+    $destinationFolder `
+    $bundle.Name
 
 
 if (-not (Test-Path $destinationBundle))
 {
-    throw "Copied bundle could not be found: $destinationBundle"
+    throw "Copied bundle could not be found."
 }
 
 
-# ============================================================
-# VERIFY PACKAGE HASH
-# ============================================================
+# ------------------------------------------------------------
+# SHA256 integrity check
+# ------------------------------------------------------------
 
-Write-Host "Verifying package SHA256..." -ForegroundColor Yellow
+Write-Host "Verifying bundle..." -ForegroundColor Yellow
 
+$sourceHash = (
+    Get-FileHash `
+        -Path $bundle.FullName `
+        -Algorithm SHA256
+).Hash
 
-$sourceHash =
-    (
-        Get-FileHash `
-            -Path $bundle.FullName `
-            -Algorithm SHA256
-    ).Hash
-
-
-$destinationHash =
-    (
-        Get-FileHash `
-            -Path $destinationBundle `
-            -Algorithm SHA256
-    ).Hash
+$destinationHash = (
+    Get-FileHash `
+        -Path $destinationBundle `
+        -Algorithm SHA256
+).Hash
 
 
 if ($sourceHash -ne $destinationHash)
 {
-    throw @"
-SHA256 verification failed.
-
-Source:
-$sourceHash
-
-Destination:
-$destinationHash
-"@
+    throw "SHA256 verification failed."
 }
 
 
-Write-Host "Package integrity verified." -ForegroundColor Green
+Write-Host "Bundle verified." -ForegroundColor Green
 
 
-# ============================================================
-# BUILD DOWNLOAD URL
-# ============================================================
+# ------------------------------------------------------------
+# Generate metadata
+# ------------------------------------------------------------
 
 $bundleUrl =
-    "$baseUrl/$versionFolderName/$($bundle.Name)"
+    "$baseUrl/$folderName/$($bundle.Name)"
 
+$releaseNotes =
+    "EthStatistics version $versionText is now available."
 
-Write-Host ""
-Write-Host "Download URL:" -ForegroundColor Cyan
-Write-Host $bundleUrl
-Write-Host ""
+$metadata = [ordered]@{
+    version      = $versionText
+    downloadUrl  = $bundleUrl
+    releaseNotes = $releaseNotes
+}
 
-
-# ============================================================
-# GENERATE latest-version.json
-# ============================================================
-
-$metadata =
-    [ordered]@{
-        version      = $versionText
-        downloadUrl  = $bundleUrl
-        releaseNotes = $releaseNotes
-    }
-
-
-$json =
-    $metadata |
+$json = $metadata |
     ConvertTo-Json `
         -Depth 5
 
-
 $utf8WithoutBom =
-    New-Object `
-        System.Text.UTF8Encoding($false)
-
+    New-Object System.Text.UTF8Encoding($false)
 
 [System.IO.File]::WriteAllText(
     $metadataPath,
@@ -383,100 +228,57 @@ $utf8WithoutBom =
 )
 
 
-# ============================================================
-# VERIFY GENERATED JSON
-# ============================================================
+# ------------------------------------------------------------
+# Verify generated metadata
+# ------------------------------------------------------------
 
-$verification =
-    Get-Content `
-        -Path $metadataPath `
-        -Raw |
+$check = Get-Content `
+    -Path $metadataPath `
+    -Raw |
     ConvertFrom-Json
 
 
-if (
-    [Version]$verification.version `
-    -ne `
-    $newVersion
-)
+if ([Version]$check.version -ne $latest.Version)
 {
-    throw "Generated metadata contains the wrong version."
+    throw "Metadata version verification failed."
+}
+
+if ($check.downloadUrl -ne $bundleUrl)
+{
+    throw "Metadata URL verification failed."
 }
 
 
-if (
-    $verification.downloadUrl `
-    -ne `
-    $bundleUrl
-)
-{
-    throw "Generated metadata contains the wrong download URL."
-}
-
-
+Write-Host ""
 Write-Host "Generated latest-version.json:" -ForegroundColor Cyan
-Write-Host ""
-
-Get-Content `
-    -Path $metadataPath `
-    -Raw
-
-Write-Host ""
-Write-Host ""
+Get-Content $metadataPath -Raw
 
 
-# ============================================================
-# MOVE TO REPOSITORY
-# ============================================================
+# ------------------------------------------------------------
+# Git publish
+# ------------------------------------------------------------
 
 Push-Location $repo
 
-
 try
 {
-    # ========================================================
-    # VERIFY GIT BRANCH
-    # ========================================================
-
-    $branch =
-        (
-            git branch --show-current
-        ).Trim()
-
+    $branch = (git branch --show-current).Trim()
 
     if ($LASTEXITCODE -ne 0)
     {
-        throw "Could nott branch."
+        throw "Could not determine Git branch."
     }
-
 
     if ($branch -ne "Dev")
     {
-        throw @"
-Automatic publishing stopped.
-
-Current branch:
-$branch
-
-Expected:
-Dev
-"@
+        throw "Current branch is '$branch'. Expected 'Dev'."
     }
 
 
-    Write-Host "Git branch: $branch" -ForegroundColor Cyan
-
-
-    # ========================================================
-    # STAGE FILES
-    # ========================================================
-
     Write-Host ""
-    Write-Host "Staging release files..." -ForegroundColor Yellow
-
+    Write-Host "Staging release..." -ForegroundColor Yellow
 
     git add -A
-
 
     if ($LASTEXITCODE -ne 0)
     {
@@ -484,74 +286,64 @@ Dev
     }
 
 
-    # ========================================================
-    # CHECK GIT STATUS
-    # ========================================================
-
-    $status =
-        git status --porcelain
-
-
-    $statusText =
-        $status -join "`n"
+    $status = git status --porcelain
+    $statusText = $status -join "`n"
 
 
     if ([string]::IsNullOrWhiteSpace($statusText))
     {
         Write-Host ""
-        Write-Host "No Git changes detected." -ForegroundColor Yellow
+        Write-Host "Everything is already committed." `
+            -ForegroundColor Yellow
+
+        Write-Host "Ensuring Dev is pushed..." `
+            -ForegroundColor Yellow
+
+        git push origin Dev
+
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw "git push failed."
+        }
+    }
+    else
+    {
         Write-Host ""
+        Write-Host "Changes:" -ForegroundColor Cyan
 
-        exit 0
-    }
-
-
-    Write-Host ""
-    Write-Host "Files included in release:" -ForegroundColor Cyan
-
-
-    foreach ($line in $status)
-    {
-        Write-Host $line
-    }
+        foreach ($line in $status)
+        {
+            Write-Host $line
+        }
 
 
-    # ========================================================
-    # COMMIT
-    # ========================================================
-
-    $commitMessage =
-        "Release EthStatistics $versionText"
+        $commitMessage =
+            "Release EthStatistics $versionText"
 
 
-    Write-Host ""
-    Write-Host "Creating commit: $commitMessage" -ForegroundColor Yellow
+        Write-Host ""
+        Write-Host "Creating commit: $commitMessage" `
+            -ForegroundColor Yellow
+
+        git commit `
+            -m $commitMessage
+
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw "git commit failed."
+        }
 
 
-    git commit `
-        -m $commitMessage
+        Write-Host ""
+        Write-Host "Pushing to origin/Dev..." `
+            -ForegroundColor Yellow
 
+        git push origin Dev
 
-    if ($LASTEXITCODE -ne 0)
-    {
-        throw "git commit failed."
-    }
-
-
-    # ========================================================
-    # PUSH
-    # ========================================================
-
-    Write-Host ""
-    Write-Host "Pushing release to origin/Dev..." -ForegroundColor Yellow
-
-
-    git push origin Dev
-
-
-    if ($LASTEXITCODE -ne 0)
-    {
-        throw "git push failed."
+        if ($LASTEXITCODE -ne 0)
+        {
+            throw "git push failed."
+        }
     }
 }
 finally
@@ -560,30 +352,19 @@ finally
 }
 
 
-# ============================================================
-# SUCCESS
-# ============================================================
+# ------------------------------------------------------------
+# Success
+# ------------------------------------------------------------
 
 Write-Host ""
-Write-Host "==============================================" -ForegroundColor Green
-Write-Host "       RELEASE PUBLISHED SUCCESSFULLY" -ForegroundColor Green
-Write-Host "==============================================" -ForegroundColor Green
-Write-Host ""
-
-Write-Host "Version:" -ForegroundColor Cyan
-Write-Host $versionText
+Write-Host "==========================================" -ForegroundColor Green
+Write-Host " RELEASE COMPLETE" -ForegroundColor Green
+Write-Host "==========================================" -ForegroundColor Green
 
 Write-Host ""
-
-Write-Host "Bundle:" -ForegroundColor Cyan
-Write-Host $bundleUrl
-
+Write-Host "Version: $versionText"
+Write-Host "Bundle:  $bundleUrl"
+Write-Host "Metadata: $baseUrl/latest-version.json"
 Write-Host ""
-
-Write-Host "Metadata:" -ForegroundColor Cyan
-Write-Host "$baseUrl/latest-version.json"
-
-Write-Host ""
-
-Write-Host "Wait for GitHub Pages deployment before testing." -ForegroundColor Yellow
-Write-Host ""
+Write-Host "Wait for GitHub Pages deployment." `
+    -ForegroundColor Yellow
