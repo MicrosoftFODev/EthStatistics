@@ -67,6 +67,40 @@ ETHSTATISTICS $Version
 6. Select Install.
 "@
 [System.IO.File]::WriteAllText((Join-Path $tempDirectory "README.txt"), $readme, [System.Text.UTF8Encoding]::new($false))
+
+# ============================================================
+# CREATE CMD LAUNCHER
+# ============================================================
+
+$cmdContent = @"
+@echo off
+title EthStatistics Setup
+
+cd /d "%~dp0"
+
+echo.
+echo ==============================================
+echo          EthStatistics Setup
+echo ==============================================
+echo.
+echo Starting installer...
+echo.
+
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0Install-EthStatistics.ps1"
+
+if errorlevel 1 (
+    echo.
+    echo Installation encountered an error.
+    echo.
+    pause
+)
+"@
+
+[System.IO.File]::WriteAllText(
+    (Join-Path $tempDirectory "Install EthStatistics.cmd"),
+    $cmdContent,
+    [System.Text.Encoding]::ASCII
+)
 Compress-Archive -Path (Join-Path $tempDirectory "*") -DestinationPath $setupPath -CompressionLevel Optimal -Force
 Remove-Item $tempDirectory -Recurse -Force
 $metadata = Get-Content $MetadataPath -Raw | ConvertFrom-Json
