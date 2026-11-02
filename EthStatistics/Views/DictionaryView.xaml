@@ -5,79 +5,37 @@
     <UserControl.Resources>
 
         <!-- ========================================== -->
-        <!-- INTERACTIVE CHART -->
+        <!-- THEME-AWARE CHART -->
         <!-- ========================================== -->
 
         <Style x:Key="InteractiveChartBorderStyle"
                TargetType="Border">
 
-            <Setter Property="Background">
-                <Setter.Value>
-                    <LinearGradientBrush
-                        StartPoint="0,0"
-                        EndPoint="0,1">
+            <Setter Property="Background"
+                    Value="{DynamicResource SurfaceBrush}"/>
 
-                        <GradientStop
-                            Color="#151B26"
-                            Offset="0"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderSubtleBrush}"/>
 
-                        <GradientStop
-                            Color="#0D121A"
-                            Offset="1"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
 
-                    </LinearGradientBrush>
-                </Setter.Value>
-            </Setter>
+            <Setter Property="CornerRadius"
+                    Value="12"/>
 
-            <Setter
-                Property="BorderBrush"
-                Value="{DynamicResource BorderSubtleBrush}"/>
-
-            <Setter
-                Property="BorderThickness"
-                Value="1"/>
-
-            <Setter
-                Property="CornerRadius"
-                Value="10"/>
-
-            <Setter
-                Property="Padding"
-                Value="4"/>
-
-            <Setter Property="Effect">
-                <Setter.Value>
-
-                    <DropShadowEffect
-                        BlurRadius="14"
-                        ShadowDepth="2"
-                        Opacity="0.12"
-                        Color="Black"/>
-
-                </Setter.Value>
-            </Setter>
+            <Setter Property="Padding"
+                    Value="5"/>
 
             <Style.Triggers>
 
-                <Trigger
-                    Property="IsMouseOver"
-                    Value="True">
+                <Trigger Property="IsMouseOver"
+                         Value="True">
 
-                    <Setter
-                        Property="BorderBrush"
-                        Value="{DynamicResource AccentBrush}"/>
+                    <Setter Property="BorderBrush"
+                            Value="{DynamicResource AccentBrush}"/>
 
-                    <Setter Property="Effect">
-                        <Setter.Value>
-
-                            <DropShadowEffect
-                                BlurRadius="18"
-                                ShadowDepth="2"
-                                Opacity="0.20"
-                                Color="#3584E4"/>
-
-                        </Setter.Value>
-                    </Setter>
+                    <Setter Property="BorderThickness"
+                            Value="1.5"/>
 
                 </Trigger>
 
@@ -87,59 +45,54 @@
 
 
         <!-- ========================================== -->
-        <!-- PARAMETER TEXTBOX -->
+        <!-- INPUT -->
         <!-- ========================================== -->
 
         <Style x:Key="DictionaryParameterTextBoxStyle"
                TargetType="TextBox">
 
-            <Setter
-                Property="Height"
-                Value="34"/>
+            <Setter Property="Height"
+                    Value="36"/>
 
-            <Setter
-                Property="Padding"
-                Value="10,5"/>
+            <Setter Property="Padding"
+                    Value="11,5"/>
 
-            <Setter
-                Property="VerticalContentAlignment"
-                Value="Center"/>
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center"/>
 
-            <Setter
-                Property="Background"
-                Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Background"
+                    Value="{DynamicResource SurfaceBrush}"/>
 
-            <Setter
-                Property="Foreground"
-                Value="{DynamicResource TextPrimaryBrush}"/>
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextPrimaryBrush}"/>
 
-            <Setter
-                Property="BorderBrush"
-                Value="{DynamicResource BorderSubtleBrush}"/>
+            <Setter Property="CaretBrush"
+                    Value="{DynamicResource AccentBrush}"/>
 
-            <Setter
-                Property="BorderThickness"
-                Value="1"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderSubtleBrush}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
 
             <Style.Triggers>
 
-                <Trigger
-                    Property="IsKeyboardFocusWithin"
-                    Value="True">
+                <Trigger Property="IsKeyboardFocusWithin"
+                         Value="True">
 
-                    <Setter
-                        Property="BorderBrush"
-                        Value="{DynamicResource AccentBrush}"/>
+                    <Setter Property="BorderBrush"
+                            Value="{DynamicResource AccentBrush}"/>
+
+                    <Setter Property="BorderThickness"
+                            Value="1.5"/>
 
                 </Trigger>
 
-                <Trigger
-                    Property="IsMouseOver"
-                    Value="True">
+                <Trigger Property="IsMouseOver"
+                         Value="True">
 
-                    <Setter
-                        Property="BorderBrush"
-                        Value="{DynamicResource TextMutedBrush}"/>
+                    <Setter Property="BorderBrush"
+                            Value="{DynamicResource AccentBrush}"/>
 
                 </Trigger>
 
@@ -155,21 +108,23 @@
         <Style x:Key="FormulaBoxStyle"
                TargetType="Border">
 
-            <Setter
-                Property="Background"
-                Value="{DynamicResource AccentSoftBrush}"/>
+            <Setter Property="Background"
+                    Value="{DynamicResource AccentSoftBrush}"/>
 
-            <Setter
-                Property="CornerRadius"
-                Value="7"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderSubtleBrush}"/>
 
-            <Setter
-                Property="Padding"
-                Value="13,11"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
 
-            <Setter
-                Property="Margin"
-                Value="0,12,0,18"/>
+            <Setter Property="CornerRadius"
+                    Value="8"/>
+
+            <Setter Property="Padding"
+                    Value="14,12"/>
+
+            <Setter Property="Margin"
+                    Value="0,12,0,16"/>
 
         </Style>
 
@@ -181,17 +136,178 @@
         <Style x:Key="DictionaryPillStyle"
                TargetType="Border">
 
-            <Setter
-                Property="Background"
-                Value="{DynamicResource SurfaceBrush}"/>
+            <Setter Property="Background"
+                    Value="{DynamicResource SurfaceBrush}"/>
 
-            <Setter
-                Property="CornerRadius"
-                Value="6"/>
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderSubtleBrush}"/>
 
-            <Setter
-                Property="Padding"
-                Value="9,5"/>
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="CornerRadius"
+                    Value="7"/>
+
+            <Setter Property="Padding"
+                    Value="9,5"/>
+
+        </Style>
+
+
+        <!-- ========================================== -->
+        <!-- TYPOGRAPHY -->
+        <!-- ========================================== -->
+
+        <Style x:Key="DictionarySectionHeadingStyle"
+               TargetType="TextBlock">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextPrimaryBrush}"/>
+
+            <Setter Property="FontSize"
+                    Value="22"/>
+
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+
+            <Setter Property="Margin"
+                    Value="0,28,0,12"/>
+
+        </Style>
+
+
+        <Style x:Key="DictionaryTopicHeadingStyle"
+               TargetType="TextBlock">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextPrimaryBrush}"/>
+
+            <Setter Property="FontSize"
+                    Value="15"/>
+
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+
+            <Setter Property="Margin"
+                    Value="0,16,0,6"/>
+
+        </Style>
+
+
+        <Style x:Key="DictionaryBodyTextStyle"
+               TargetType="TextBlock">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextSecondaryBrush}"/>
+
+            <Setter Property="FontSize"
+                    Value="13"/>
+
+            <Setter Property="LineHeight"
+                    Value="20"/>
+
+            <Setter Property="TextWrapping"
+                    Value="Wrap"/>
+
+        </Style>
+
+
+        <Style x:Key="DictionarySupportingTextStyle"
+               TargetType="TextBlock">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextMutedBrush}"/>
+
+            <Setter Property="FontSize"
+                    Value="12"/>
+
+            <Setter Property="LineHeight"
+                    Value="18"/>
+
+            <Setter Property="TextWrapping"
+                    Value="Wrap"/>
+
+        </Style>
+
+
+        <Style x:Key="DictionaryFormulaTextStyle"
+               TargetType="TextBlock">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource AccentBrush}"/>
+
+            <Setter Property="FontFamily"
+                    Value="Consolas"/>
+
+            <Setter Property="FontSize"
+                    Value="17"/>
+
+            <Setter Property="FontWeight"
+                    Value="SemiBold"/>
+
+            <Setter Property="TextWrapping"
+                    Value="Wrap"/>
+
+        </Style>
+
+
+        <!-- ========================================== -->
+        <!-- PANELS -->
+        <!-- ========================================== -->
+
+        <Style x:Key="DictionarySubtlePanelStyle"
+               TargetType="Border">
+
+            <Setter Property="Background"
+                    Value="{DynamicResource SurfaceBrush}"/>
+
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource BorderSubtleBrush}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="1"/>
+
+            <Setter Property="CornerRadius"
+                    Value="8"/>
+
+            <Setter Property="Padding"
+                    Value="14"/>
+
+        </Style>
+
+
+        <Style x:Key="DictionaryInsightPanelStyle"
+               TargetType="Border">
+
+            <Setter Property="Background"
+                    Value="{DynamicResource AccentSoftBrush}"/>
+
+            <Setter Property="BorderBrush"
+                    Value="{DynamicResource AccentBrush}"/>
+
+            <Setter Property="BorderThickness"
+                    Value="3,0,0,0"/>
+
+            <Setter Property="CornerRadius"
+                    Value="8"/>
+
+            <Setter Property="Padding"
+                    Value="14"/>
+
+            <Setter Property="Margin"
+                    Value="0,12,0,0"/>
+
+        </Style>
+
+
+        <Style x:Key="DictionaryExpanderStyle"
+               TargetType="Expander">
+
+            <Setter Property="Foreground"
+                    Value="{DynamicResource TextPrimaryBrush}"/>
+
+            <Setter Property="Margin"
+                    Value="0,0,0,11"/>
 
         </Style>
 
@@ -210,63 +326,112 @@
         <!-- HEADER -->
         <!-- ========================================== -->
 
-        <Grid
-            Grid.Row="0"
-            Margin="32,28,32,18">
+        <Grid Grid.Row="0"
+              Margin="32,28,32,20">
 
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="320"/>
+                <ColumnDefinition Width="340"/>
             </Grid.ColumnDefinitions>
 
-            <StackPanel>
+            <StackPanel Orientation="Horizontal"
+                        VerticalAlignment="Center">
 
-                <TextBlock
-                    Text="Statistics Dictionary"
-                    Style="{StaticResource PageTitleStyle}"/>
+                <Border Width="42"
+                        Height="42"
+                        CornerRadius="10"
+                        Background="{DynamicResource AccentSoftBrush}"
+                        Margin="0,0,13,0">
 
-                <TextBlock
-                    Text="Interactive reference from descriptive statistics to distributions and hypothesis testing"
-                    Style="{StaticResource PageSubtitleStyle}"
-                    Margin="0,5,0,0"/>
+                    <TextBlock Text="Σ"
+                               Foreground="{DynamicResource AccentBrush}"
+                               FontSize="20"
+                               FontWeight="SemiBold"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"/>
+
+                </Border>
+
+                <StackPanel>
+
+                    <TextBlock Text="Statistical Reference"
+                               Style="{StaticResource PageTitleStyle}"/>
+
+                    <TextBlock
+                        Text="Theory, probability distributions, confidence intervals and hypothesis testing"
+                        Style="{StaticResource PageSubtitleStyle}"
+                        Margin="0,4,0,0"/>
+
+                </StackPanel>
 
             </StackPanel>
 
-            <TextBox
-                x:Name="SearchTextBox"
-                Grid.Column="1"
-                Height="36"
-                Padding="12,6"
-                VerticalContentAlignment="Center"
-                Background="{DynamicResource SurfaceBrush}"
-                Foreground="{DynamicResource TextPrimaryBrush}"
-                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                BorderThickness="1"
-                TextChanged="SearchTextBox_TextChanged"
-                ToolTip="Search mean, variance, normal, p-value or z-test"/>
+
+            <Grid Grid.Column="1">
+
+                <TextBox x:Name="SearchTextBox"
+                         Height="38"
+                         Padding="13,6"
+                         VerticalContentAlignment="Center"
+                         Background="{DynamicResource SurfaceBrush}"
+                         Foreground="{DynamicResource TextPrimaryBrush}"
+                         CaretBrush="{DynamicResource AccentBrush}"
+                         BorderBrush="{DynamicResource BorderSubtleBrush}"
+                         BorderThickness="1"
+                         TextChanged="SearchTextBox_TextChanged"
+                         ToolTip="Search mean, variance, distribution, confidence interval or p-value"/>
+
+                <TextBlock Text="Search the dictionary"
+                           Foreground="{DynamicResource TextMutedBrush}"
+                           Margin="14,0,0,0"
+                           VerticalAlignment="Center"
+                           IsHitTestVisible="False">
+
+                    <TextBlock.Style>
+
+                        <Style TargetType="TextBlock">
+
+                            <Setter Property="Visibility"
+                                    Value="Collapsed"/>
+
+                            <Style.Triggers>
+
+                                <DataTrigger
+                                    Binding="{Binding Text, ElementName=SearchTextBox}"
+                                    Value="">
+
+                                    <Setter Property="Visibility"
+                                            Value="Visible"/>
+
+                                </DataTrigger>
+
+                            </Style.Triggers>
+
+                        </Style>
+
+                    </TextBlock.Style>
+
+                </TextBlock>
+
+            </Grid>
 
         </Grid>
 
 
-        <!-- ========================================== -->
-        <!-- CONTENT -->
-        <!-- ========================================== -->
+        <ScrollViewer Grid.Row="1"
+                      VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
 
-        <ScrollViewer
-            Grid.Row="1"
-            VerticalScrollBarVisibility="Auto"
-            HorizontalScrollBarVisibility="Disabled">
-
-            <StackPanel
-                x:Name="DictionaryContent"
-                Margin="32,0,32,34">
+            <StackPanel x:Name="DictionaryContent"
+                        Margin="32,0,32,34">
 
 
+                <!-- ========================================== -->
                 <!-- INTRODUCTION -->
+                <!-- ========================================== -->
 
-                <Border
-                    Style="{StaticResource CardStyle}"
-                    Margin="0,0,0,16">
+                <Border Style="{StaticResource CardStyle}"
+                        Margin="0,0,0,18">
 
                     <Grid>
 
@@ -275,34 +440,39 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border
-                            Width="46"
-                            Height="46"
-                            CornerRadius="9"
-                            Background="{DynamicResource AccentSoftBrush}"
-                            Margin="0,0,15,0">
+                        <Border Width="48"
+                                Height="48"
+                                CornerRadius="10"
+                                Background="{DynamicResource AccentSoftBrush}"
+                                Margin="0,0,16,0">
 
-                            <TextBlock
-                                Text="Σ"
-                                Foreground="{DynamicResource AccentBrush}"
-                                FontSize="20"
-                                FontWeight="SemiBold"
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"/>
+                            <TextBlock Text="Σ"
+                                       Foreground="{DynamicResource AccentBrush}"
+                                       FontSize="21"
+                                       FontWeight="SemiBold"
+                                       HorizontalAlignment="Center"
+                                       VerticalAlignment="Center"/>
 
                         </Border>
 
                         <StackPanel Grid.Column="1">
 
                             <TextBlock
-                                Text="How to use this view"
+                                Text="How to use this reference"
                                 Style="{StaticResource SectionTitleStyle}"/>
 
                             <TextBlock
-                                Text="Open a topic for a short explanation and its main formula. Change distribution parameters to redraw the probability model and experiment with the hypothesis test."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                Margin="0,8,0,0"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Margin="0,8,0,0"
+                                Text="Expand a topic to review its definition, assumptions and central formulas. Use the distribution models to investigate how parameters determine probability functions, and use the inference section to connect estimators, confidence intervals, test statistics, p-values and statistical decisions."/>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
+                                <TextBlock
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="Notation is consistent throughout. Greek letters denote population parameters, while Latin symbols and barred quantities denote sample statistics or observed values."/>
+
+                            </Border>
 
                         </StackPanel>
 
@@ -315,50 +485,38 @@
                 <!-- FOUNDATIONS -->
                 <!-- ========================================== -->
 
-                <TextBlock
-                    Text="1. Foundations"
-                    Style="{StaticResource PageTitleStyle}"
-                    FontSize="22"
-                    Margin="0,10,0,12"/>
+                <TextBlock Text="1. Statistical Foundations"
+                           Style="{StaticResource DictionarySectionHeadingStyle}"
+                           Margin="0,10,0,12"/>
 
 
-                <!-- POPULATION -->
-
-                <Expander
-                    x:Name="PopulationTopic"
-                    Header="Population, sample and observation"
-                    IsExpanded="True"
-                    Margin="0,0,0,10">
+                <Expander x:Name="PopulationTopic"
+                          Header="Population, sample and observation"
+                          IsExpanded="True"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
-                            <TextBlock
-                                Text="Population"
-                                FontWeight="SemiBold"
-                                Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="Population and sample"
+                                       Style="{StaticResource DictionaryTopicHeadingStyle}"
+                                       Margin="0,0,0,6"/>
 
                             <TextBlock
-                                Text="The complete collection about which we want to learn. A sample is the subset we actually observe."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                Margin="0,5,0,0"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="A population is the complete collection of units or outcomes about which an investigation seeks to draw conclusions. A sample is the subset that is observed and used to learn about that population."/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
-                                <TextBlock
-                                    Text="Sample: X₁, X₂, …, Xₙ"
-                                    FontFamily="Consolas"
-                                    FontSize="16"
-                                    Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="Sample: X₁, X₂, …, Xₙ"
+                                           Style="{StaticResource DictionaryFormulaTextStyle}"/>
 
                             </Border>
 
                             <TextBlock
-                                Text="n is the sample size. Each Xᵢ represents one observation or random variable."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextMutedBrush}"/>
+                                Style="{StaticResource DictionarySupportingTextStyle}"
+                                Text="The integer n denotes the sample size. Before observation, each Xᵢ is treated as a random variable. After data are collected, its realised value is written xᵢ."/>
 
                         </StackPanel>
 
@@ -367,30 +525,30 @@
                 </Expander>
 
 
-                <!-- MEAN -->
-
-                <Expander
-                    x:Name="MeanTopic"
-                    Header="Arithmetic mean"
-                    Margin="0,0,0,10">
+                <Expander x:Name="MeanTopic"
+                          Header="Arithmetic mean"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="The arithmetic mean measures the central level of a sample. It uses every observation and is sensitive to extreme values."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="The arithmetic mean summarises the central level of a sample. It incorporates every observation, making it informative but sensitive to unusually large or small values."/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
+                                <TextBlock Text="x̄ = (1/n) Σᵢ₌₁ⁿ xᵢ"
+                                           Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
                                 <TextBlock
-                                    Text="x̄ = (1 / n) Σᵢ₌₁ⁿ xᵢ"
-                                    FontFamily="Consolas"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Foreground="{DynamicResource AccentBrush}"/>
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="The sample mean x̄ is a statistic and is commonly used as an estimator of the population mean μ."/>
 
                             </Border>
 
@@ -401,42 +559,40 @@
                 </Expander>
 
 
-                <!-- VARIANCE -->
-
-                <Expander
-                    x:Name="VarianceTopic"
-                    Header="Variance and standard deviation"
-                    Margin="0,0,0,10">
+                <Expander x:Name="VarianceTopic"
+                          Header="Variance and standard deviation"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="Variance measures squared dispersion around the mean. Standard deviation returns dispersion to the original measurement scale."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Variance measures dispersion through squared deviations from the sample mean. Standard deviation is the square root of variance and therefore expresses dispersion in the original measurement units."/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
                                 <StackPanel>
 
                                     <TextBlock
-                                        Text="s² = [1 / (n - 1)] Σᵢ₌₁ⁿ (xᵢ - x̄)²"
-                                        FontFamily="Consolas"
-                                        FontSize="17"
-                                        FontWeight="SemiBold"
-                                        Foreground="{DynamicResource AccentBrush}"/>
+                                        Text="s² = [1/(n - 1)] Σᵢ₌₁ⁿ (xᵢ - x̄)²"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"/>
 
                                     <TextBlock
                                         Text="s = √s²"
-                                        FontFamily="Consolas"
-                                        FontSize="17"
-                                        FontWeight="SemiBold"
-                                        Foreground="{DynamicResource AccentBrush}"
-                                        Margin="0,7,0,0"/>
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
 
                                 </StackPanel>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
+                                <TextBlock
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="The denominator n - 1 is the degrees-of-freedom correction used by the unbiased sample-variance estimator under standard independent-sampling assumptions."/>
 
                             </Border>
 
@@ -447,42 +603,38 @@
                 </Expander>
 
 
-                <!-- RETURNS -->
-
-                <Expander
-                    x:Name="ReturnsTopic"
-                    Header="Financial returns"
-                    Margin="0,0,0,10">
+                <Expander x:Name="ReturnsTopic"
+                          Header="Financial returns"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="A simple return measures proportional price change. A log return is additive across time and is used throughout EthStatistics."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="A simple return measures proportional price change between two periods. A logarithmic return measures the change in log price and is additive across consecutive periods, making it useful in financial time-series modelling."/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
                                 <StackPanel>
 
                                     <TextBlock
-                                        Text="Simple return: Rₜ = (Pₜ - Pₜ₋₁) / Pₜ₋₁"
-                                        FontFamily="Consolas"
-                                        FontSize="16"
-                                        Foreground="{DynamicResource AccentBrush}"/>
+                                        Text="Simple return: Rₜ = (Pₜ - Pₜ₋₁)/Pₜ₋₁"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"/>
 
                                     <TextBlock
-                                        Text="Log return: rₜ = ln(Pₜ / Pₜ₋₁)"
-                                        FontFamily="Consolas"
-                                        FontSize="16"
-                                        Foreground="{DynamicResource AccentBrush}"
-                                        Margin="0,7,0,0"/>
+                                        Text="Log return: rₜ = ln(Pₜ/Pₜ₋₁)"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
 
                                 </StackPanel>
 
                             </Border>
+
+                            <TextBlock
+                                Style="{StaticResource DictionarySupportingTextStyle}"
+                                Text="Log returns are additive across time: the multi-period log return equals the sum of the constituent single-period log returns."/>
 
                         </StackPanel>
 
@@ -491,29 +643,30 @@
                 </Expander>
 
 
-                <!-- SHAPE -->
-
-                <Expander
-                    x:Name="ShapeTopic"
-                    Header="Skewness, kurtosis and quantiles"
-                    Margin="0,0,0,10">
+                <Expander x:Name="ShapeTopic"
+                          Header="Skewness, kurtosis and quantiles"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="Skewness describes asymmetry. Excess kurtosis describes tail weight relative to the normal distribution. A p-quantile is the value below which proportion p of a distribution lies."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Skewness describes distributional asymmetry. Kurtosis describes the relative concentration of probability in a distribution's centre and tails. A p-quantile is a threshold below which probability p lies."/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
+                                <TextBlock Text="Quantile qₚ: P(X ≤ qₚ) = p"
+                                           Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
                                 <TextBlock
-                                    Text="Quantile qₚ: P(X ≤ qₚ) = p"
-                                    FontFamily="Consolas"
-                                    FontSize="16"
-                                    Foreground="{DynamicResource AccentBrush}"/>
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="Quantiles are useful for asymmetric or heavy-tailed distributions because they provide a direct probability-based description of location."/>
 
                             </Border>
 
@@ -528,17 +681,13 @@
                 <!-- DISTRIBUTIONS -->
                 <!-- ========================================== -->
 
-                <TextBlock
-                    Text="2. Interactive Distributions"
-                    Style="{StaticResource PageTitleStyle}"
-                    FontSize="22"
-                    Margin="0,24,0,12"/>
+                <TextBlock Text="2. Probability Distributions"
+                           Style="{StaticResource DictionarySectionHeadingStyle}"/>
 
 
-                <Border
-                    x:Name="DistributionSection"
-                    Style="{StaticResource CardStyle}"
-                    Margin="0,0,0,16">
+                <Border x:Name="DistributionSection"
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,0,16">
 
                     <Grid>
 
@@ -549,199 +698,151 @@
                         </Grid.ColumnDefinitions>
 
 
-                        <!-- CONTROLS -->
-
                         <StackPanel Grid.Column="0">
 
-                            <TextBlock
-                                Text="Distribution"
-                                Style="{StaticResource LabelStyle}"/>
+                            <TextBlock Text="Distribution"
+                                       Style="{StaticResource LabelStyle}"/>
 
-                            <ComboBox
-                                x:Name="DistributionComboBox"
-                                Margin="0,7,0,16"
-                                Style="{StaticResource ProfessionalComboBoxStyle}"
-                                SelectionChanged="DistributionComboBox_SelectionChanged">
+                            <ComboBox x:Name="DistributionComboBox"
+                                      Margin="0,7,0,16"
+                                      Style="{StaticResource ProfessionalComboBoxStyle}"
+                                      SelectionChanged="DistributionComboBox_SelectionChanged">
 
-                                <ComboBoxItem
-                                    Content="Normal"
-                                    Tag="Normal"
-                                    IsSelected="True"/>
+                                <ComboBoxItem Content="Normal"
+                                              Tag="Normal"
+                                              IsSelected="True"/>
 
-                                <ComboBoxItem
-                                    Content="Binomial"
-                                    Tag="Binomial"/>
+                                <ComboBoxItem Content="Binomial"
+                                              Tag="Binomial"/>
 
-                                <ComboBoxItem
-                                    Content="Poisson"
-                                    Tag="Poisson"/>
+                                <ComboBoxItem Content="Poisson"
+                                              Tag="Poisson"/>
 
-                                <ComboBoxItem
-                                    Content="Exponential"
-                                    Tag="Exponential"/>
+                                <ComboBoxItem Content="Exponential"
+                                              Tag="Exponential"/>
 
                             </ComboBox>
 
-
-                            <TextBlock
-                                x:Name="DistributionDescriptionText"
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
-
+                            <TextBlock x:Name="DistributionDescriptionText"
+                                       Style="{StaticResource DictionaryBodyTextStyle}"/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
-                                <TextBlock
-                                    x:Name="DistributionFormulaText"
-                                    FontFamily="Consolas"
-                                    FontSize="15"
-                                    FontWeight="SemiBold"
-                                    Foreground="{DynamicResource AccentBrush}"
-                                    TextWrapping="Wrap"/>
+                                <TextBlock x:Name="DistributionFormulaText"
+                                           FontFamily="Consolas"
+                                           FontSize="15"
+                                           FontWeight="SemiBold"
+                                           Foreground="{DynamicResource AccentBrush}"
+                                           TextWrapping="Wrap"/>
 
                             </Border>
 
 
-                            <!-- NORMAL -->
-
                             <StackPanel x:Name="NormalParametersPanel">
 
-                                <TextBlock
-                                    Text="Mean μ"
-                                    Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Text="Mean μ"
+                                           Style="{StaticResource LabelStyle}"/>
 
-                                <TextBox
-                                    x:Name="NormalMeanTextBox"
-                                    Text="0"
-                                    Margin="0,6,0,12"
-                                    Style="{StaticResource DictionaryParameterTextBoxStyle}"
-                                    TextChanged="DistributionParameterChanged"
-                                    ToolTip="Location parameter μ"/>
+                                <TextBox x:Name="NormalMeanTextBox"
+                                         Text="0"
+                                         Margin="0,6,0,12"
+                                         Style="{StaticResource DictionaryParameterTextBoxStyle}"
+                                         TextChanged="DistributionParameterChanged"
+                                         ToolTip="Location parameter μ"/>
 
-                                <TextBlock
-                                    Text="Variance σ²"
-                                    Style="{StaticResource LabelStyle}"/>
+                                <TextBlock Text="Variance σ²"
+                                           Style="{StaticResource LabelStyle}"/>
 
-                                <TextBox
-                                    x:Name="NormalVarianceTextBox"
-                                    Text="1"
-                                    Margin="0,6,0,12"
-                                    Style="{StaticResource DictionaryParameterTextBoxStyle}"
-                                    TextChanged="DistributionParameterChanged"
-                                    ToolTip="Variance parameter σ²"/>
+                                <TextBox x:Name="NormalVarianceTextBox"
+                                         Text="1"
+                                         Margin="0,6,0,12"
+                                         Style="{StaticResource DictionaryParameterTextBoxStyle}"
+                                         TextChanged="DistributionParameterChanged"
+                                         ToolTip="Variance parameter σ²"/>
 
                             </StackPanel>
 
 
-                            <!-- BINOMIAL -->
+                            <StackPanel x:Name="BinomialParametersPanel"
+                                        Visibility="Collapsed">
 
-                            <StackPanel
-                                x:Name="BinomialParametersPanel"
-                                Visibility="Collapsed">
+                                <TextBlock Text="Trials n"
+                                           Style="{StaticResource LabelStyle}"/>
 
-                                <TextBlock
-                                    Text="Trials n"
-                                    Style="{StaticResource LabelStyle}"/>
+                                <TextBox x:Name="BinomialNTextBox"
+                                         Text="10"
+                                         Margin="0,6,0,12"
+                                         Style="{StaticResource DictionaryParameterTextBoxStyle}"
+                                         TextChanged="DistributionParameterChanged"/>
 
-                                <TextBox
-                                    x:Name="BinomialNTextBox"
-                                    Text="10"
-                                    Margin="0,6,0,12"
-                                    Style="{StaticResource DictionaryParameterTextBoxStyle}"
-                                    TextChanged="DistributionParameterChanged"/>
+                                <TextBlock Text="Success probability p"
+                                           Style="{StaticResource LabelStyle}"/>
 
-                                <TextBlock
-                                    Text="Success probability p"
-                                    Style="{StaticResource LabelStyle}"/>
-
-                                <TextBox
-                                    x:Name="BinomialPTextBox"
-                                    Text="0.5"
-                                    Margin="0,6,0,12"
-                                    Style="{StaticResource DictionaryParameterTextBoxStyle}"
-                                    TextChanged="DistributionParameterChanged"/>
+                                <TextBox x:Name="BinomialPTextBox"
+                                         Text="0.5"
+                                         Margin="0,6,0,12"
+                                         Style="{StaticResource DictionaryParameterTextBoxStyle}"
+                                         TextChanged="DistributionParameterChanged"/>
 
                             </StackPanel>
 
 
-                            <!-- POISSON -->
+                            <StackPanel x:Name="PoissonParametersPanel"
+                                        Visibility="Collapsed">
 
-                            <StackPanel
-                                x:Name="PoissonParametersPanel"
-                                Visibility="Collapsed">
+                                <TextBlock Text="Rate λ"
+                                           Style="{StaticResource LabelStyle}"/>
 
-                                <TextBlock
-                                    Text="Rate λ"
-                                    Style="{StaticResource LabelStyle}"/>
-
-                                <TextBox
-                                    x:Name="PoissonLambdaTextBox"
-                                    Text="4"
-                                    Margin="0,6,0,12"
-                                    Style="{StaticResource DictionaryParameterTextBoxStyle}"
-                                    TextChanged="DistributionParameterChanged"/>
+                                <TextBox x:Name="PoissonLambdaTextBox"
+                                         Text="4"
+                                         Margin="0,6,0,12"
+                                         Style="{StaticResource DictionaryParameterTextBoxStyle}"
+                                         TextChanged="DistributionParameterChanged"/>
 
                             </StackPanel>
 
 
-                            <!-- EXPONENTIAL -->
+                            <StackPanel x:Name="ExponentialParametersPanel"
+                                        Visibility="Collapsed">
 
-                            <StackPanel
-                                x:Name="ExponentialParametersPanel"
-                                Visibility="Collapsed">
+                                <TextBlock Text="Rate λ"
+                                           Style="{StaticResource LabelStyle}"/>
 
-                                <TextBlock
-                                    Text="Rate λ"
-                                    Style="{StaticResource LabelStyle}"/>
-
-                                <TextBox
-                                    x:Name="ExponentialLambdaTextBox"
-                                    Text="1"
-                                    Margin="0,6,0,12"
-                                    Style="{StaticResource DictionaryParameterTextBoxStyle}"
-                                    TextChanged="DistributionParameterChanged"/>
+                                <TextBox x:Name="ExponentialLambdaTextBox"
+                                         Text="1"
+                                         Margin="0,6,0,12"
+                                         Style="{StaticResource DictionaryParameterTextBoxStyle}"
+                                         TextChanged="DistributionParameterChanged"/>
 
                             </StackPanel>
 
 
-                            <!-- THEORETICAL VALUES -->
-
-                            <Border
-                                Background="{DynamicResource SurfaceBrush}"
-                                CornerRadius="7"
-                                Padding="11"
-                                Margin="0,6,0,0">
+                            <Border Style="{StaticResource DictionarySubtlePanelStyle}"
+                                    Margin="0,6,0,0">
 
                                 <StackPanel>
 
-                                    <TextBlock
-                                        Text="THEORETICAL PROPERTIES"
-                                        Foreground="{DynamicResource TextMutedBrush}"
-                                        FontSize="8"
-                                        FontWeight="SemiBold"
-                                        Margin="0,0,0,6"/>
+                                    <TextBlock Text="THEORETICAL PROPERTIES"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               FontSize="9"
+                                               FontWeight="SemiBold"
+                                               Margin="0,0,0,6"/>
 
-                                    <TextBlock
-                                        x:Name="DistributionSummaryText"
-                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                        TextWrapping="Wrap"/>
+                                    <TextBlock x:Name="DistributionSummaryText"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               TextWrapping="Wrap"/>
 
                                 </StackPanel>
 
                             </Border>
 
-                            <TextBlock
-                                x:Name="DistributionErrorText"
-                                Foreground="{DynamicResource NegativeBrush}"
-                                TextWrapping="Wrap"
-                                Margin="0,9,0,0"/>
+                            <TextBlock x:Name="DistributionErrorText"
+                                       Foreground="{DynamicResource NegativeBrush}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,9,0,0"/>
 
                         </StackPanel>
 
-
-                        <!-- ========================================== -->
-                        <!-- INTERACTIVE DISTRIBUTION CHART -->
-                        <!-- ========================================== -->
 
                         <Grid Grid.Column="2">
 
@@ -751,12 +852,8 @@
                                 <RowDefinition Height="42"/>
                             </Grid.RowDefinitions>
 
-
-                            <!-- CHART HEADER -->
-
-                            <Grid
-                                Grid.Row="0"
-                                Margin="2,0,2,10">
+                            <Grid Grid.Row="0"
+                                  Margin="2,0,2,10">
 
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
@@ -765,38 +862,34 @@
 
                                 <StackPanel>
 
-                                    <TextBlock
-                                        Text="Probability model"
-                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                        FontSize="12"
-                                        FontWeight="SemiBold"/>
+                                    <TextBlock Text="Probability model"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontSize="13"
+                                               FontWeight="SemiBold"/>
 
                                     <TextBlock
-                                        Text="Move across the chart to inspect the nearest value"
+                                        Text="Move across the chart to inspect the model at the nearest value"
                                         Foreground="{DynamicResource TextMutedBrush}"
-                                        FontSize="9"
+                                        FontSize="10"
                                         Margin="0,3,0,0"/>
 
                                 </StackPanel>
 
-                                <Border
-                                    Grid.Column="1"
-                                    Style="{StaticResource DictionaryPillStyle}">
+                                <Border Grid.Column="1"
+                                        Style="{StaticResource DictionaryPillStyle}">
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Ellipse
-                                            Width="6"
-                                            Height="6"
-                                            Fill="{DynamicResource AccentBrush}"
-                                            VerticalAlignment="Center"
-                                            Margin="0,0,6,0"/>
+                                        <Ellipse Width="6"
+                                                 Height="6"
+                                                 Fill="{DynamicResource AccentBrush}"
+                                                 VerticalAlignment="Center"
+                                                 Margin="0,0,6,0"/>
 
-                                        <TextBlock
-                                            Text="INTERACTIVE"
-                                            Foreground="{DynamicResource TextMutedBrush}"
-                                            FontSize="8"
-                                            FontWeight="SemiBold"/>
+                                        <TextBlock Text="INTERACTIVE"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="8"
+                                                   FontWeight="SemiBold"/>
 
                                     </StackPanel>
 
@@ -805,21 +898,14 @@
                             </Grid>
 
 
-                            <!-- CHART -->
+                            <Border Grid.Row="1"
+                                    Style="{StaticResource InteractiveChartBorderStyle}">
 
-                            <Border
-                                Grid.Row="1"
-                                Style="{StaticResource InteractiveChartBorderStyle}">
-
-                                <Grid
-                                    x:Name="DistributionInteractionArea"
-                                    Background="Transparent"
-                                    ClipToBounds="True"
-                                    MouseMove="DistributionChart_MouseMove"
-                                    MouseLeave="DistributionChart_MouseLeave">
-
-
-                                    <!-- BACKGROUND GRID -->
+                                <Grid x:Name="DistributionInteractionArea"
+                                      Background="Transparent"
+                                      ClipToBounds="True"
+                                      MouseMove="DistributionChart_MouseMove"
+                                      MouseLeave="DistributionChart_MouseLeave">
 
                                     <Grid IsHitTestVisible="False">
 
@@ -837,107 +923,84 @@
                                             <ColumnDefinition/>
                                         </Grid.ColumnDefinitions>
 
+                                        <Border Grid.Row="1"
+                                                Grid.ColumnSpan="4"
+                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                BorderThickness="0,1,0,0"
+                                                Opacity="0.38"/>
 
-                                        <Border
-                                            Grid.Row="1"
-                                            Grid.ColumnSpan="4"
-                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                            BorderThickness="0,1,0,0"
-                                            Opacity="0.38"/>
+                                        <Border Grid.Row="2"
+                                                Grid.ColumnSpan="4"
+                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                BorderThickness="0,1,0,0"
+                                                Opacity="0.38"/>
 
-                                        <Border
-                                            Grid.Row="2"
-                                            Grid.ColumnSpan="4"
-                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                            BorderThickness="0,1,0,0"
-                                            Opacity="0.38"/>
+                                        <Border Grid.Row="3"
+                                                Grid.ColumnSpan="4"
+                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                BorderThickness="0,1,0,0"
+                                                Opacity="0.38"/>
 
-                                        <Border
-                                            Grid.Row="3"
-                                            Grid.ColumnSpan="4"
-                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                            BorderThickness="0,1,0,0"
-                                            Opacity="0.38"/>
+                                        <Border Grid.Column="1"
+                                                Grid.RowSpan="4"
+                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                BorderThickness="1,0,0,0"
+                                                Opacity="0.22"/>
 
+                                        <Border Grid.Column="2"
+                                                Grid.RowSpan="4"
+                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                BorderThickness="1,0,0,0"
+                                                Opacity="0.22"/>
 
-                                        <Border
-                                            Grid.Column="1"
-                                            Grid.RowSpan="4"
-                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                            BorderThickness="1,0,0,0"
-                                            Opacity="0.22"/>
-
-                                        <Border
-                                            Grid.Column="2"
-                                            Grid.RowSpan="4"
-                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                            BorderThickness="1,0,0,0"
-                                            Opacity="0.22"/>
-
-                                        <Border
-                                            Grid.Column="3"
-                                            Grid.RowSpan="4"
-                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                            BorderThickness="1,0,0,0"
-                                            Opacity="0.22"/>
+                                        <Border Grid.Column="3"
+                                                Grid.RowSpan="4"
+                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                BorderThickness="1,0,0,0"
+                                                Opacity="0.22"/>
 
                                     </Grid>
 
+                                    <Canvas x:Name="DistributionCanvas"
+                                            Margin="8"
+                                            Background="Transparent"
+                                            IsHitTestVisible="False"
+                                            SizeChanged="DistributionCanvas_SizeChanged"/>
 
-                                    <!-- CURVE / BARS -->
+                                    <Canvas x:Name="DistributionHoverCanvas"
+                                            Margin="8"
+                                            Background="Transparent"
+                                            IsHitTestVisible="False"
+                                            ClipToBounds="True"/>
 
-                                    <Canvas
-                                        x:Name="DistributionCanvas"
-                                        Margin="8"
-                                        Background="Transparent"
-                                        IsHitTestVisible="False"
-                                        SizeChanged="DistributionCanvas_SizeChanged"/>
-
-
-                                    <!-- HOVER CROSSHAIR -->
-
-                                    <Canvas
-                                        x:Name="DistributionHoverCanvas"
-                                        Margin="8"
-                                        Background="Transparent"
-                                        IsHitTestVisible="False"
-                                        ClipToBounds="True"/>
-
-
-                                    <!-- FLOATING TOOLTIP -->
-
-                                    <Border
-                                        x:Name="DistributionHoverToolTip"
-                                        Background="{DynamicResource AppBackgroundBrush}"
-                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                        BorderThickness="1"
-                                        CornerRadius="7"
-                                        Padding="11,9"
-                                        HorizontalAlignment="Left"
-                                        VerticalAlignment="Top"
-                                        Visibility="Collapsed"
-                                        IsHitTestVisible="False">
+                                    <Border x:Name="DistributionHoverToolTip"
+                                            Background="{DynamicResource AppBackgroundBrush}"
+                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="8"
+                                            Padding="11,9"
+                                            HorizontalAlignment="Left"
+                                            VerticalAlignment="Top"
+                                            Visibility="Collapsed"
+                                            IsHitTestVisible="False">
 
                                         <StackPanel>
 
-                                            <TextBlock
-                                                x:Name="DistributionHoverTitleText"
-                                                Foreground="{DynamicResource TextPrimaryBrush}"
-                                                FontSize="11"
-                                                FontWeight="SemiBold"/>
+                                            <TextBlock x:Name="DistributionHoverTitleText"
+                                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                                       FontSize="11"
+                                                       FontWeight="SemiBold"/>
 
-                                            <TextBlock
-                                                x:Name="DistributionHoverXText"
-                                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                                FontSize="10"
-                                                Margin="0,6,0,0"/>
+                                            <TextBlock x:Name="DistributionHoverXText"
+                                                       Foreground="{DynamicResource TextSecondaryBrush}"
+                                                       FontSize="10"
+                                                       Margin="0,6,0,0"/>
 
-                                            <TextBlock
-                                                x:Name="DistributionHoverValueText"
-                                                Foreground="{DynamicResource AccentBrush}"
-                                                FontSize="10"
-                                                FontWeight="SemiBold"
-                                                Margin="0,3,0,0"/>
+                                            <TextBlock x:Name="DistributionHoverValueText"
+                                                       Foreground="{DynamicResource AccentBrush}"
+                                                       FontSize="10"
+                                                       FontWeight="SemiBold"
+                                                       Margin="0,3,0,0"/>
 
                                         </StackPanel>
 
@@ -948,14 +1011,13 @@
                             </Border>
 
 
-                            <!-- CURSOR STATUS -->
-
-                            <Border
-                                Grid.Row="2"
-                                Background="{DynamicResource SurfaceBrush}"
-                                CornerRadius="6"
-                                Padding="12,6"
-                                Margin="0,7,0,0">
+                            <Border Grid.Row="2"
+                                    Background="{DynamicResource SurfaceBrush}"
+                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                    BorderThickness="1"
+                                    CornerRadius="7"
+                                    Padding="12,6"
+                                    Margin="0,7,0,0">
 
                                 <Grid>
 
@@ -966,30 +1028,27 @@
 
                                     <StackPanel Orientation="Horizontal">
 
-                                        <Ellipse
-                                            Width="6"
-                                            Height="6"
-                                            Fill="{DynamicResource AccentBrush}"
-                                            VerticalAlignment="Center"
-                                            Margin="0,0,6,0"/>
+                                        <Ellipse Width="6"
+                                                 Height="6"
+                                                 Fill="{DynamicResource AccentBrush}"
+                                                 VerticalAlignment="Center"
+                                                 Margin="0,0,6,0"/>
 
-                                        <TextBlock
-                                            Text="CURSOR"
-                                            Foreground="{DynamicResource TextMutedBrush}"
-                                            FontSize="8"
-                                            FontWeight="SemiBold"
-                                            VerticalAlignment="Center"/>
+                                        <TextBlock Text="CURSOR"
+                                                   Foreground="{DynamicResource TextMutedBrush}"
+                                                   FontSize="8"
+                                                   FontWeight="SemiBold"
+                                                   VerticalAlignment="Center"/>
 
                                     </StackPanel>
 
-                                    <TextBlock
-                                        x:Name="DistributionHoverText"
-                                        Grid.Column="1"
-                                        Text="Move over the chart to inspect values"
-                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                        FontSize="10"
-                                        HorizontalAlignment="Right"
-                                        VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="DistributionHoverText"
+                                               Grid.Column="1"
+                                               Text="Move over the chart to inspect values"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="10"
+                                               HorizontalAlignment="Right"
+                                               VerticalAlignment="Center"/>
 
                                 </Grid>
 
@@ -1000,49 +1059,68 @@
                     </Grid>
 
                 </Border>
-
-
                 <!-- ========================================== -->
-                <!-- HYPOTHESIS TESTING -->
+                <!-- STATISTICAL INFERENCE -->
                 <!-- ========================================== -->
 
-                <TextBlock
-                    Text="3. Hypothesis Testing"
-                    Style="{StaticResource PageTitleStyle}"
-                    FontSize="22"
-                    Margin="0,24,0,12"/>
+                <TextBlock Text="3. Statistical Inference"
+                           Style="{StaticResource DictionarySectionHeadingStyle}"/>
 
 
-                <Expander
-                    x:Name="HypothesisBasicsTopic"
-                    Header="Hypotheses, significance and errors"
-                    IsExpanded="True"
-                    Margin="0,0,0,10">
+                <Expander x:Name="HypothesisBasicsTopic"
+                          Header="Hypotheses, significance and decision errors"
+                          IsExpanded="True"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="The null hypothesis H₀ is the default claim being tested. The alternative H₁ is supported when the evidence against H₀ is strong enough. The significance level α controls the tolerated Type I error probability."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="The null hypothesis H₀ defines the reference model against which the observed data are evaluated. The alternative hypothesis H₁ describes the departure of substantive interest. The significance level α is the maximum long-run probability of rejecting H₀ when H₀ is true."/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
-                                <TextBlock
-                                    Text="Reject H₀ when p-value ≤ α"
-                                    FontFamily="Consolas"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="Reject H₀ when p-value ≤ α"
+                                           Style="{StaticResource DictionaryFormulaTextStyle}"/>
 
                             </Border>
 
-                            <TextBlock
-                                Text="Type I error: reject a true H₀. Type II error: fail to reject a false H₀."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextMutedBrush}"/>
+                            <Border Style="{StaticResource DictionarySubtlePanelStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="Type I error"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold"/>
+
+                                    <TextBlock
+                                        Style="{StaticResource DictionarySupportingTextStyle}"
+                                        Text="Rejecting H₀ when H₀ is true."
+                                        Margin="0,4,0,0"/>
+
+                                    <TextBlock Text="Type II error"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold"
+                                               Margin="0,12,0,0"/>
+
+                                    <TextBlock
+                                        Style="{StaticResource DictionarySupportingTextStyle}"
+                                        Text="Failing to reject H₀ when the specified alternative is true."
+                                        Margin="0,4,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
+                                <TextBlock
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="Failing to reject H₀ does not demonstrate that H₀ is true. It means that the available sample did not provide sufficient evidence for rejection at the selected significance level."/>
+
+                            </Border>
 
                         </StackPanel>
 
@@ -1052,13 +1130,438 @@
 
 
                 <!-- ========================================== -->
-                <!-- Z TEST -->
+                <!-- CONFIDENCE INTERVALS -->
                 <!-- ========================================== -->
 
-                <Border
-                    x:Name="ZTestSection"
-                    Style="{StaticResource CardStyle}"
-                    Margin="0,0,0,16">
+                <Expander x:Name="ConfidenceIntervalTopic"
+                          Header="Confidence intervals from first principles"
+                          IsExpanded="True"
+                          Style="{StaticResource DictionaryExpanderStyle}">
+
+                    <Border Style="{StaticResource CardStyle}">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Suppose X₁, X₂, …, Xₙ are independent observations from a normal population N(μ, σ²). The objective is to construct an interval estimator for the unknown population mean μ."/>
+
+                            <TextBlock Text="Step 1 — Begin with the sample mean"
+                                       Style="{StaticResource DictionaryTopicHeadingStyle}"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="The sample mean X̄ is the natural estimator of μ. However, it is not itself a pivot because its sampling distribution still depends on the unknown parameter μ."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="X̄ ~ N(μ, σ²/n)"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock Text="E[X̄] = μ"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="Var(X̄) = σ²/n"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+
+                            <TextBlock
+                                Text="Case 1 — Known population standard deviation"
+                                Style="{StaticResource DictionaryTopicHeadingStyle}"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Standardising X̄ by subtracting μ and dividing by its known standard error produces a pivot. The expression contains μ, but its probability distribution is completely known and does not depend on unknown parameters."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="Z = (X̄ - μ)/(σ/√n)"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock Text="Z ~ N(0,1)"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Select constants c₁ and c₂ from the standard normal distribution so that the probability enclosed between them equals the desired confidence coefficient 1 - α."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="P(c₁ ≤ Z ≤ c₂) = 1 - α"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock
+                                        Text="P(c₁ ≤ (X̄ - μ)/(σ/√n) ≤ c₂) = 1 - α"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Algebraically rearranging the inequalities isolates μ and transforms the probability statement about the pivot into an interval estimator."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <TextBlock
+                                    Text="P(X̄ - c₂σ/√n ≤ μ ≤ X̄ - c₁σ/√n) = 1 - α"
+                                    Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                            </Border>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="For a symmetric two-sided interval, c₁ = -zα/2 and c₂ = zα/2."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <TextBlock
+                                    Text="μ ∈ [X̄ - zα/2 σ/√n, X̄ + zα/2 σ/√n]"
+                                    Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                            </Border>
+
+
+                            <TextBlock
+                                Text="Case 2 — Unknown population standard deviation"
+                                Style="{StaticResource DictionaryTopicHeadingStyle}"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="When σ is unknown, it is replaced by the sample standard deviation S. The additional uncertainty introduced by estimating σ changes the pivot's distribution from standard normal to Student's t with n - 1 degrees of freedom."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock
+                                        Text="S² = [1/(n - 1)] Σᵢ₌₁ⁿ (Xᵢ - X̄)²"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock
+                                        Text="T = (X̄ - μ)/(S/√n)"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
+
+                                    <TextBlock
+                                        Text="T ~ tₙ₋₁"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="The degrees of freedom equal n - 1 because the deviations used to calculate S² must sum to zero after X̄ has been estimated."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock
+                                        Text="P(-tα/2,n-1 ≤ T ≤ tα/2,n-1) = 1 - α"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock
+                                        Text="μ ∈ [X̄ - tα/2,n-1 S/√n, X̄ + tα/2,n-1 S/√n]"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="Known σ"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold"/>
+
+                                    <TextBlock
+                                        Style="{StaticResource DictionarySupportingTextStyle}"
+                                        Text="Use the standard normal pivot and standard normal critical values."
+                                        Margin="0,4,0,0"/>
+
+                                    <TextBlock Text="Unknown σ"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold"
+                                               Margin="0,10,0,0"/>
+
+                                    <TextBlock
+                                        Style="{StaticResource DictionarySupportingTextStyle}"
+                                        Text="Use the Student t pivot and t critical values with n - 1 degrees of freedom."
+                                        Margin="0,4,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+
+                            <TextBlock
+                                Text="Numerical example — 95% interval with unknown σ"
+                                Style="{StaticResource DictionaryTopicHeadingStyle}"
+                                Margin="0,20,0,6"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Suppose a normal sample gives n = 25, x̄ = 52 and s = 10. Since σ is unknown, use the t distribution with 24 degrees of freedom."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="n = 25,   x̄ = 52,   s = 10"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock Text="df = n - 1 = 24"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="t₀.₉₇₅,₂₄ ≈ 2.064"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="SE = s/√n = 10/√25 = 2"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="Margin = 2.064 × 2 = 4.128"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionarySubtlePanelStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="95% confidence interval"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold"/>
+
+                                    <TextBlock Text="52 ± 4.128"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,9,0,0"/>
+
+                                    <TextBlock Text="[47.872, 56.128]"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,9,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <TextBlock
+                                Style="{StaticResource DictionarySupportingTextStyle}"
+                                Margin="0,10,0,0"
+                                Text="The population parameter μ is fixed. The interval endpoints vary across repeated samples. Under the model assumptions, 95% of intervals produced by this procedure contain μ."/>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </Expander>
+
+
+                <!-- ========================================== -->
+                <!-- P-VALUE -->
+                <!-- ========================================== -->
+
+                <Expander x:Name="PValueTopic"
+                          Header="How is a p-value obtained?"
+                          IsExpanded="True"
+                          Style="{StaticResource DictionaryExpanderStyle}">
+
+                    <Border Style="{StaticResource CardStyle}">
+
+                        <StackPanel>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="A p-value quantifies the extremeness of the observed test statistic relative to its distribution under the null hypothesis. It is the probability, calculated under H₀, of obtaining a statistic at least as incompatible with H₀ as the one observed."/>
+
+                            <TextBlock Text="Step 1 — Specify the null distribution"
+                                       Style="{StaticResource DictionaryTopicHeadingStyle}"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Suppose H₀ states that μ = μ₀. When σ is unknown and the observations are normally distributed, the test statistic follows Student's t distribution under H₀."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="T = (X̄ - μ₀)/(S/√n)"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock Text="T ~ tₙ₋₁ under H₀"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+
+                            <TextBlock Text="Step 2 — Calculate the observed statistic"
+                                       Style="{StaticResource DictionaryTopicHeadingStyle}"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Substituting the observed sample quantities produces Tobs, the realised value of the test statistic. Its position in the null distribution determines the relevant tail probability."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <TextBlock
+                                    Text="Tobs = (x̄obs - μ₀)/(s/√n)"
+                                    Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                            </Border>
+
+
+                            <TextBlock Text="Step 3 — Calculate the tail probability"
+                                       Style="{StaticResource DictionaryTopicHeadingStyle}"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="The definition of an outcome at least as extreme as the observation depends on the direction of the alternative hypothesis."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock
+                                        Text="Right-tailed: p = P(T ≥ Tobs | H₀)"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock
+                                        Text="Left-tailed: p = P(T ≤ Tobs | H₀)"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
+
+                                    <TextBlock
+                                        Text="Two-sided: p = 2P(T ≥ |Tobs| | H₀)"
+                                        Style="{StaticResource DictionaryFormulaTextStyle}"
+                                        Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+
+                            <TextBlock
+                                Text="Numerical example — right-tailed one-sample t-test"
+                                Style="{StaticResource DictionaryTopicHeadingStyle}"
+                                Margin="0,20,0,6"/>
+
+                            <TextBlock
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Use the sample n = 25, x̄ = 52 and s = 10. Test H₀: μ = 50 against H₁: μ &gt; 50."/>
+
+                            <Border Style="{StaticResource FormulaBoxStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="H₀: μ = 50"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"/>
+
+                                    <TextBlock Text="H₁: μ &gt; 50"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="Tobs = (52 - 50)/(10/√25)"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="Tobs = 1"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="df = 24"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                    <TextBlock Text="p = P(T₂₄ ≥ 1) ≈ 0.1636"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,8,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionarySubtlePanelStyle}">
+
+                                <StackPanel>
+
+                                    <TextBlock Text="Decision at α = 0.05"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"
+                                               FontWeight="SemiBold"/>
+
+                                    <TextBlock Text="0.1636 &gt; 0.05"
+                                               Style="{StaticResource DictionaryFormulaTextStyle}"
+                                               Margin="0,9,0,0"/>
+
+                                    <TextBlock Text="Fail to reject H₀."
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontWeight="SemiBold"
+                                               Margin="0,9,0,0"/>
+
+                                    <TextBlock
+                                        Style="{StaticResource DictionarySupportingTextStyle}"
+                                        Text="The sample does not provide sufficiently strong evidence at the 5% level that μ is greater than 50."
+                                        Margin="0,6,0,0"/>
+
+                                </StackPanel>
+
+                            </Border>
+
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
+
+                                <TextBlock
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="A small p-value indicates that the observed result would be unusual under H₀. It provides evidence against H₀, but it is not the probability that H₀ is true and does not by itself measure practical importance."/>
+
+                            </Border>
+
+                        </StackPanel>
+
+                    </Border>
+
+                </Expander>
+
+
+                <!-- ========================================== -->
+                <!-- INTERACTIVE Z TEST -->
+                <!-- ========================================== -->
+
+                <Border x:Name="ZTestSection"
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,0,16">
 
                     <Grid>
 
@@ -1068,158 +1571,116 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-
-                        <!-- PARAMETERS -->
-
                         <StackPanel Grid.Column="0">
 
-                            <TextBlock
-                                Text="Interactive one-sample Z-test"
-                                Style="{StaticResource SectionTitleStyle}"/>
+                            <TextBlock Text="Interactive one-sample Z-test"
+                                       Style="{StaticResource SectionTitleStyle}"/>
 
                             <TextBlock
-                                Text="Use when testing a population mean with a known population standard deviation."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="Use this test when the population standard deviation is known and the sampling distribution of the mean is normal or adequately approximated by a normal distribution."
                                 Margin="0,7,0,14"/>
 
                             <Border Style="{StaticResource FormulaBoxStyle}">
 
-                                <TextBlock
-                                    Text="z = (x̄ - μ₀) / (σ / √n)"
-                                    FontFamily="Consolas"
-                                    FontSize="17"
-                                    FontWeight="SemiBold"
-                                    Foreground="{DynamicResource AccentBrush}"/>
+                                <TextBlock Text="z = (x̄ - μ₀)/(σ/√n)"
+                                           Style="{StaticResource DictionaryFormulaTextStyle}"/>
 
                             </Border>
 
+                            <TextBlock Text="Sample mean x̄"
+                                       Style="{StaticResource LabelStyle}"/>
 
-                            <TextBlock
-                                Text="Sample mean x̄"
-                                Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="ZSampleMeanTextBox"
+                                     Text="1.5"
+                                     Margin="0,6,0,10"
+                                     Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
 
-                            <TextBox
-                                x:Name="ZSampleMeanTextBox"
-                                Text="1.5"
-                                Margin="0,6,0,10"
-                                Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
+                            <TextBlock Text="Null mean μ₀"
+                                       Style="{StaticResource LabelStyle}"/>
 
+                            <TextBox x:Name="ZNullMeanTextBox"
+                                     Text="0"
+                                     Margin="0,6,0,10"
+                                     Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
 
-                            <TextBlock
-                                Text="Null mean μ₀"
-                                Style="{StaticResource LabelStyle}"/>
+                            <TextBlock Text="Known standard deviation σ"
+                                       Style="{StaticResource LabelStyle}"/>
 
-                            <TextBox
-                                x:Name="ZNullMeanTextBox"
-                                Text="0"
-                                Margin="0,6,0,10"
-                                Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
+                            <TextBox x:Name="ZSigmaTextBox"
+                                     Text="2"
+                                     Margin="0,6,0,10"
+                                     Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
 
+                            <TextBlock Text="Sample size n"
+                                       Style="{StaticResource LabelStyle}"/>
 
-                            <TextBlock
-                                Text="Known standard deviation σ"
-                                Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="ZSampleSizeTextBox"
+                                     Text="25"
+                                     Margin="0,6,0,10"
+                                     Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
 
-                            <TextBox
-                                x:Name="ZSigmaTextBox"
-                                Text="2"
-                                Margin="0,6,0,10"
-                                Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
+                            <TextBlock Text="Significance α"
+                                       Style="{StaticResource LabelStyle}"/>
 
+                            <TextBox x:Name="ZAlphaTextBox"
+                                     Text="0.05"
+                                     Margin="0,6,0,10"
+                                     Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
 
-                            <TextBlock
-                                Text="Sample size n"
-                                Style="{StaticResource LabelStyle}"/>
+                            <TextBlock Text="Alternative"
+                                       Style="{StaticResource LabelStyle}"/>
 
-                            <TextBox
-                                x:Name="ZSampleSizeTextBox"
-                                Text="25"
-                                Margin="0,6,0,10"
-                                Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
+                            <ComboBox x:Name="ZAlternativeComboBox"
+                                      SelectedIndex="0"
+                                      Margin="0,6,0,14"
+                                      Style="{StaticResource ProfessionalComboBoxStyle}">
 
+                                <ComboBoxItem Content="Two-sided: μ ≠ μ₀"
+                                              Tag="TwoSided"/>
 
-                            <TextBlock
-                                Text="Significance α"
-                                Style="{StaticResource LabelStyle}"/>
+                                <ComboBoxItem Content="Right-tailed: μ &gt; μ₀"
+                                              Tag="Right"/>
 
-                            <TextBox
-                                x:Name="ZAlphaTextBox"
-                                Text="0.05"
-                                Margin="0,6,0,10"
-                                Style="{StaticResource DictionaryParameterTextBoxStyle}"/>
-
-
-                            <TextBlock
-                                Text="Alternative"
-                                Style="{StaticResource LabelStyle}"/>
-
-                            <ComboBox
-                                x:Name="ZAlternativeComboBox"
-                                SelectedIndex="0"
-                                Margin="0,6,0,14"
-                                Style="{StaticResource ProfessionalComboBoxStyle}">
-
-                                <ComboBoxItem
-                                    Content="Two-sided: μ ≠ μ₀"
-                                    Tag="TwoSided"/>
-
-                                <ComboBoxItem
-                                    Content="Right-tailed: μ &gt; μ₀"
-                                    Tag="Right"/>
-
-                                <ComboBoxItem
-                                    Content="Left-tailed: μ &lt; μ₀"
-                                    Tag="Left"/>
+                                <ComboBoxItem Content="Left-tailed: μ &lt; μ₀"
+                                              Tag="Left"/>
 
                             </ComboBox>
 
-
-                            <Button
-                                Content="Run Z-test"
-                                Height="38"
-                                Style="{StaticResource PrimaryButtonStyle}"
-                                Click="RunZTestButton_Click"/>
+                            <Button Content="Run Z-test"
+                                    Height="38"
+                                    Style="{StaticResource PrimaryButtonStyle}"
+                                    Click="RunZTestButton_Click"/>
 
                         </StackPanel>
 
 
-                        <!-- RESULT -->
-
-                        <Border
-                            Grid.Column="2"
-                            BorderBrush="{DynamicResource BorderSubtleBrush}"
-                            BorderThickness="1"
-                            CornerRadius="9"
-                            Padding="18"
-                            Background="{DynamicResource SurfaceBrush}">
+                        <Border Grid.Column="2"
+                                BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                BorderThickness="1"
+                                CornerRadius="10"
+                                Padding="18"
+                                Background="{DynamicResource SurfaceBrush}">
 
                             <StackPanel>
 
-                                <TextBlock
-                                    Text="Result"
-                                    Style="{StaticResource SectionTitleStyle}"/>
+                                <TextBlock Text="Result"
+                                           Style="{StaticResource SectionTitleStyle}"/>
 
+                                <Border Background="{DynamicResource AppBackgroundBrush}"
+                                        BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                        BorderThickness="1"
+                                        CornerRadius="8"
+                                        Padding="14"
+                                        Margin="0,15,0,0">
 
-                                <Border
-                                    Background="{DynamicResource AppBackgroundBrush}"
-                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                    BorderThickness="1"
-                                    CornerRadius="7"
-                                    Padding="14"
-                                    Margin="0,15,0,0">
-
-                                    <TextBlock
-                                        x:Name="ZTestResultText"
-                                        Text="Enter the values and run the test."
-                                        TextWrapping="Wrap"
-                                        Foreground="{DynamicResource TextSecondaryBrush}"
-                                        FontSize="14"/>
+                                    <TextBlock x:Name="ZTestResultText"
+                                               Text="Enter the values and run the test."
+                                               TextWrapping="Wrap"
+                                               Foreground="{DynamicResource TextSecondaryBrush}"
+                                               FontSize="14"/>
 
                                 </Border>
-
-
-                                <!-- Z CHART HEADER -->
 
                                 <Grid Margin="0,22,0,8">
 
@@ -1230,48 +1691,42 @@
 
                                     <StackPanel>
 
-                                        <TextBlock
-                                            Text="Standard normal reference"
-                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                            FontSize="11"
-                                            FontWeight="SemiBold"/>
+                                        <TextBlock Text="Standard normal reference"
+                                                   Foreground="{DynamicResource TextPrimaryBrush}"
+                                                   FontSize="12"
+                                                   FontWeight="SemiBold"/>
 
                                         <TextBlock
                                             Text="Observed test statistic on the N(0,1) curve"
                                             Foreground="{DynamicResource TextMutedBrush}"
-                                            FontSize="9"
+                                            FontSize="10"
                                             Margin="0,3,0,0"/>
 
                                     </StackPanel>
 
-                                    <Border
-                                        Grid.Column="1"
-                                        Background="{DynamicResource AccentSoftBrush}"
-                                        CornerRadius="5"
-                                        Padding="8,3">
+                                    <Border Grid.Column="1"
+                                            Background="{DynamicResource AccentSoftBrush}"
+                                            BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Padding="8,3">
 
-                                        <TextBlock
-                                            Text="N(0,1)"
-                                            Foreground="{DynamicResource AccentBrush}"
-                                            FontFamily="Consolas"
-                                            FontSize="9"/>
+                                        <TextBlock Text="N(0,1)"
+                                                   Foreground="{DynamicResource AccentBrush}"
+                                                   FontFamily="Consolas"
+                                                   FontSize="9"/>
 
                                     </Border>
 
                                 </Grid>
 
-
-                                <!-- Z CHART -->
-
-                                <Border
-                                    Height="245"
-                                    Style="{StaticResource InteractiveChartBorderStyle}">
+                                <Border Height="245"
+                                        Style="{StaticResource InteractiveChartBorderStyle}">
 
                                     <Grid>
 
-                                        <Grid
-                                            IsHitTestVisible="False"
-                                            Opacity="0.40">
+                                        <Grid IsHitTestVisible="False"
+                                              Opacity="0.38">
 
                                             <Grid.RowDefinitions>
                                                 <RowDefinition/>
@@ -1287,87 +1742,72 @@
                                                 <ColumnDefinition/>
                                             </Grid.ColumnDefinitions>
 
-                                            <Border
-                                                Grid.Row="1"
-                                                Grid.ColumnSpan="4"
-                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                                BorderThickness="0,1,0,0"/>
+                                            <Border Grid.Row="1"
+                                                    Grid.ColumnSpan="4"
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                    BorderThickness="0,1,0,0"/>
 
-                                            <Border
-                                                Grid.Row="2"
-                                                Grid.ColumnSpan="4"
-                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                                BorderThickness="0,1,0,0"/>
+                                            <Border Grid.Row="2"
+                                                    Grid.ColumnSpan="4"
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                    BorderThickness="0,1,0,0"/>
 
-                                            <Border
-                                                Grid.Row="3"
-                                                Grid.ColumnSpan="4"
-                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                                BorderThickness="0,1,0,0"/>
+                                            <Border Grid.Row="3"
+                                                    Grid.ColumnSpan="4"
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                    BorderThickness="0,1,0,0"/>
 
-                                            <Border
-                                                Grid.Column="1"
-                                                Grid.RowSpan="4"
-                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                                BorderThickness="1,0,0,0"/>
+                                            <Border Grid.Column="1"
+                                                    Grid.RowSpan="4"
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                    BorderThickness="1,0,0,0"/>
 
-                                            <Border
-                                                Grid.Column="2"
-                                                Grid.RowSpan="4"
-                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                                BorderThickness="1,0,0,0"/>
+                                            <Border Grid.Column="2"
+                                                    Grid.RowSpan="4"
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                    BorderThickness="1,0,0,0"/>
 
-                                            <Border
-                                                Grid.Column="3"
-                                                Grid.RowSpan="4"
-                                                BorderBrush="{DynamicResource BorderSubtleBrush}"
-                                                BorderThickness="1,0,0,0"/>
+                                            <Border Grid.Column="3"
+                                                    Grid.RowSpan="4"
+                                                    BorderBrush="{DynamicResource BorderSubtleBrush}"
+                                                    BorderThickness="1,0,0,0"/>
 
                                         </Grid>
 
-                                        <Canvas
-                                            x:Name="ZTestCanvas"
-                                            Height="220"
-                                            Background="Transparent"
-                                            Margin="7"
-                                            SizeChanged="ZTestCanvas_SizeChanged"/>
+                                        <Canvas x:Name="ZTestCanvas"
+                                                Height="220"
+                                                Background="Transparent"
+                                                Margin="7"
+                                                SizeChanged="ZTestCanvas_SizeChanged"/>
 
                                     </Grid>
 
                                 </Border>
 
+                                <StackPanel Orientation="Horizontal"
+                                            HorizontalAlignment="Center"
+                                            Margin="0,9,0,0">
 
-                                <!-- LEGEND -->
+                                    <Ellipse Width="7"
+                                             Height="7"
+                                             Fill="{DynamicResource AccentBrush}"
+                                             Margin="0,0,5,0"
+                                             VerticalAlignment="Center"/>
 
-                                <StackPanel
-                                    Orientation="Horizontal"
-                                    HorizontalAlignment="Center"
-                                    Margin="0,9,0,0">
+                                    <TextBlock Text="Standard normal"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               FontSize="9"
+                                               Margin="0,0,18,0"/>
 
-                                    <Ellipse
-                                        Width="7"
-                                        Height="7"
-                                        Fill="{DynamicResource AccentBrush}"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"/>
+                                    <Border Width="15"
+                                            Height="2"
+                                            Background="{DynamicResource NegativeBrush}"
+                                            Margin="0,0,5,0"
+                                            VerticalAlignment="Center"/>
 
-                                    <TextBlock
-                                        Text="Standard normal"
-                                        Foreground="{DynamicResource TextMutedBrush}"
-                                        FontSize="9"
-                                        Margin="0,0,18,0"/>
-
-                                    <Border
-                                        Width="15"
-                                        Height="2"
-                                        Background="{DynamicResource NegativeBrush}"
-                                        Margin="0,0,5,0"
-                                        VerticalAlignment="Center"/>
-
-                                    <TextBlock
-                                        Text="Observed z"
-                                        Foreground="{DynamicResource TextMutedBrush}"
-                                        FontSize="9"/>
+                                    <TextBlock Text="Observed z"
+                                               Foreground="{DynamicResource TextMutedBrush}"
+                                               FontSize="9"/>
 
                                 </StackPanel>
 
@@ -1380,33 +1820,23 @@
                 </Border>
 
 
-                <!-- WORKFLOW -->
-
-                <Expander
-                    x:Name="TestingWorkflowTopic"
-                    Header="General testing workflow"
-                    Margin="0,0,0,10">
+                <Expander x:Name="TestingWorkflowTopic"
+                          Header="General testing workflow"
+                          Style="{StaticResource DictionaryExpanderStyle}">
 
                     <Border Style="{StaticResource CardStyle}">
 
                         <StackPanel>
 
                             <TextBlock
-                                Text="1. Define H₀ and H₁.  2. Choose α.  3. Check assumptions.  4. Calculate a test statistic.  5. Obtain the p-value or critical region.  6. Reject or fail to reject H₀.  7. Interpret the result in context."
-                                TextWrapping="Wrap"
-                                Foreground="{DynamicResource TextSecondaryBrush}"/>
+                                Style="{StaticResource DictionaryBodyTextStyle}"
+                                Text="1. Define H₀ and H₁.  2. Choose α.  3. Check the model assumptions.  4. Calculate the test statistic.  5. Obtain the p-value or critical region.  6. Reject or fail to reject H₀.  7. Interpret the result in context."/>
 
-                            <Border
-                                Background="{DynamicResource AccentSoftBrush}"
-                                CornerRadius="7"
-                                Padding="12"
-                                Margin="0,14,0,0">
+                            <Border Style="{StaticResource DictionaryInsightPanelStyle}">
 
                                 <TextBlock
-                                    Text="Failing to reject H₀ is not proof that H₀ is true."
-                                    FontWeight="SemiBold"
-                                    Foreground="{DynamicResource TextSecondaryBrush}"
-                                    TextWrapping="Wrap"/>
+                                    Style="{StaticResource DictionarySupportingTextStyle}"
+                                    Text="Statistical significance should be interpreted together with effect size, uncertainty, model assumptions and practical relevance."/>
 
                             </Border>
 

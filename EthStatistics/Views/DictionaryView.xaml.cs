@@ -63,8 +63,8 @@ namespace EthStatistics.Views
         // ==========================================
 
         private void SearchTextBox_TextChanged(
-            object sender,
-            TextChangedEventArgs e)
+       object sender,
+       TextChangedEventArgs e)
         {
             string query =
                 SearchTextBox
@@ -88,7 +88,17 @@ namespace EthStatistics.Views
                 query,
                 "variance standard deviation dispersion spread"
             );
+            ApplySearch(
+    ConfidenceIntervalTopic,
+    query,
+    "confidence interval first principles pivot mean normal z student t known sigma unknown sigma standard error quantile coverage critical value"
+);
 
+            ApplySearch(
+                PValueTopic,
+                query,
+                "p value p-value hypothesis probability observed statistic tobs tail significance student t numerical example null distribution"
+            );
             ApplySearch(
                 ReturnsTopic,
                 query,
@@ -113,6 +123,18 @@ namespace EthStatistics.Views
                 HypothesisBasicsTopic,
                 query,
                 "hypothesis null alternative significance alpha type one type two error p-value"
+            );
+
+            ApplySearch(
+                ConfidenceIntervalTopic,
+                query,
+                "confidence interval first principles pivot mean normal z student t known sigma unknown sigma standard error quantile c1 c2 coverage"
+            );
+
+            ApplySearch(
+                PValueTopic,
+                query,
+                "p value p-value hypothesis probability observed statistic tobs tail significance student t numerical example"
             );
 
             ZTestSection.Visibility =

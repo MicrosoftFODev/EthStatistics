@@ -9,7 +9,7 @@
   <Identity
     Name="84e6079f-6509-4d2d-8305-f2f6f28af628"
     Publisher="CN=zoisa"
-    Version="1.1.1.0" />
+    Version="1.2.2.0" />
 
   <Properties>
     <DisplayName>EthStatistics.Package</DisplayName>

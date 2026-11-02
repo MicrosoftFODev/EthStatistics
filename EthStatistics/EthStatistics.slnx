@@ -9,6 +9,11 @@
   <Project Path="../EthStatistics.Package/EthStatistics.Package.wapproj" Type="c7167f0d-bc9f-4e6e-afe1-012c56b48db5" Id="7b3d066f-0d67-4587-bcb0-da8cd6a22650">
     <Deploy />
   </Project>
+  <Project Path="../EthStatisticsWeb/ethstatisticsweb.esproj">
+    <Platform Project="AnyCPU" />
+    <Build />
+    <Deploy />
+  </Project>
   <Project Path="../QuantEngine/QuantEngine.vcxproj" Id="6a0814f5-f4b8-4301-8971-727f932742f4">
     <Platform Solution="*|ARM" Project="x64" />
     <Platform Solution="*|ARM64" Project="x64" />
