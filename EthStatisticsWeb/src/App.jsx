@@ -2,10 +2,12 @@ import "./App.css";
 
 function App() {
     const downloadApp = () => {
-        // We will replace this with the real installer URL later.
-        document.getElementById("download")?.scrollIntoView({
-            behavior: "smooth",
-        });
+        const link = document.createElement("a");
+        link.href = "/downloads/EthStatistics.msix";
+        link.download = "EthStatistics.msix";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -540,7 +542,7 @@ function App() {
                             through a quantitative lens.
                         </p>
 
-                        <button className="downloadBig">
+                        <button className="downloadBig" onClick={downloadApp}>
                             <span className="downloadArrow">↓</span>
 
                             <span>
@@ -550,8 +552,7 @@ function App() {
                         </button>
 
                         <div className="downloadNote">
-                            The installer will be connected here once the desktop build is
-                            ready.
+                            Version 1.0 • Windows x64
                         </div>
                     </div>
                 </section>
