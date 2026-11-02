@@ -30,12 +30,12 @@ $installer = @'
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version Latest
 $expectedThumbprint = "0550DD920F9066E7A9DE580A3F2693EC635C7255"
-$setupFolder = Split-Path -Parent $MyInvocation.MyCommand.Path
+$setupFolder = $PSScriptRoot
 $certificatePath = Join-Path $setupFolder "EthStatistics.cer"
 $bundle = Get-ChildItem -Path $setupFolder -File -Filter "*.msixbundle" | Select-Object -First 1
 $isAdministrator = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
 if (-not $isAdministrator) {
-    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$($MyInvocation.MyCommand.Path)`""
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -File `"$PSCommandPath`""
     Start-Process powershell.exe -Verb RunAs -ArgumentList $arguments
     exit
 }
