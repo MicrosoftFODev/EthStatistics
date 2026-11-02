@@ -3,11 +3,12 @@ import "./App.css";
 function App() {
     const downloadApp = () => {
         const link = document.createElement("a");
-        link.href =
-            `${import.meta.env.BASE_URL}downloads/EthStatistics.Package.appinstaller`;
 
-        link.download = "EthStatistics.Package.appinstaller";
-        link.download = "EthStatistics.msix";
+        link.href =
+            `${import.meta.env.BASE_URL}downloads/EthStatistics.Package_1.5.5.0_Test/EthStatistics.Package_1.5.5.0_x64.msixbundle`;
+
+        link.download = "EthStatistics.Package_1.5.5.0_x64.msixbundle";
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
