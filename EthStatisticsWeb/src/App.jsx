@@ -3,7 +3,7 @@ import "./App.css";
 function App() {
     const downloadApp = () => {
         const link = document.createElement("a");
-        link.href = "/downloads/EthStatistics.msix";
+        link.href = `${import.meta.env.BASE_URL}downloads/EthStatistics.msix`;
         link.download = "EthStatistics.msix";
         document.body.appendChild(link);
         link.click();
