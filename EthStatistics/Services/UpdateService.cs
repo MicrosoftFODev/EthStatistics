@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Net.Http;
-using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using Windows.ApplicationModel;
 
 namespace EthStatistics.Services
 {
@@ -19,6 +20,14 @@ namespace EthStatistics.Services
                 Timeout = TimeSpan.FromSeconds(10)
             };
 
+        private static readonly string LogPath =
+            Path.Combine(
+                Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                "EthStatistics",
+                "update.log"
+            );
+
         public async Task CheckAndDownloadUpdateAsync()
         {
             try
@@ -26,11 +35,12 @@ namespace EthStatistics.Services
                 Version currentVersion =
                     GetCurrentVersion();
 
-                string url =
-                    $"{UpdateJsonUrl}?t={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
+                string requestUrl =
+                    $"{UpdateJsonUrl}?nocache={DateTimeOffset.UtcNow.ToUnixTimeSeconds()}";
 
                 string json =
-                    await HttpClient.GetStringAsync(url);
+                    await HttpClient.GetStringAsync(
+                        requestUrl);
 
                 UpdateInfo? update =
                     JsonSerializer.Deserialize<UpdateInfo>(
@@ -42,6 +52,9 @@ namespace EthStatistics.Services
 
                 if (update == null)
                 {
+                    WriteLog(
+                        $"Current={currentVersion}; JSON could not be parsed.");
+
                     return;
                 }
 
@@ -49,44 +62,57 @@ namespace EthStatistics.Services
                         update.Version,
                         out Version? latestVersion))
                 {
+                    WriteLog(
+                        $"Current={currentVersion}; Invalid public version={update.Version}");
+
                     return;
                 }
 
+                WriteLog(
+                    $"Current={currentVersion}; Latest={latestVersion}");
+
+                // This is the critical check.
+                // Browser opens ONLY if website version is newer.
                 if (latestVersion <= currentVersion)
                 {
+                    WriteLog(
+                        "No update required.");
+
                     return;
                 }
 
                 if (!IsTrustedUpdateUrl(
                         update.DownloadUrl))
                 {
+                    WriteLog(
+                        $"Rejected update URL: {update.DownloadUrl}");
+
                     return;
                 }
+
+                WriteLog(
+                    $"Update available. Opening {update.DownloadUrl}");
 
                 OpenDownloadUrl(
                     update.DownloadUrl);
             }
-            catch
+            catch (Exception ex)
             {
-                // Never stop EthStatistics from opening
-                // because an update check failed.
+                WriteLog(
+                    $"Update check failed: {ex}");
             }
         }
 
-        public Version GetCurrentVersion()
+        private static Version GetCurrentVersion()
         {
-            Version? version =
-                Assembly
-                    .GetExecutingAssembly()
-                    .GetName()
-                    .Version;
+            PackageVersion packageVersion =
+                Package.Current.Id.Version;
 
-            return version ??
-                   new Version(
-                       0,
-                       0,
-                       0,
-                       0);
+            return new Version(
+                packageVersion.Major,
+                packageVersion.Minor,
+                packageVersion.Build,
+                packageVersion.Revision);
         }
 
         private static bool IsTrustedUpdateUrl(
@@ -125,6 +151,31 @@ namespace EthStatistics.Services
                 });
         }
 
+        private static void WriteLog(
+            string message)
+        {
+            try
+            {
+                string? directory =
+                    Path.GetDirectoryName(
+                        LogPath);
+
+                if (!string.IsNullOrWhiteSpace(
+                        directory))
+                {
+                    Directory.CreateDirectory(
+                        directory);
+                }
+
+                File.AppendAllText(
+                    LogPath,
+                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {message}{Environment.NewLine}");
+            }
+            catch
+            {
+                // Logging must never prevent startup.
+            }
+        }
 
         private sealed class UpdateInfo
         {

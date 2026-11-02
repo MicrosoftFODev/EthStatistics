@@ -1,17 +1,57 @@
 import "./App.css";
 
 function App() {
-    const downloadApp = () => {
-        const link = document.createElement("a");
+    const downloadApp = async () => {
+        try {
+            const metadataUrl =
+                `${import.meta.env.BASE_URL}downloads/latest-version.json?nocache=${Date.now()}`;
 
-        link.href =
-            `${import.meta.env.BASE_URL}downloads/EthStatistics.Package_1.5.5.0_Test/EthStatistics.Package_1.5.5.0_x64.msixbundle`;
+            const response = await fetch(metadataUrl, {
+                cache: "no-store",
+            });
 
-        link.download = "EthStatistics.Package_1.5.5.0_x64.msixbundle";
+            if (!response.ok) {
+                throw new Error(
+                    `Could not load the latest release: ${response.status}`
+                );
+            }
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+            const release = await response.json();
+
+            if (
+                !release.downloadUrl ||
+                typeof release.downloadUrl !== "string"
+            ) {
+                throw new Error(
+                    "The release metadata does not contain a download URL."
+                );
+            }
+
+            const downloadUrl = new URL(release.downloadUrl);
+
+            if (
+                downloadUrl.protocol !== "https:" ||
+                downloadUrl.hostname !== "microsoftfodev.github.io" ||
+                !downloadUrl.pathname
+                    .toLowerCase()
+                    .endsWith(".msixbundle")
+            ) {
+                throw new Error(
+                    "The release download URL is not valid."
+                );
+            }
+
+            window.location.href = downloadUrl.href;
+        } catch (error) {
+            console.error(
+                "EthStatistics download failed:",
+                error
+            );
+
+            alert(
+                "The latest EthStatistics package could not be downloaded. Please try again shortly."
+            );
+        }
     };
 
     return (
