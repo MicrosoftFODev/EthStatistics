@@ -496,7 +496,7 @@ Dev
         $status -join "`n"
 
 
-    if (:IsNullOrWhiteSpace($statusText))
+    if ([string]::IsNullOrWhiteSpace($statusText))
     {
         Write-Host ""
         Write-Host "No Git changes detected." -ForegroundColor Yellow
